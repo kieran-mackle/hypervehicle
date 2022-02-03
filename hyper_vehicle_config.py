@@ -40,7 +40,7 @@ class GConf:
     "FUSELAGE_GEOMETRY_DICT": None,
     
     # FIN GEOMETRY DEFINITION
-    "FIN_GEOMETRY_DICT": None,
+    "FIN_GEOMETRY_DICT": [None],
     "MIRROR_FIN": True
     }
 

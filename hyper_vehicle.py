@@ -408,7 +408,8 @@ def main(global_config):
                 fuse_coll.set_facecolor('r')
                 ax.add_collection3d(fuse_coll)
                 
-                if GConf.FIN_GEOMETRY_DICT is not None:
+                if GConf.FIN_GEOMETRY_DICT[0] is not None:
+                    # TODO - this needs to be updated (and probably the wing plotting)
                     fin_coll = mplot3d.art3d.Poly3DCollection(fin_stl_mesh.vectors)
                     fin_coll.set_facecolor('c')
                     ax.add_collection3d(fin_coll)
