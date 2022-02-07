@@ -120,7 +120,7 @@ class GConf:
                     for fuse_option, valid_fuse_inputs in valid_inputs.items():
                         if GConf._config["FUSELAGE_GEOMETRY_DICT"][fuse_option] not in valid_fuse_inputs:
                             raise Exception(
-                                    "Configuration variable " + fuse_option + " = " +
+                                    "Configuration variable " + fuse_option + ": " +
                                     str(GConf._config["FUSELAGE_GEOMETRY_DICT"][fuse_option]) + " is not valid." +
                                     "Valid values are " + str([valid_fuse_inputs]))
             

@@ -1,11 +1,4 @@
 #!/usr/bin/python3.8
-"""
-Wing Geometry Generator for gliding hypersonic vehicle.
-
-Authors: Ingo Jahn, Kieran Mackle
-Created on: 02/07/2021
-Last Modified: 02/07/2021
-"""
 
 from getopt import getopt
 import numpy as np
@@ -23,8 +16,9 @@ from idmoc.hypervehicle.fusgen import hyper_fuselage_main
 from idmoc.hypervehicle.wingen import hyper_wing_main
 from idmoc.hypervehicle.fingen import hyper_fin_main
 
+
 class Vehicle:
-    """hypervehicle class object.
+    """hypervehicle object.
     
     """
     
@@ -37,8 +31,82 @@ class Vehicle:
             The verbosity of the code (default value is 1; moderate verbosity).
         """
         self.verbosity = verbosity
-
-
+        
+        
+    def add_component(component_type: str, component_dict: dict):
+        """Adds a vehicle component.
+        """
+        
+        
+    def add_global_config(self, global_config: dict) -> None:
+        """Unpacks a global configuration dictionary.
+        """
+        self._check_inputs(global_config)
+        
+    
+    @staticmethod
+    def _check_inputs(global_config: dict):
+        """Checks that global config inputs are valid.
+        
+        The function checks that the values provided in the global 
+        configuration dictionary are in the set of valid inputs for that
+        option.
+        """
+        
+        # Define valid inputs
+        valid_input_dict = {"VERBOSITY": [0, 1, 2, 3],
+                            "CREATE_WING": [True, False],
+                            "CREATE_FUSELAGE": [True, False],
+                            "CREATE_VTK_MESH": [True, False],
+                            "CREATE_STL_OBJECT": [True, False],
+                            "STL_INCLUDE_MIRROR": [True, False],
+                            "STL_SHOW_IN_MATPLOT": [True, False],
+                            "WING_GEOMETRY_DICT": {"Line_B0TT_TYPE": ["Bezier"],
+                                                   "TAIL_OPTION": ["NONE", "FLAP"],},
+                            "FUSELAGE_GEOMETRY_DICT": {"FUSELAGE_NOSE_OPTION": ["sharp-cone"],
+                                                       "FUSELAGE_TAIL_OPTION": ["sharp-cone", "flat"],},
+                            "MIRROR_FIN": [True, False],
+                            }
+        
+        # Ensure wing and fin geometry dict(s) in list form
+        for component in ['WING', 'FIN']:
+            if (f'{component}_GEOMETRY_DICT' in global_config) and (type(global_config[f'{component}_GEOMETRY_DICT']) != list):
+                global_config[f'{component}_GEOMETRY_DICT'] = [global_config[f'{component}_GEOMETRY_DICT']]
+        
+        # Check provided options
+        for option, valid_inputs in valid_input_dict.items():
+            if option == "WING_GEOMETRY_DICT":
+                # Check inputs for wing geometry dictionary
+                for wing_geom_dict in global_config["WING_GEOMETRY_DICT"]:
+                    for wing_option, valid_wing_inputs in valid_inputs.items():
+                        if wing_geom_dict[wing_option] not in valid_wing_inputs:
+                            raise Vehicle.InvalidInputError(wing_option, valid_wing_inputs)
+            
+            elif option == "FUSELAGE_GEOMETRY_DICT":
+                # Check inputs for fuselage geometry dictionary
+                if global_config["FUSELAGE_GEOMETRY_DICT"] is not None:
+                    for fuse_option, valid_fuse_inputs in valid_inputs.items():
+                        if global_config["FUSELAGE_GEOMETRY_DICT"][fuse_option] not in valid_fuse_inputs:
+                            raise Vehicle.InvalidInputError(fuse_option, valid_fuse_inputs)
+            
+            elif global_config[option] not in valid_inputs:
+                raise Vehicle.InvalidInputError(option, valid_inputs)
+    
+    
+    class InvalidInputError(Exception):
+        """Invalid input exception.
+        """
+        
+        def __init__(self, option, valid_inputs):
+            self.option = option
+            self.message = f'Value provided for option "{option}" is ' +\
+                f'not valid. Valid options are: {valid_inputs}.'
+            super().__init__(self.message)
+        
+        def __str__(self):
+            return f'{self.message}'
+        
+    
     def main(self, global_config: dict) -> None:
         """Run hypervehicle geometry generation code.
         
@@ -387,68 +455,79 @@ class Vehicle:
                 print("")
     
             if GConf.STL_SHOW_IN_MATPLOT == True:
-                if GConf.VERBOSITY > 0:
-                    print("START: Show in matplotlib")
-    
-                if GConf.CREATE_WING == True:
-                    # Create a new plot
-                    figure = plt.figure()
-                    ax = mplot3d.Axes3D(figure)
-    
-                    # Render the wing
-                    ax.add_collection3d(mplot3d.art3d.Poly3DCollection(wing_stl_mesh.vectors))
-                    # Auto scale to the mesh size
-                    scale = wing_stl_mesh.points.flatten()
-                    ax.auto_scale_xyz(scale, scale, scale)
-                    ax.set_xlabel("X-axis")
-                    ax.set_ylabel("Y-axis")
-                    ax.set_zlabel("Z-axis")
-                    
-                if GConf.CREATE_FUSELAGE == True:
-                    # Create a new plot
-                    figure = plt.figure()
-                    ax = mplot3d.Axes3D(figure)
-    
-                    # Render the fuselage
-                    ax.add_collection3d(mplot3d.art3d.Poly3DCollection(fuse_stl_mesh.vectors))
-                    # Auto scale to the mesh size
-                    scale = fuse_stl_mesh.points.flatten()
-                    ax.auto_scale_xyz(scale, scale, scale)
-                    ax.set_xlabel("X-axis")
-                    ax.set_ylabel("Y-axis")
-                    ax.set_zlabel("Z-axis")
-                    
-                if GConf.CREATE_WING == True and GConf.CREATE_FUSELAGE == True:
-                    # Create a new plot
-                    figure = plt.figure()
-                    ax = mplot3d.Axes3D(figure)
-    
-                    # Render the wing and fuselage
-                    wing_coll = mplot3d.art3d.Poly3DCollection(wing_stl_mesh.vectors)
-                    ax.add_collection3d(wing_coll)
-                    fuse_coll = mplot3d.art3d.Poly3DCollection(fuse_stl_mesh.vectors)
-                    fuse_coll.set_facecolor('r')
-                    ax.add_collection3d(fuse_coll)
-                    
-                    if GConf.FIN_GEOMETRY_DICT[0] is not None:
-                        # TODO - this needs to be updated (and probably the wing plotting)
-                        fin_coll = mplot3d.art3d.Poly3DCollection(fin_stl_mesh.vectors)
-                        fin_coll.set_facecolor('c')
-                        ax.add_collection3d(fin_coll)
+                self._mpl_plot()
     
     
-                    # Auto scale to the mesh size
-                    scale = wing_stl_mesh.points.flatten()
-                    ax.auto_scale_xyz(scale, scale, scale)
-                    ax.set_xlabel("X-axis")
-                    ax.set_ylabel("Y-axis")
-                    ax.set_zlabel("Z-axis")
+    def _evaluate_mesh_properties(self,):
+        """Evaluates properties of stl.
+        """
     
-                # Show the plot to the screen
-                plt.show()
-                if GConf.VERBOSITY > 0:
-                    print("  DONE: Show in matplotlib")
-                    print("")
+    def _mpl_plot(self,):
+        """Plots stl components.
+        """
+        if GConf.VERBOSITY > 0:
+            print("START: Show in matplotlib")
+
+        if GConf.CREATE_WING == True:
+            # Create a new plot
+            figure = plt.figure()
+            ax = mplot3d.Axes3D(figure)
+
+            # Render the wing
+            ax.add_collection3d(mplot3d.art3d.Poly3DCollection(wing_stl_mesh.vectors))
+            # Auto scale to the mesh size
+            scale = wing_stl_mesh.points.flatten()
+            ax.auto_scale_xyz(scale, scale, scale)
+            ax.set_xlabel("X-axis")
+            ax.set_ylabel("Y-axis")
+            ax.set_zlabel("Z-axis")
+            
+        if GConf.CREATE_FUSELAGE == True:
+            # Create a new plot
+            figure = plt.figure()
+            ax = mplot3d.Axes3D(figure)
+
+            # Render the fuselage
+            ax.add_collection3d(mplot3d.art3d.Poly3DCollection(fuse_stl_mesh.vectors))
+            # Auto scale to the mesh size
+            scale = fuse_stl_mesh.points.flatten()
+            ax.auto_scale_xyz(scale, scale, scale)
+            ax.set_xlabel("X-axis")
+            ax.set_ylabel("Y-axis")
+            ax.set_zlabel("Z-axis")
+            
+        if GConf.CREATE_WING == True and GConf.CREATE_FUSELAGE == True:
+            # Create a new plot
+            figure = plt.figure()
+            ax = mplot3d.Axes3D(figure)
+
+            # Render the wing and fuselage
+            wing_coll = mplot3d.art3d.Poly3DCollection(wing_stl_mesh.vectors)
+            ax.add_collection3d(wing_coll)
+            fuse_coll = mplot3d.art3d.Poly3DCollection(fuse_stl_mesh.vectors)
+            fuse_coll.set_facecolor('r')
+            ax.add_collection3d(fuse_coll)
+            
+            if GConf.FIN_GEOMETRY_DICT[0] is not None:
+                # TODO - this needs to be updated (and probably the wing plotting)
+                fin_coll = mplot3d.art3d.Poly3DCollection(fin_stl_mesh.vectors)
+                fin_coll.set_facecolor('c')
+                ax.add_collection3d(fin_coll)
+
+
+            # Auto scale to the mesh size
+            scale = wing_stl_mesh.points.flatten()
+            ax.auto_scale_xyz(scale, scale, scale)
+            ax.set_xlabel("X-axis")
+            ax.set_ylabel("Y-axis")
+            ax.set_zlabel("Z-axis")
+
+        # Show the plot to the screen
+        plt.show()
+        if GConf.VERBOSITY > 0:
+            print("  DONE: Show in matplotlib")
+            print("")
+    
     
     @staticmethod
     def usage():
@@ -476,7 +555,7 @@ class Vehicle:
             The absolute path of the working directory (where the template is
             to be copied to).
         """
-        # TODO - reimplement this method
+        # TODO - copy from idmoc bin (use MANIFEST.in ?)
         if directory is not None:
             install_dir = os.environ["IDMOC"]
             template_job_location = os.path.join(install_dir, 'bin', 'job_template.py')
@@ -540,7 +619,7 @@ if __name__ == '__main__':
         hv.check_uo_dict(uo_dict)
         global_config = hv.load_global_config(uo_dict) # TODO - assign to attribute
         
-        hv.main(global_config)
+        # hv.main(global_config)
         print("\n")
         print("SUCCESS.")
         print("\n")
