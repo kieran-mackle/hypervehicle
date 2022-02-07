@@ -449,88 +449,97 @@ class Vehicle:
                 if GConf.VERBOSITY > 0:
                     print("  DONE: Show in matplotlib")
                     print("")
+    
+    @staticmethod
+    def usage():
+        print("Hypersonic Vehicle Geometry Generation Tool")
+        print("============================================")
+        print("Usage Instructions\n")
+        print("  vehicle_gen.py --job=jobfile    ")
+        print("")
+        print("Argument:                    Comment:")
+        print("------------------------------------------------------------------------")
+        print(" --job_template       Create a template job-file.")
+        print(" --help               Displays this message.")
+        print(" --instructions       Displays and overview of run instructions.")
+        print(" --job=               String containing file name for job-file.")
+        print("                          dictionary.")
+        print("\n Please refer to the hypervehicle docs for more information.")
+    
+    @staticmethod
+    def create_template(directory: str = None) -> None:
+        """Copies a hypervehicle job template to the specified directoty.
+        
+        Parameters
+        ----------
+        directory : str
+            The absolute path of the working directory (where the template is
+            to be copied to).
+        """
+        # TODO - reimplement this method
+        if directory is not None:
+            install_dir = os.environ["IDMOC"]
+            template_job_location = os.path.join(install_dir, 'bin', 'job_template.py')
+            shutil.copy(template_job_location, directory)
+        else:
+            raise Exception("Please provide the absolute path to your " + \
+                            "working directory.")
 
-def load_global_config(uodict):
-    'Loads global config dict from file'
-    # Read the jobfile
-    exec(open(uo_dict["--job"]).read(), globals())
-    return global_config
+    @staticmethod
+    def load_global_config(uodict: dict) -> dict:
+        """Loads the global config dict from a hypervehicle job file.
+        
+        Parameters
+        ----------
+        uodict : dict
+            The user-options dictionary.
+        """
+        # Read the jobfile
+        exec(open(uo_dict["--job"]).read(), globals())
+        
+        return global_config
 
-
-def copy_template_jobfile():
-    """
-    function to copy a template job file to the current directoty.
-    """
-    install_dir = os.environ["IDMOC_INST"]
-    template_job_location = os.path.join(install_dir, 'bin', 'job_template.py')
-    print("")
-    print("Copying template jobfile from: {0} to current directory".format(template_job_location))
-    print("")
-    shutil.copy(template_job_location, os.getcwd())
-
-
-def print_usage():
-    print("Work in progress")
-    print("===============")
-    print("")
-    print("  vehicle_gen.py --job=jobfile    ")
-    print("")
-    print("Argument:                    Comment:")
-    print("------------------------------------------------------------------------")
-    print(" --job_template       Create a template job-file.")
-    print(" --help               Displays this message.")
-    print(" --instructions       Displays and overview of run instructions.")
-    print(" --job=               String containing file name for job-file.")
-    print("                          dictionary.")
-    print("")
-
-
-def print_instructions():
-    print("")
-    print("     Tool to Generate Flight Vehicle Geometries")
-    print("   ==============================================")
-    print("Need to add instructions:")
-
-def check_uo_dict(uo_dict):
-    """Check all mandatory options have been provided."""
-    reqd_options = ["--job"]
-    for op in reqd_options:
-        if op not in uo_dict:
-            raise Exception("".join(("bulk_run_CFD.py requires argument '",
-                              op, "', but this argument was not provided.\n")))
-
-    # Check that jobfile exists
-    if not os.path.isfile(uo_dict["--job"]):
-        raise Exception("".join(("Jobfile '", uo_dict["--job"], "' not found,",
-                          " check that file path is correct.\n")))
+    @staticmethod
+    def check_uo_dict(uo_dict):
+        """Checks all mandatory options have been provided.
+        
+        Parameters
+        ----------
+        uodict : dict
+            The user-options dictionary.
+        """
+        reqd_options = ["--job"]
+        for op in reqd_options:
+            if op not in uo_dict:
+                raise Exception("".join(("bulk_run_CFD.py requires argument '",
+                                  op, "', but this argument was not provided.\n")))
+    
+        # Check that jobfile exists
+        if not os.path.isfile(uo_dict["--job"]):
+            raise Exception("".join(("Jobfile '", uo_dict["--job"], "' not found,",
+                              " check that file path is correct.\n")))
         
 
 short_options = ""
-long_options = ["help", "job=", "instructions", "job_template"]
-
+long_options = ["help", "job=", "job_template"]
 
 if __name__ == '__main__':
     user_options = getopt(sys.argv[1:], short_options, long_options)
     uo_dict = dict(user_options[0])
-
+    
+    # Create vehicle instance
+    hv = Vehicle()
+        
     if len(user_options[0]) == 0 or "--help" in uo_dict:
-        print_usage()
-        sys.exit(1)
-
-    elif "--instructions" in uo_dict:
-        print_instructions()
-        sys.exit(1)
+        hv.usage()
 
     elif "--job_template" in uo_dict:
-        copy_template_jobfile()
-        sys.exit(1)
+        hv.create_template(os.getcwd())
 
     else:
-        check_uo_dict(uo_dict)
-        global_config = load_global_config(uo_dict)
+        hv.check_uo_dict(uo_dict)
+        global_config = hv.load_global_config(uo_dict) # TODO - assign to attribute
         
-        # Create vehicle instance
-        hv = Vehicle()
         hv.main(global_config)
         print("\n")
         print("SUCCESS.")
