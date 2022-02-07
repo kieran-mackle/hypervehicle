@@ -33,8 +33,10 @@ class Vehicle:
         self.verbosity = verbosity
         self.global_config = None
         
+    
     def __repr__(self):
-        return "Parametric hypersonic vehicle geometry object."
+        return "Parameterised hypersonic vehicle geometry."
+    
     
     def add_component(component_type: str, component_dict: dict):
         """Adds a vehicle component.
@@ -50,16 +52,62 @@ class Vehicle:
             A dictionary containing a dictionary for each component to be generated.
         """
         
-        # Check inputs
+        # Read and check inputs
+        global_config = self._read_inputs(global_config)
         self._check_inputs(global_config)
+        
+        # Unpack - I think redundant ...
+        # self._unpack_inputs(global_config)
         
         # Assign global config
         # TODO - unpack this
         self.global_config = global_config
+    
+    
+    @staticmethod
+    def _read_inputs(global_config: dict) -> dict:
+        """Reads all keys provided in the global configuration dictionary
+        and replaces default values if present.
+        """
+        
+        default_config = {"VERBOSITY": 1,     # 0, 1, 2 - set reporting level.
+                          "VEHICLE_ANGLE": 0, # Vehicle angle adjustment
+                          "CREATE_WING": True,     # create wing geometry
+                          "CREATE_FUSELAGE": False,    # create fuselage geometry
+                          "CREATE_VTK_MESH": False,
+                          "VTK_FILENAME": "test.vtk",
+                          "VTK_RESOLUTION": 10,       # number of cell vertices per edge
+                          "CREATE_STL_OBJECT": True,
+                          "STL_FILENAME": "test.stl",
+                          "STL_RESOLUTION": 10,       # number of triangle vertices per edge
+                          "STL_INCLUDE_MIRROR": True,     # include mirror image in STL
+                          "STL_SHOW_IN_MATPLOT": False,     # Create Matplotlib image
+                          "WING_GEOMETRY_DICT": None,
+                          "FUSELAGE_GEOMETRY_DICT": None,
+                          "FIN_GEOMETRY_DICT": [None],
+                          "MIRROR_FIN": True}
+        
+        for option, value in global_config.items():
+            if option not in default_config:
+                raise Exception(f'Invalid configuration variable "{option}"'+\
+                                ' provided. Please check and try again.')
+            
+            # Overwrite
+            default_config[option] = value
+        
+        return default_config
+        
+    
+    def _unpack_inputs(self, global_config: dict) -> None:
+        """Unpacks global configuration dictionary and assigns attributes
+        to Vehicle.
+        """
+        
+        self.verbosity = 0
         
     
     @staticmethod
-    def _check_inputs(global_config: dict):
+    def _check_inputs(global_config: dict) -> None:
         """Checks that global config inputs are valid.
         
         The function checks that the values provided in the global 
