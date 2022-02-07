@@ -23,8 +23,14 @@ from idmoc.hypervehicle.fusgen import hyper_fuselage_main
 from idmoc.hypervehicle.wingen import hyper_wing_main
 from idmoc.hypervehicle.fingen import hyper_fin_main
 
-def main(global_config):
-    """ Run the main piece of code."""
+def main(global_config: dict) -> None:
+    """Run hypervehicle geometry generation code.
+    
+    Parameters
+    ----------
+    global_config : dict
+        A dictionary containing a dictionary for each component to be generated.
+    """
     
     GConf.read_inputs(global_config)
     GConf.check_inputs()

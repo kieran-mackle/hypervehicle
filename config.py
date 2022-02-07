@@ -1,13 +1,9 @@
 #! /usr/bin/env python
-"""
-Configuartion file for hypervehicle
-
-Authors: Ingo Jahn, Kieran Mackle
-Created: 30 August 2021
-Last Modified: 30/8/2021
-"""
 
 class GConf:
+    """Parameter configuration class for hypervehicle module.
+    """
+    
     # Define all global-level config vars (with default value if applicable)
     _config = {
     "VERBOSITY"     : 1,     # 0, 1, 2 - set reporting level.
