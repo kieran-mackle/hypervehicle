@@ -31,6 +31,7 @@ class Vehicle:
             The verbosity of the code (default value is 1; moderate verbosity).
         """
         self.verbosity = verbosity
+        self.global_config = None
         
         
     def add_component(component_type: str, component_dict: dict):
@@ -40,8 +41,19 @@ class Vehicle:
         
     def add_global_config(self, global_config: dict) -> None:
         """Unpacks a global configuration dictionary.
+        
+        Parameters
+        ----------
+        global_config : dict
+            A dictionary containing a dictionary for each component to be generated.
         """
+        
+        # Check inputs
         self._check_inputs(global_config)
+        
+        # Assign global config
+        # TODO - unpack this
+        self.global_config = global_config
         
     
     @staticmethod
@@ -107,16 +119,11 @@ class Vehicle:
             return f'{self.message}'
         
     
-    def main(self, global_config: dict) -> None:
+    def main(self) -> None:
         """Run hypervehicle geometry generation code.
-        
-        Parameters
-        ----------
-        global_config : dict
-            A dictionary containing a dictionary for each component to be generated.
         """
         
-        GConf.read_inputs(global_config)
+        GConf.read_inputs(self.global_config)
         GConf.check_inputs()
         
         # create the vehicle components
@@ -455,7 +462,69 @@ class Vehicle:
                 print("")
     
             if GConf.STL_SHOW_IN_MATPLOT == True:
-                self._mpl_plot()
+                # self._mpl_plot()
+                if GConf.VERBOSITY > 0:
+                    print("START: Show in matplotlib")
+        
+                if GConf.CREATE_WING == True:
+                    # Create a new plot
+                    figure = plt.figure()
+                    ax = mplot3d.Axes3D(figure)
+        
+                    # Render the wing
+                    ax.add_collection3d(mplot3d.art3d.Poly3DCollection(wing_stl_mesh.vectors))
+                    # Auto scale to the mesh size
+                    scale = wing_stl_mesh.points.flatten()
+                    ax.auto_scale_xyz(scale, scale, scale)
+                    ax.set_xlabel("X-axis")
+                    ax.set_ylabel("Y-axis")
+                    ax.set_zlabel("Z-axis")
+                    
+                if GConf.CREATE_FUSELAGE == True:
+                    # Create a new plot
+                    figure = plt.figure()
+                    ax = mplot3d.Axes3D(figure)
+        
+                    # Render the fuselage
+                    ax.add_collection3d(mplot3d.art3d.Poly3DCollection(fuse_stl_mesh.vectors))
+                    # Auto scale to the mesh size
+                    scale = fuse_stl_mesh.points.flatten()
+                    ax.auto_scale_xyz(scale, scale, scale)
+                    ax.set_xlabel("X-axis")
+                    ax.set_ylabel("Y-axis")
+                    ax.set_zlabel("Z-axis")
+                    
+                if GConf.CREATE_WING == True and GConf.CREATE_FUSELAGE == True:
+                    # Create a new plot
+                    figure = plt.figure()
+                    ax = mplot3d.Axes3D(figure)
+        
+                    # Render the wing and fuselage
+                    wing_coll = mplot3d.art3d.Poly3DCollection(wing_stl_mesh.vectors)
+                    ax.add_collection3d(wing_coll)
+                    fuse_coll = mplot3d.art3d.Poly3DCollection(fuse_stl_mesh.vectors)
+                    fuse_coll.set_facecolor('r')
+                    ax.add_collection3d(fuse_coll)
+                    
+                    if GConf.FIN_GEOMETRY_DICT[0] is not None:
+                        # TODO - this needs to be updated (and probably the wing plotting)
+                        fin_coll = mplot3d.art3d.Poly3DCollection(fin_stl_mesh.vectors)
+                        fin_coll.set_facecolor('c')
+                        ax.add_collection3d(fin_coll)
+        
+        
+                    # Auto scale to the mesh size
+                    scale = wing_stl_mesh.points.flatten()
+                    ax.auto_scale_xyz(scale, scale, scale)
+                    ax.set_xlabel("X-axis")
+                    ax.set_ylabel("Y-axis")
+                    ax.set_zlabel("Z-axis")
+        
+                # Show the plot to the screen
+                plt.show()
+                if GConf.VERBOSITY > 0:
+                    print("  DONE: Show in matplotlib")
+                    print("")
     
     
     def _evaluate_mesh_properties(self,):
@@ -465,68 +534,7 @@ class Vehicle:
     def _mpl_plot(self,):
         """Plots stl components.
         """
-        if GConf.VERBOSITY > 0:
-            print("START: Show in matplotlib")
-
-        if GConf.CREATE_WING == True:
-            # Create a new plot
-            figure = plt.figure()
-            ax = mplot3d.Axes3D(figure)
-
-            # Render the wing
-            ax.add_collection3d(mplot3d.art3d.Poly3DCollection(wing_stl_mesh.vectors))
-            # Auto scale to the mesh size
-            scale = wing_stl_mesh.points.flatten()
-            ax.auto_scale_xyz(scale, scale, scale)
-            ax.set_xlabel("X-axis")
-            ax.set_ylabel("Y-axis")
-            ax.set_zlabel("Z-axis")
-            
-        if GConf.CREATE_FUSELAGE == True:
-            # Create a new plot
-            figure = plt.figure()
-            ax = mplot3d.Axes3D(figure)
-
-            # Render the fuselage
-            ax.add_collection3d(mplot3d.art3d.Poly3DCollection(fuse_stl_mesh.vectors))
-            # Auto scale to the mesh size
-            scale = fuse_stl_mesh.points.flatten()
-            ax.auto_scale_xyz(scale, scale, scale)
-            ax.set_xlabel("X-axis")
-            ax.set_ylabel("Y-axis")
-            ax.set_zlabel("Z-axis")
-            
-        if GConf.CREATE_WING == True and GConf.CREATE_FUSELAGE == True:
-            # Create a new plot
-            figure = plt.figure()
-            ax = mplot3d.Axes3D(figure)
-
-            # Render the wing and fuselage
-            wing_coll = mplot3d.art3d.Poly3DCollection(wing_stl_mesh.vectors)
-            ax.add_collection3d(wing_coll)
-            fuse_coll = mplot3d.art3d.Poly3DCollection(fuse_stl_mesh.vectors)
-            fuse_coll.set_facecolor('r')
-            ax.add_collection3d(fuse_coll)
-            
-            if GConf.FIN_GEOMETRY_DICT[0] is not None:
-                # TODO - this needs to be updated (and probably the wing plotting)
-                fin_coll = mplot3d.art3d.Poly3DCollection(fin_stl_mesh.vectors)
-                fin_coll.set_facecolor('c')
-                ax.add_collection3d(fin_coll)
-
-
-            # Auto scale to the mesh size
-            scale = wing_stl_mesh.points.flatten()
-            ax.auto_scale_xyz(scale, scale, scale)
-            ax.set_xlabel("X-axis")
-            ax.set_ylabel("Y-axis")
-            ax.set_zlabel("Z-axis")
-
-        # Show the plot to the screen
-        plt.show()
-        if GConf.VERBOSITY > 0:
-            print("  DONE: Show in matplotlib")
-            print("")
+        
     
     
     @staticmethod
@@ -618,8 +626,5 @@ if __name__ == '__main__':
     else:
         hv.check_uo_dict(uo_dict)
         global_config = hv.load_global_config(uo_dict) # TODO - assign to attribute
-        
-        # hv.main(global_config)
-        print("\n")
-        print("SUCCESS.")
-        print("\n")
+        hv.add_global_config(global_config)
+        hv.main()
