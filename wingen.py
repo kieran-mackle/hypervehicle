@@ -16,19 +16,18 @@ from eilmer.geom.vector3 import Vector3
 from eilmer.geom.path import Line
 from eilmer.geom.surface import CoonsPatch 
 
-from hyper_vehicle_functions import (
-    OffsetPatchFunction, 
-    SubRangedPath, 
-    ElipsePath, 
-    ArcLengthParameterizedPath, 
-    TrailingEdgePath,
-    OffsetPathFunction,
-    GeometricMeanPathFunction,
-    MeanLeadingEdgePatchFunction,
-    MeanTrailingEdgePatch,
-    RotatedPatch,
-    FlatLeadingEdgePatchFunction
-    )
+from idmoc.hypervehicle.utils import (OffsetPatchFunction, 
+                                      SubRangedPath, 
+                                      ElipsePath, 
+                                      ArcLengthParameterizedPath, 
+                                      TrailingEdgePath,
+                                      OffsetPathFunction,
+                                      GeometricMeanPathFunction,
+                                      MeanLeadingEdgePatchFunction,
+                                      MeanTrailingEdgePatch,
+                                      RotatedPatch,
+                                      FlatLeadingEdgePatchFunction
+                                      )
 
 def hyper_wing_main(GConf):
     """

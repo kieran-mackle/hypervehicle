@@ -13,7 +13,7 @@ import numpy as np
 from eilmer.geom.vector3 import Vector3
 from eilmer.geom.path import Arc, Line
 from eilmer.geom.surface import CoonsPatch
-from hyper_vehicle_functions import ConePatch, RotatedPatch #, BluntConePatch
+from idmoc.hypervehicle.utils import ConePatch, RotatedPatch
 
 def hyper_fuselage_main(GConf):
     """

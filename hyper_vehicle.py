@@ -17,11 +17,11 @@ import matplotlib.pyplot as plt
 from mpl_toolkits import mplot3d
 from eilmer.geom.sgrid import StructuredGrid
 
-from idmoc.hypervehicle.hyper_vehicle_functions import parametricSurfce2stl, CurvedPatch, RotatedPatch
-from idmoc.hypervehicle.hyper_vehicle_config import GConf
-from idmoc.hypervehicle.hyper_vehicle_fuselage import hyper_fuselage_main
-from idmoc.hypervehicle.hyper_vehicle_wing import hyper_wing_main
-from idmoc.hypervehicle.hyper_vehicle_fin import hyper_fin_main
+from idmoc.hypervehicle.utils import parametricSurfce2stl, CurvedPatch, RotatedPatch
+from idmoc.hypervehicle.config import GConf
+from idmoc.hypervehicle.fusgen import hyper_fuselage_main
+from idmoc.hypervehicle.wingen import hyper_wing_main
+from idmoc.hypervehicle.fingen import hyper_fin_main
 
 def main(global_config):
     """ Run the main piece of code."""

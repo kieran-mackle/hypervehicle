@@ -133,4 +133,3 @@ class GConf:
                         "Configuration variable " + option + " = " +
                         str(GConf._config[option]) + " is not valid." +
                         "Valid values are " + str([valid_inputs]))
-
