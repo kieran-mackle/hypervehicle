@@ -33,7 +33,9 @@ class Vehicle:
         self.verbosity = verbosity
         self.global_config = None
         
-        
+    def __repr__(self):
+        return "Parametric hypersonic vehicle geometry object."
+    
     def add_component(component_type: str, component_dict: dict):
         """Adds a vehicle component.
         """
