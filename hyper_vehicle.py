@@ -56,11 +56,10 @@ class Vehicle:
         global_config = self._read_inputs(global_config)
         self._check_inputs(global_config)
         
-        # Unpack - I think redundant ...
-        # self._unpack_inputs(global_config)
+        # Unpack global config
+        self._unpack_inputs(global_config)
         
         # Assign global config
-        # TODO - unpack this
         self.global_config = global_config
     
     
@@ -70,18 +69,18 @@ class Vehicle:
         and replaces default values if present.
         """
         
-        default_config = {"VERBOSITY": 1,     # 0, 1, 2 - set reporting level.
-                          "VEHICLE_ANGLE": 0, # Vehicle angle adjustment
-                          "CREATE_WING": True,     # create wing geometry
-                          "CREATE_FUSELAGE": False,    # create fuselage geometry
+        default_config = {"VERBOSITY": 1,               # 0, 1, 2 - set reporting level.
+                          "VEHICLE_ANGLE": 0,           # Vehicle angle adjustment
+                          "CREATE_WING": True,          # create wing geometry
+                          "CREATE_FUSELAGE": False,     # create fuselage geometry
                           "CREATE_VTK_MESH": False,
                           "VTK_FILENAME": "test.vtk",
-                          "VTK_RESOLUTION": 10,       # number of cell vertices per edge
+                          "VTK_RESOLUTION": 10,         # number of cell vertices per edge
                           "CREATE_STL_OBJECT": True,
                           "STL_FILENAME": "test.stl",
-                          "STL_RESOLUTION": 10,       # number of triangle vertices per edge
-                          "STL_INCLUDE_MIRROR": True,     # include mirror image in STL
-                          "STL_SHOW_IN_MATPLOT": False,     # Create Matplotlib image
+                          "STL_RESOLUTION": 10,         # number of triangle vertices per edge
+                          "STL_INCLUDE_MIRROR": True,   # include mirror image in STL
+                          "STL_SHOW_IN_MATPLOT": False, # Create Matplotlib image
                           "WING_GEOMETRY_DICT": None,
                           "FUSELAGE_GEOMETRY_DICT": None,
                           "FIN_GEOMETRY_DICT": [None],
@@ -102,8 +101,7 @@ class Vehicle:
         """Unpacks global configuration dictionary and assigns attributes
         to Vehicle.
         """
-        
-        self.verbosity = 0
+        self.verbosity = global_config["VERBOSITY"]
         
     
     @staticmethod
@@ -195,7 +193,7 @@ class Vehicle:
         # Step 5:
         #########
         # Add curvature
-        if GConf.VERBOSITY > 0:
+        if self.verbosity > 0:
             print("")
             print("START: Adding curvature.")
         
@@ -249,7 +247,7 @@ class Vehicle:
                                 direction='y', fun=GConf.FUSELAGE_GEOMETRY_DICT['FUSELAGE_FUNC_CURV_Y'],
                                 fun_dash=GConf.FUSELAGE_GEOMETRY_DICT['FUSELAGE_FUNC_CURV_Y_DASH'])
         
-        if GConf.VERBOSITY > 0:
+        if self.verbosity > 0:
             print("  DONE: Adding curvature.")
             print("")
         
@@ -281,7 +279,7 @@ class Vehicle:
         #########
         # Eilmer Grid surface grids
         if GConf.CREATE_VTK_MESH == True:
-            if GConf.VERBOSITY > 0:
+            if self.verbosity > 0:
                 print("START: Creating Eilmer Grid and vtk files.")
             
             # Wings
@@ -308,7 +306,7 @@ class Vehicle:
                                   niv=GConf.VTK_RESOLUTION, njv=GConf.VTK_RESOLUTION)
                 fin_grid_list.append(fin_grid_dict)
             
-            if GConf.VERBOSITY > 0:
+            if self.verbosity > 0:
                 print("    Structure Grid Creates")
                 print("    Writing grid files to {}-label.vtk".format(GConf.VTK_FILENAME))
     
@@ -331,7 +329,7 @@ class Vehicle:
                 for key in fin_grid_dict:
                     fin_grid_dict[key].write_to_vtk_file(f"{GConf.VTK_FILENAME}-fin_{key}.vtk")
             
-            if GConf.VERBOSITY > 0:
+            if self.verbosity > 0:
                 print("  DONE: Creating Eilmer Grid and vtk files.")
                 print("")
     
@@ -339,7 +337,7 @@ class Vehicle:
         #########
         # STL object
         if GConf.CREATE_STL_OBJECT == True:
-            if GConf.VERBOSITY > 0:
+            if self.verbosity > 0:
                 print("START: Creating STL object(s).")
                 print(f"    Creating STL with resolution of {GConf.STL_RESOLUTION}")
             
@@ -391,7 +389,7 @@ class Vehicle:
             
             # add stl elements for mirrored section
             if GConf.STL_INCLUDE_MIRROR == True:
-                if GConf.VERBOSITY > 0:
+                if self.verbosity > 0:
                     print("    Adding Mirror Image of wing.")
                 
                 all_wing_stl_mesh_list_m = []
@@ -410,7 +408,7 @@ class Vehicle:
             
             if GConf.MIRROR_FIN: 
                 # Repeat for fins
-                if GConf.VERBOSITY > 0:
+                if self.verbosity > 0:
                     print("    Adding Mirror Image of fin.")
                 
                 all_fin_stl_mesh_list_m = []
@@ -438,33 +436,33 @@ class Vehicle:
                     # Save to .stl file
                     wing_filename = f"{GConf.STL_FILENAME}-wing{wing_no+1}.stl"
                     wing_stl_mesh.save(wing_filename)
-                    if GConf.VERBOSITY > 0:
+                    if self.verbosity > 0:
                         print(f"    Wing {wing_no+1} stl object created - written to {wing_filename}.")
                 
             # Fuselage
             if GConf.CREATE_FUSELAGE == True:
                 fuse_stl_mesh = mesh.Mesh(np.concatenate(fuse_stl_data))
-                if GConf.VERBOSITY > 0:
+                if self.verbosity > 0:
                         print("    fuselage stl object created")
     
                 fuse_filename = "{}-fuse.stl".format(GConf.STL_FILENAME)
                 fuse_stl_mesh.save(fuse_filename)
-                if GConf.VERBOSITY > 0:
+                if self.verbosity > 0:
                     print("    Writing stl to - {}".format(fuse_filename))
             
             # Fins
             if GConf.FIN_GEOMETRY_DICT is not None:
                 for fin_no, fin_stl_data in enumerate(all_fin_stl_data):
                     fin_stl_mesh = mesh.Mesh(np.concatenate(fin_stl_data))
-                    if GConf.VERBOSITY > 0:
+                    if self.verbosity > 0:
                             print("    fin stl object created")
             
                     fin_filename = f"{GConf.STL_FILENAME}-fin{fin_no+1}.stl"
                     fin_stl_mesh.save(fin_filename)
-                    if GConf.VERBOSITY > 0:
+                    if self.verbosity > 0:
                         print("    Writing stl to - {}".format(fin_filename))
             
-                    if GConf.VERBOSITY > 0:
+                    if self.verbosity > 0:
                         print("    Done writing stl file")
             print("  DONE: Creating STL object(s).")
     
@@ -513,7 +511,7 @@ class Vehicle:
     
             if GConf.STL_SHOW_IN_MATPLOT == True:
                 # self._mpl_plot()
-                if GConf.VERBOSITY > 0:
+                if self.verbosity > 0:
                     print("START: Show in matplotlib")
         
                 if GConf.CREATE_WING == True:
@@ -572,10 +570,25 @@ class Vehicle:
         
                 # Show the plot to the screen
                 plt.show()
-                if GConf.VERBOSITY > 0:
+                if self.verbosity > 0:
                     print("  DONE: Show in matplotlib")
                     print("")
     
+    def _add_curvature(self,):
+        """Adds curvature by the provided curvature functions.
+        """
+    
+    def _rotate_vehicle(self):
+        """Rotates entire vehicle to add offset angle.
+        """
+    
+    def _write_vtk(self):
+        """Writes VTK files.
+        """
+    
+    def _write_stl(self):
+        """Writes STL files.
+        """
     
     def _evaluate_mesh_properties(self,):
         """Evaluates properties of stl.
@@ -585,7 +598,9 @@ class Vehicle:
         """Plots stl components.
         """
         
-    
+    def generate(self):
+        """Public API to generate vehicle geometry.
+        """
     
     @staticmethod
     def usage():
@@ -637,7 +652,7 @@ class Vehicle:
         return global_config
 
     @staticmethod
-    def check_uo_dict(uo_dict):
+    def check_uo_dict(uo_dict: dict) -> None:
         """Checks all mandatory options have been provided.
         
         Parameters
