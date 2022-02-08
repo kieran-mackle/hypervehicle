@@ -41,7 +41,7 @@ def hyper_wing_main(wing_geometries: list, verbosity: int = 1) -> list:
     
     References
     ----------
-    This code is authored by Ingo Jahn and Kieran Mackle.
+    This code was authored by Ingo Jahn and Kieran Mackle.
     """
     
     patches = []

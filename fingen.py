@@ -1,14 +1,4 @@
 #!/usr/bin/python3.8
-"""
-Fin Geometry Generator for gliding hypersonic vehicle.
-
-Contains functions to be called from hyper_vehicle.py
-
-Authors: Ingo Jahn, Kieran Mackle
-Created on: 26/10/2021
-Last Modified: 29/10/2021
-"""
-
 import numpy as np
 
 from eilmer.geom.vector3 import Vector3
@@ -25,10 +15,25 @@ from idmoc.hypervehicle.utils import (LeadingEdgePatchFunction,
                                       RotatedPatch
                                       )
 
-def hyper_fin_main(GConf):
-    '''
-    Hypersonic vehicle fin generation function.
-    '''
+def hyper_fin_main(fin_geometries: dict, verbosity: int = 1) -> list:
+    """Fin Geometry Generator for gliding hypersonic vehicle.
+
+    Parameters
+    ----------
+    fin_geometries : dict
+        A list containing fin geometry definition dictionaries..
+    verbosity : int, optional
+        The verbosity of the code output. The default is 1.
+
+    Returns
+    -------
+    patches : list
+        A list of the fin surface patches.
+
+    References
+    ----------
+    This code was authored by Ingo Jahn and Kieran Mackle.
+    """
     
     #####################################################
     ##                      FINS                       ##
@@ -53,11 +58,10 @@ def hyper_fin_main(GConf):
     #   |       \
     #  p0_______p3
     
-    
     patches = []
     
     print("FIN GEOMETRY GENERATION")    
-    for fin_number, fin_geometry in enumerate(GConf.FIN_GEOMETRY_DICT):
+    for fin_number, fin_geometry in enumerate(fin_geometries):
         print(f"  Fin {fin_number+1}")
         
         # Initialise 
