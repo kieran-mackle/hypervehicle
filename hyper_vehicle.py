@@ -190,7 +190,7 @@ class Vehicle:
         GConf.check_inputs()
         
         # create the vehicle components
-        if self.wings is not None:
+        if self.wings[0] is not None:
             wing_patch_list = hyper_wing_main(self.wings)
         else:
             wing_patch_list = []
@@ -200,8 +200,8 @@ class Vehicle:
         else:
             fuse_patch_dict = {}
         
-        if GConf.FIN_GEOMETRY_DICT[0] is not None:
-            fin_patch_list = hyper_fin_main(GConf)
+        if self.fins[0] is not None:
+            fin_patch_list = hyper_fin_main(self.fins)
         else:
             fin_patch_list = []
     
