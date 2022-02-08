@@ -196,11 +196,12 @@ class Vehicle:
         """Run hypervehicle geometry generation code.
         """
         
-        # Create the vehicle components
-        wing_patch_list = hyper_wing_main(self.wings)
-        fuse_patch_dict = hyper_fuselage_main(self.fuselage)
-        fin_patch_list = hyper_fin_main(self.fins)
+        # Create the vehicle component patches
+        self.patches['wing'] = hyper_wing_main(self.wings)
+        self.patches['fuselage'] = hyper_fuselage_main(self.fuselage)
+        self.patches['fin'] = hyper_fin_main(self.fins)
     
+        
         # Step 5:
         #########
         # Add curvature
@@ -217,9 +218,9 @@ class Vehicle:
                     print("    Skipping wing X-curvature.")
                 else:
                     # (a) Longitudal Curvature
-                    for key in wing_patch_list[ix]:
-                        wing_patch_list[ix][key] = \
-                            CurvedPatch(underlying_surf=wing_patch_list[ix][key],
+                    for key in self.patches['wing'][ix]:
+                        self.patches['wing'][ix][key] = \
+                            CurvedPatch(underlying_surf=self.patches['wing'][ix][key],
                                         direction='x', fun=wing_geometry_dict['WING_FUNC_CURV_X'],
                                         fun_dash=wing_geometry_dict['WING_FUNC_CURV_X_DASH'])
                 
@@ -229,9 +230,9 @@ class Vehicle:
                     print("    Skipping wing Y-curvature.")
                 else:
                     # (b) Spanwise Curvature
-                    for key in wing_patch_list[ix]:
-                        wing_patch_list[ix][key] = \
-                            CurvedPatch(underlying_surf=wing_patch_list[ix][key],
+                    for key in self.patches['wing'][ix]:
+                        self.patches['wing'][ix][key] = \
+                            CurvedPatch(underlying_surf=self.patches['wing'][ix][key],
                                         direction='y', fun=wing_geometry_dict['WING_FUNC_CURV_Y'],
                                         fun_dash=wing_geometry_dict['WING_FUNC_CURV_Y_DASH'])
                     
@@ -244,9 +245,9 @@ class Vehicle:
                 print("    Skipping fuselage X-curvature.")
                 
             else:
-                for key in fuse_patch_dict:
-                    fuse_patch_dict[key] = \
-                        CurvedPatch(underlying_surf=fuse_patch_dict[key],
+                for key in self.patches['fuselage']:
+                    self.patches['fuselage'][key] = \
+                        CurvedPatch(underlying_surf=self.patches['fuselage'][key],
                                     direction='x', fun=self.fuselage['FUSELAGE_FUNC_CURV_X'],
                                     fun_dash=self.fuselage['FUSELAGE_FUNC_CURV_X_DASH'])
             # Spanwise Curvature
@@ -254,9 +255,9 @@ class Vehicle:
                 self.fuselage['FUSELAGE_FUNC_CURV_Y_DASH'] is None:
                 print("    Skipping fuselage Y-curvature.")
             else:
-                for key in fuse_patch_dict:
-                    fuse_patch_dict[key] = \
-                        CurvedPatch(underlying_surf=fuse_patch_dict[key],
+                for key in self.patches['fuselage']:
+                    self.patches['fuselage'][key] = \
+                        CurvedPatch(underlying_surf=self.patches['fuselage'][key],
                                     direction='y', fun=self.fuselage['FUSELAGE_FUNC_CURV_Y'],
                                     fun_dash=self.fuselage['FUSELAGE_FUNC_CURV_Y_DASH'])
         
@@ -269,21 +270,21 @@ class Vehicle:
         if self.vehicle_angle != 0:
             # Rotate wings
             for ix, wing_geometry_dict in enumerate(self.wings):
-                for key in wing_patch_list[ix]:
-                    wing_patch_list[ix][key] = RotatedPatch(wing_patch_list[ix][key], 
+                for key in self.patches['wing'][ix]:
+                    self.patches['wing'][ix][key] = RotatedPatch(self.patches['wing'][ix][key], 
                                                             np.deg2rad(self.vehicle_angle), 
                                                             axis='y')
             
             # Rotate fins
             for ix, fin_geometry_dict in enumerate(self.fins):
-                for key in fin_patch_list[ix]:
-                    fin_patch_list[ix][key] = RotatedPatch(fin_patch_list[ix][key], 
+                for key in self.patches['fin'][ix]:
+                    self.patches['fin'][ix][key] = RotatedPatch(self.patches['fin'][ix][key], 
                                                            np.deg2rad(self.vehicle_angle), 
                                                            axis='y')
             
             # Rotate fuselage
-            for key in fuse_patch_dict:
-                fuse_patch_dict[key] = RotatedPatch(fuse_patch_dict[key], 
+            for key in self.patches['fuselage']:
+                self.patches['fuselage'][key] = RotatedPatch(self.patches['fuselage'][key], 
                                                     np.deg2rad(self.vehicle_angle), 
                                                     axis='y')
             
@@ -296,7 +297,7 @@ class Vehicle:
             
             # Wings
             wing_grid_list = []
-            for wing_patch_dict in wing_patch_list:
+            for wing_patch_dict in self.patches['wing']:
                 wing_grid_dict = {}
                 for key in wing_patch_dict:
                     wing_grid_dict[key] = StructuredGrid(psurf=wing_patch_dict[key],
@@ -305,13 +306,13 @@ class Vehicle:
                 
             # Fuselage
             fuse_grid_dict = {}
-            for key in fuse_patch_dict:
-                fuse_grid_dict[key] = StructuredGrid(psurf=fuse_patch_dict[key],
+            for key in self.patches['fuselage']:
+                fuse_grid_dict[key] = StructuredGrid(psurf=self.patches['fuselage'][key],
                               niv=self.vtk_resolution, njv=self.vtk_resolution)
             
             # Fins
             fin_grid_list = []
-            for fin_patch_dict in fin_patch_list:
+            for fin_patch_dict in self.patches['fin']:
                 fin_grid_dict = {}
                 for key in fin_patch_dict:
                     fin_grid_dict[key] = StructuredGrid(psurf=fin_patch_dict[key],
@@ -355,7 +356,7 @@ class Vehicle:
             
             # Wings
             all_wing_stl_mesh_list = []
-            for wing_patch_dict in wing_patch_list:
+            for wing_patch_dict in self.patches['wing']:
                 wing_stl_mesh_list = []
                 for key in wing_patch_dict:
                     wing_stl_mesh_list.append(parametricSurfce2stl(wing_patch_dict[key],
@@ -364,13 +365,13 @@ class Vehicle:
             
             # Fuselage
             fuse_stl_mesh_list = []
-            for key in fuse_patch_dict:
-                fuse_stl_mesh_list.append(parametricSurfce2stl(fuse_patch_dict[key],
+            for key in self.patches['fuselage']:
+                fuse_stl_mesh_list.append(parametricSurfce2stl(self.patches['fuselage'][key],
                                           self.stl_resolution))
             
             # Fins
             all_fin_stl_mesh_list = []
-            for fin_patch_dict in fin_patch_list:
+            for fin_patch_dict in self.patches['fin']:
                 fin_stl_mesh_list = []
                 for key in fin_patch_dict:
                     fin_stl_mesh_list.append(parametricSurfce2stl(fin_patch_dict[key],
@@ -405,7 +406,7 @@ class Vehicle:
                     print("    Adding Mirror Image of wing.")
                 
                 all_wing_stl_mesh_list_m = []
-                for wing_patch_dict in wing_patch_list:
+                for wing_patch_dict in self.patches['wing']:
                     wing_stl_mesh_list_m = []
                     for key in wing_patch_dict:
                         wing_stl_mesh_list_m.append(parametricSurfce2stl(
@@ -424,7 +425,7 @@ class Vehicle:
                     print("    Adding Mirror Image of fin.")
                 
                 all_fin_stl_mesh_list_m = []
-                for fin_patch_dict in fin_patch_list:
+                for fin_patch_dict in self.patches['fin']:
                     fin_stl_mesh_list_m = []
                     for key in fin_patch_dict:
                         fin_stl_mesh_list_m.append(parametricSurfce2stl(
@@ -589,6 +590,8 @@ class Vehicle:
     def _add_curvature(self,):
         """Adds curvature by the provided curvature functions.
         """
+        
+        
     
     def _rotate_vehicle(self):
         """Rotates entire vehicle to add offset angle.
