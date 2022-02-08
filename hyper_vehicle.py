@@ -1,24 +1,33 @@
 #!/usr/bin/python3.8
 from __future__ import annotations
-from getopt import getopt
-import numpy as np
 import os
-import shutil
 import sys
+import shutil
+import numpy as np
 from stl import mesh
+from getopt import getopt
 import matplotlib.pyplot as plt
 from mpl_toolkits import mplot3d
 from eilmer.geom.sgrid import StructuredGrid
 
-from idmoc.hypervehicle.utils import parametricSurfce2stl, CurvedPatch, RotatedPatch
 from idmoc.hypervehicle.fusgen import hyper_fuselage_main
 from idmoc.hypervehicle.wingen import hyper_wing_main
 from idmoc.hypervehicle.fingen import hyper_fin_main
+from idmoc.hypervehicle.utils import parametricSurfce2stl, CurvedPatch, RotatedPatch
 
 
 class Vehicle:
     """hypervehicle object.
     
+    Documentation
+    -------------
+    Documentation for this code can be found at the link below.
+    
+    https://bitbucket.org/ingo_jahn/idmoc/src/packaging/docs/hypervehicle.md
+    
+    References
+    ----------
+    This code was authored by Ingo Jahn and Kieran Mackle.
     """
     
     def __init__(self, verbosity: int = 1) -> None:
