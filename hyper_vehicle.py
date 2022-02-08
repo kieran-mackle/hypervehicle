@@ -48,7 +48,7 @@ class Vehicle:
     def add_component(component_type: str, component_dict: dict):
         """Adds a vehicle component.
         """
-        
+        # TODO - implement
         # Will append dict to a components dict, containing the component 
         # type and definition. Will allow for greater code efficiency
         
@@ -226,7 +226,8 @@ class Vehicle:
             if self.verbosity > 0:
                 print("START: Creating Eilmer Grid and vtk files.")
             
-            self._write_vtk()
+            self._create_grids()
+            self._write_to_vtk()
             
             if self.verbosity > 0:
                 print("  DONE: Creating Eilmer Grid and vtk files.")
@@ -339,10 +340,9 @@ class Vehicle:
                                                 np.deg2rad(self.vehicle_angle), 
                                                 axis='y')
     
-    def _write_vtk(self) -> None:
+    def _create_grids(self) -> None:
         """Writes VTK files.
         """
-        # TODO - split this method into create vtk and write vtk
         # Wings
         self.grids['wing'] = []
         for wing_patch_dict in self.patches['wing']:
@@ -368,15 +368,14 @@ class Vehicle:
                               niv=self.vtk_resolution, njv=self.vtk_resolution)
             self.grids['fin'].append(fin_grid_dict)
         
+    
+    def _write_to_vtk(self,) -> None:
+        """Writes grids to VTK.
+        """
         if self.verbosity > 0:
             print("    Structure Grid Creates")
             print("    Writing grid files to {}-label.vtk".format(self.vtk_filename))
-
-
-        # Step 7:
-        #########
-        # write the grids to VTK
-        
+            
         # Wings
         for wing_grid_dict in  self.grids['wing']:
             for key in wing_grid_dict:
@@ -390,7 +389,7 @@ class Vehicle:
         for fin_grid_dict in self.grids['fin']:
             for key in fin_grid_dict:
                 fin_grid_dict[key].write_to_vtk_file(f"{self.vtk_filename}-fin_{key}.vtk")
-        
+                
     
     def _create_surfaces(self,) -> None:
         """Creates parameteric surfaces.
