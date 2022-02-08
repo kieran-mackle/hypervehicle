@@ -39,7 +39,7 @@ class Vehicle:
         
         # STL options
         self.write_stl = True
-        self.stl_filename = 'test.stl'
+        self.stl_filename = 'test'
         self.stl_resolution = 5
         self.mirror = False
         self.show_mpl = False
@@ -47,7 +47,7 @@ class Vehicle:
         # VTK options
         self.write_vtk = False
         self.vtk_resolution = 5
-        self.vtk_filename = 'test.vtk'
+        self.vtk_filename = 'test'
         
         # Processed objects
         self.patches = {}
@@ -61,10 +61,52 @@ class Vehicle:
         return "Parameterised hypersonic vehicle geometry."
     
     
-    def configure(self):
-        """Configures options for Vehicle geometry generation.
+    def configure(self, verbosity: int = 1, write_stl: bool = True, 
+                  stl_resolution: int = 5, stl_filename: str = 'test',
+                  show_in_figure: bool = False, write_vtk: bool = False,
+                  vtk_resolution: int = 5, vtk_filename: str = 'test',
+                  filename_prefix: str = 'test') -> None:
+        """Configures run options for Vehicle geometry generation.
+
+        Parameters
+        ----------
+        verbosity : int, optional
+            The verbosity of the code. The default is 1.
+        write_stl : bool, optional
+            Write vehicle geometry to .stl files. The default is True.
+        stl_resolution : int, optional
+            The number of cell vertices per edge for the STL files. The default is 5.
+        stl_filename : str, optional
+            The filename prefix for STL files. The default is 'test'.
+        show_in_figure : bool, optional
+            Show the STL files in a matplotlib figure. The default is False.
+        write_vtk : bool, optional
+            Write vehicle geometry to .vtk files. The default is False.
+        vtk_resolution : int, optional
+            The number of cell vertices per edge for the VTK files. The default is 5.
+        vtk_filename : str, optional
+            The filename prefix for VTK files. The default is 'test'.
+        filename_prefix : str, optional
+            The filename prefix for STL and VTK files. The default is 'test'.
+
+        Returns
+        -------
+        None
+            This method assigns the settings to the vehicle instance.
         """
-        # Allows specifying options easier
+        self.verbosity = verbosity
+        
+        # STL options
+        self.write_stl = write_stl
+        self.stl_filename = stl_filename
+        self.stl_resolution = stl_resolution
+        self.show_mpl = show_in_figure
+        
+        # VTK options
+        self.write_vtk = write_vtk
+        self.vtk_resolution = vtk_resolution
+        self.vtk_filename = vtk_filename
+        
     
     def add_component(self, component_type: str, component_dict: dict) -> None:
         """Adds a vehicle component.
@@ -113,10 +155,10 @@ class Vehicle:
                           "CREATE_WING": True,          # create wing geometry
                           "CREATE_FUSELAGE": False,     # create fuselage geometry
                           "CREATE_VTK_MESH": False,
-                          "VTK_FILENAME": "test.vtk",
+                          "VTK_FILENAME": "test",
                           "VTK_RESOLUTION": 10,         # number of cell vertices per edge
                           "CREATE_STL_OBJECT": True,
-                          "STL_FILENAME": "test.stl",
+                          "STL_FILENAME": "test",
                           "STL_RESOLUTION": 10,         # number of triangle vertices per edge
                           "STL_INCLUDE_MIRROR": True,   # include mirror image in STL
                           "STL_SHOW_IN_MATPLOT": False, # Create Matplotlib image
@@ -689,8 +731,11 @@ class Vehicle:
             Parameterised hypersonic vehicle geometry.
         """
         
-        # TODO - implement
-    
+        vehicle = cls()
+        vehicle.add_global_config(global_config)
+        
+        return vehicle
+
     
     @staticmethod
     def usage():
