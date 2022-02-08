@@ -34,30 +34,7 @@ def hyper_fin_main(fin_geometries: dict, verbosity: int = 1) -> list:
     ----------
     This code was authored by Ingo Jahn and Kieran Mackle.
     """
-    
-    #####################################################
-    ##                      FINS                       ##
-    #####################################################
-    
-    #  /\  Y-axis
-    #  |
-    #  |
-    #  +---> X-axis
-    # Looking at vehicle from below.
-    # Note that the coordinates defining the fin are in the X-Y 
-    # plan, and that the fins are positioned by rotation about the 
-    # x-axis. The rotation angle is specified by fin_angles. 
-    # Defining multiple angles will produce multiple fins.
-    #
-    # Require the path from p1 to p3, plus coordinates of p0.
-    #
-    #  p1---p2
-    #   |    \
-    #   |     \
-    #   |      \
-    #   |       \
-    #  p0_______p3
-    
+
     patches = []
     
     print("FIN GEOMETRY GENERATION")    

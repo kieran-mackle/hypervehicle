@@ -238,29 +238,29 @@ class Vehicle:
                                         fun_dash=wing_geometry_dict['WING_FUNC_CURV_Y_DASH'])
                     
         # Fuselage curvature       
-        if GConf.FUSELAGE_GEOMETRY_DICT is not None and \
-            GConf.FUSELAGE_GEOMETRY_DICT['FUSELAGE_FUNC_CURV_X'] == None and \
-            GConf.FUSELAGE_GEOMETRY_DICT['FUSELAGE_FUNC_CURV_X_DASH'] == None:
-            print("    Skipping fuselage X-curvature.")
-        else:
-            # (a) Longitudal Curvature
-            for key in fuse_patch_dict:
-                fuse_patch_dict[key] = \
-                    CurvedPatch(underlying_surf=fuse_patch_dict[key],
-                                direction='x', fun=GConf.FUSELAGE_GEOMETRY_DICT['FUSELAGE_FUNC_CURV_X'],
-                                fun_dash=GConf.FUSELAGE_GEOMETRY_DICT['FUSELAGE_FUNC_CURV_X_DASH'])
-    
-        if GConf.FUSELAGE_GEOMETRY_DICT is not None and \
-            GConf.FUSELAGE_GEOMETRY_DICT['FUSELAGE_FUNC_CURV_Y'] == None and \
-            GConf.FUSELAGE_GEOMETRY_DICT['FUSELAGE_FUNC_CURV_Y_DASH'] == None:
-            print("    Skipping fuselage Y-curvature.")
-        else:
-            # (b) Spanwise Curvature
-            for key in fuse_patch_dict:
-                fuse_patch_dict[key] = \
-                    CurvedPatch(underlying_surf=fuse_patch_dict[key],
-                                direction='y', fun=GConf.FUSELAGE_GEOMETRY_DICT['FUSELAGE_FUNC_CURV_Y'],
-                                fun_dash=GConf.FUSELAGE_GEOMETRY_DICT['FUSELAGE_FUNC_CURV_Y_DASH'])
+        if self.fuselage is not None:
+            
+            # Longitudal Curvature
+            if self.fuselage['FUSELAGE_FUNC_CURV_X'] is None and \
+                self.fuselage['FUSELAGE_FUNC_CURV_X_DASH'] is None:
+                print("    Skipping fuselage X-curvature.")
+                
+            else:
+                for key in fuse_patch_dict:
+                    fuse_patch_dict[key] = \
+                        CurvedPatch(underlying_surf=fuse_patch_dict[key],
+                                    direction='x', fun=self.fuselage['FUSELAGE_FUNC_CURV_X'],
+                                    fun_dash=self.fuselage['FUSELAGE_FUNC_CURV_X_DASH'])
+            # Spanwise Curvature
+            if self.fuselage['FUSELAGE_FUNC_CURV_Y'] is None and \
+                self.fuselage['FUSELAGE_FUNC_CURV_Y_DASH'] is None:
+                print("    Skipping fuselage Y-curvature.")
+            else:
+                for key in fuse_patch_dict:
+                    fuse_patch_dict[key] = \
+                        CurvedPatch(underlying_surf=fuse_patch_dict[key],
+                                    direction='y', fun=self.fuselage['FUSELAGE_FUNC_CURV_Y'],
+                                    fun_dash=self.fuselage['FUSELAGE_FUNC_CURV_Y_DASH'])
         
         if self.verbosity > 0:
             print("  DONE: Adding curvature.")
@@ -273,22 +273,21 @@ class Vehicle:
             for ix, wing_geometry_dict in enumerate(self.wings):
                 for key in wing_patch_list[ix]:
                     wing_patch_list[ix][key] = RotatedPatch(wing_patch_list[ix][key], 
-                                                            np.deg2rad(GConf.VEHICLE_ANGLE), 
+                                                            np.deg2rad(self.vehicle_angle), 
                                                             axis='y')
             
             # Rotate fins
-            for ix, fin_geometry_dict in enumerate(GConf.FIN_GEOMETRY_DICT):
+            for ix, fin_geometry_dict in enumerate(self.fins):
                 for key in fin_patch_list[ix]:
                     fin_patch_list[ix][key] = RotatedPatch(fin_patch_list[ix][key], 
-                                                           np.deg2rad(GConf.VEHICLE_ANGLE), 
+                                                           np.deg2rad(self.vehicle_angle), 
                                                            axis='y')
             
             # Rotate fuselage
             for key in fuse_patch_dict:
                 fuse_patch_dict[key] = RotatedPatch(fuse_patch_dict[key], 
-                                                    np.deg2rad(GConf.VEHICLE_ANGLE), 
+                                                    np.deg2rad(self.vehicle_angle), 
                                                     axis='y')
-            
             
         # Step 6:
         #########
@@ -303,14 +302,14 @@ class Vehicle:
                 wing_grid_dict = {}
                 for key in wing_patch_dict:
                     wing_grid_dict[key] = StructuredGrid(psurf=wing_patch_dict[key],
-                                  niv=GConf.VTK_RESOLUTION, njv=GConf.VTK_RESOLUTION)
+                                  niv=self.vtk_resolution, njv=self.vtk_resolution)
                 wing_grid_list.append(wing_grid_dict)
                 
             # Fuselage
             fuse_grid_dict = {}
             for key in fuse_patch_dict:
                 fuse_grid_dict[key] = StructuredGrid(psurf=fuse_patch_dict[key],
-                              niv=GConf.VTK_RESOLUTION, njv=GConf.VTK_RESOLUTION)
+                              niv=self.vtk_resolution, njv=self.vtk_resolution)
             
             # Fins
             fin_grid_list = []
@@ -318,12 +317,12 @@ class Vehicle:
                 fin_grid_dict = {}
                 for key in fin_patch_dict:
                     fin_grid_dict[key] = StructuredGrid(psurf=fin_patch_dict[key],
-                                  niv=GConf.VTK_RESOLUTION, njv=GConf.VTK_RESOLUTION)
+                                  niv=self.vtk_resolution, njv=self.vtk_resolution)
                 fin_grid_list.append(fin_grid_dict)
             
             if self.verbosity > 0:
                 print("    Structure Grid Creates")
-                print("    Writing grid files to {}-label.vtk".format(GConf.VTK_FILENAME))
+                print("    Writing grid files to {}-label.vtk".format(self.vtk_filename))
     
     
             # Step 7:
@@ -333,16 +332,16 @@ class Vehicle:
             # Wings
             for wing_grid_dict in  wing_grid_list:
                 for key in wing_grid_dict:
-                    wing_grid_dict[key].write_to_vtk_file("{0}-wing_{1}.vtk".format(GConf.VTK_FILENAME, key))
+                    wing_grid_dict[key].write_to_vtk_file("{0}-wing_{1}.vtk".format(self.vtk_filename, key))
     
             # Fuselage
             for key in fuse_grid_dict:
-                fuse_grid_dict[key].write_to_vtk_file("{0}-fuse_{1}.vtk".format(GConf.VTK_FILENAME, key))
+                fuse_grid_dict[key].write_to_vtk_file("{0}-fuse_{1}.vtk".format(self.vtk_filename, key))
             
             # Fins
             for fin_grid_dict in fin_grid_list:
                 for key in fin_grid_dict:
-                    fin_grid_dict[key].write_to_vtk_file(f"{GConf.VTK_FILENAME}-fin_{key}.vtk")
+                    fin_grid_dict[key].write_to_vtk_file(f"{self.vtk_filename}-fin_{key}.vtk")
             
             if self.verbosity > 0:
                 print("  DONE: Creating Eilmer Grid and vtk files.")
@@ -362,14 +361,14 @@ class Vehicle:
                 wing_stl_mesh_list = []
                 for key in wing_patch_dict:
                     wing_stl_mesh_list.append(parametricSurfce2stl(wing_patch_dict[key],
-                                              GConf.STL_RESOLUTION))
+                                              self.stl_resolution))
                 all_wing_stl_mesh_list.append(wing_stl_mesh_list)
             
             # Fuselage
             fuse_stl_mesh_list = []
             for key in fuse_patch_dict:
                 fuse_stl_mesh_list.append(parametricSurfce2stl(fuse_patch_dict[key],
-                                          GConf.STL_RESOLUTION))
+                                          self.stl_resolution))
             
             # Fins
             all_fin_stl_mesh_list = []
@@ -377,7 +376,7 @@ class Vehicle:
                 fin_stl_mesh_list = []
                 for key in fin_patch_dict:
                     fin_stl_mesh_list.append(parametricSurfce2stl(fin_patch_dict[key],
-                                              GConf.STL_RESOLUTION))
+                                              self.stl_resolution))
                 all_fin_stl_mesh_list.append(fin_stl_mesh_list)
     
             # create data structure containting all stl elements
