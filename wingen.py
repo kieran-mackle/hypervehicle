@@ -46,7 +46,7 @@ def hyper_wing_main(wing_geometries: list, verbosity: int = 1) -> list:
     
     patches = []
     
-    if wing_geometries is not None:
+    if len(wing_geometries) > 0:
         print("\nWING GEOMETRY GENERATION")
         for wing_no, wing_geometry in enumerate(wing_geometries):
             # Initialise 

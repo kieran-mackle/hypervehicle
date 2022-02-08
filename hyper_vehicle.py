@@ -30,11 +30,10 @@ class Vehicle:
             The verbosity of the code (default value is 1; moderate verbosity).
         """
         self.verbosity = verbosity
-        self.global_config = None
         
-        self.wings = [None]     # TODO - make default just None, not in list
+        self.wings = []
         self.fuselage = None
-        self.fins = [None]      # TODO - make default just None, not in list
+        self.fins = []
         self.mirror_fins = True
         self.vehicle_angle = 0
         
@@ -78,8 +77,6 @@ class Vehicle:
             The geometry definition dictionary for the component.
         """
         
-        # TODO - this wont work until defaults for wings and fins are empty lists
-        
         if component_type.lower() == 'wing':
             self.wings.append(component_dict)
         elif component_type.lower() == 'fin':
@@ -103,9 +100,6 @@ class Vehicle:
         
         # Unpack global config
         self._unpack_inputs(global_config)
-        
-        # Assign global config
-        self.global_config = global_config
     
     
     @staticmethod
@@ -126,9 +120,9 @@ class Vehicle:
                           "STL_RESOLUTION": 10,         # number of triangle vertices per edge
                           "STL_INCLUDE_MIRROR": True,   # include mirror image in STL
                           "STL_SHOW_IN_MATPLOT": False, # Create Matplotlib image
-                          "WING_GEOMETRY_DICT": None,
+                          "WING_GEOMETRY_DICT": [],     # List of geometry definition dictionaries
                           "FUSELAGE_GEOMETRY_DICT": None,
-                          "FIN_GEOMETRY_DICT": [None],
+                          "FIN_GEOMETRY_DICT": [],
                           "MIRROR_FINS": True}
         
         for option, value in global_config.items():
@@ -140,31 +134,6 @@ class Vehicle:
             default_config[option] = value
         
         return default_config
-        
-    
-    def _unpack_inputs(self, global_config: dict) -> None:
-        """Unpacks global configuration dictionary and assigns attributes
-        to Vehicle.
-        """
-        self.verbosity = global_config["VERBOSITY"]
-        self.wings = global_config["WING_GEOMETRY_DICT"]
-        self.fuselage = global_config["FUSELAGE_GEOMETRY_DICT"]
-        self.fins = global_config["FIN_GEOMETRY_DICT"]
-        self.mirror_fins = global_config["MIRROR_FINS"]
-        self.vehicle_angle = global_config["VEHICLE_ANGLE"]
-        
-        # STL
-        self.write_stl = global_config["CREATE_STL_OBJECT"]
-        self.stl_filename = global_config["STL_FILENAME"]
-        self.stl_resolution = global_config["STL_RESOLUTION"]
-        self.mirror = global_config["STL_INCLUDE_MIRROR"]
-        self.show_mpl = global_config["STL_SHOW_IN_MATPLOT"]
-        
-        # VTK 
-        self.write_vtk = global_config["CREATE_VTK_MESH"]
-        self.vtk_resolution = global_config["VTK_RESOLUTION"]
-        self.vtk_filename = global_config["VTK_FILENAME"]
-        
     
     @staticmethod
     def _check_inputs(global_config: dict) -> None:
@@ -214,6 +183,29 @@ class Vehicle:
             elif global_config[option] not in valid_inputs:
                 raise Vehicle.InvalidInputError(option, valid_inputs)
     
+    def _unpack_inputs(self, global_config: dict) -> None:
+        """Unpacks global configuration dictionary and assigns attributes
+        to Vehicle.
+        """
+        self.verbosity = global_config["VERBOSITY"]
+        self.wings = global_config["WING_GEOMETRY_DICT"]
+        self.fuselage = global_config["FUSELAGE_GEOMETRY_DICT"]
+        self.fins = global_config["FIN_GEOMETRY_DICT"]
+        self.mirror_fins = global_config["MIRROR_FINS"]
+        self.vehicle_angle = global_config["VEHICLE_ANGLE"]
+        
+        # STL
+        self.write_stl = global_config["CREATE_STL_OBJECT"]
+        self.stl_filename = global_config["STL_FILENAME"]
+        self.stl_resolution = global_config["STL_RESOLUTION"]
+        self.mirror = global_config["STL_INCLUDE_MIRROR"]
+        self.show_mpl = global_config["STL_SHOW_IN_MATPLOT"]
+        
+        # VTK 
+        self.write_vtk = global_config["CREATE_VTK_MESH"]
+        self.vtk_resolution = global_config["VTK_RESOLUTION"]
+        self.vtk_filename = global_config["VTK_FILENAME"]
+    
     
     class InvalidInputError(Exception):
         """Invalid input exception.
@@ -237,7 +229,7 @@ class Vehicle:
         self.patches['wing'] = hyper_wing_main(self.wings)
         self.patches['fuselage'] = hyper_fuselage_main(self.fuselage)
         self.patches['fin'] = hyper_fin_main(self.fins)
-    
+        
 
         # Add curvature
         if self.verbosity > 0:
@@ -298,7 +290,7 @@ class Vehicle:
         """Adds curvature by the provided curvature functions.
         """
         # Wing curvature
-        if self.wings is not None:
+        if len(self.wings) > 0:
             for ix, wing_geometry_dict in enumerate(self.wings):
                 # Curvature about the x-axis
                 if wing_geometry_dict['WING_FUNC_CURV_X'] is None and \
@@ -355,19 +347,17 @@ class Vehicle:
         """
         # Rotate wings
         for ix, wing_geometry_dict in enumerate(self.wings):
-            if wing_geometry_dict is not None:
-                for key in self.patches['wing'][ix]:
-                    self.patches['wing'][ix][key] = RotatedPatch(self.patches['wing'][ix][key], 
-                                                            np.deg2rad(self.vehicle_angle), 
-                                                            axis='y')
+            for key in self.patches['wing'][ix]:
+                self.patches['wing'][ix][key] = RotatedPatch(self.patches['wing'][ix][key], 
+                                                        np.deg2rad(self.vehicle_angle), 
+                                                        axis='y')
         
         # Rotate fins
         for ix, fin_geometry_dict in enumerate(self.fins):
-            if fin_geometry_dict is not None:
-                for key in self.patches['fin'][ix]:
-                    self.patches['fin'][ix][key] = RotatedPatch(self.patches['fin'][ix][key], 
-                                                           np.deg2rad(self.vehicle_angle), 
-                                                           axis='y')
+            for key in self.patches['fin'][ix]:
+                self.patches['fin'][ix][key] = RotatedPatch(self.patches['fin'][ix][key], 
+                                                       np.deg2rad(self.vehicle_angle), 
+                                                       axis='y')
         
         # Rotate fuselage
         for key in self.patches['fuselage']:
@@ -521,7 +511,7 @@ class Vehicle:
         """Creases stl objects
         """
         # Wings
-        if self.wings is not None:
+        if len(self.wings) > 0:
             # Create stl object
             self.meshes['wing'] = []
             for wing_no, wing_stl_data in enumerate(self.stl_data['wing']):
@@ -534,7 +524,7 @@ class Vehicle:
                     print("    fuselage stl object created")
 
         # Fins
-        if self.fins is not None:
+        if len(self.fins) > 0:
             self.meshes['fin'] = []
             
             for fin_no, fin_stl_data in enumerate(self.stl_data['fin']):
@@ -547,7 +537,7 @@ class Vehicle:
         """Writes STL files.
         """
         # Wings
-        if self.wings is not None:
+        if len(self.wings) > 0:
             # Create stl object
             for wing_no, wing_mesh in enumerate(self.meshes['wing']):
                 # Save to .stl file
@@ -564,7 +554,7 @@ class Vehicle:
                 print(f"    Writing fuselage stl to - {fuse_filename}")
         
         # Fins
-        if self.fins is not None:
+        if len(self.fins) > 0:
             for fin_no, fin_mesh in enumerate(self.meshes['fin']):
                 fin_filename = f"{self.stl_filename}-fin{fin_no+1}.stl"
                 fin_mesh.save(fin_filename)
@@ -575,7 +565,7 @@ class Vehicle:
     def _evaluate_mesh_properties(self,):
         """Evaluates properties of stl.
         """
-        if self.wings[0] is not None:
+        if len(self.wings) > 0:
             print("")
             print("START: Evaluating Wing Mesh Properties:")
             for wing_no, wing_mesh in enumerate(self.meshes['wing']):
@@ -602,7 +592,7 @@ class Vehicle:
             print("  DONE: Evaluating Mesh Properties")
             print("")
             
-        if self.fins[0] is not None:
+        if len(self.fins) > 0:
             print("")
             print("START: Evaluating Fin Mesh Properties:")
             for fin_no, fin_mesh in enumerate(self.meshes['fin']):
@@ -621,7 +611,7 @@ class Vehicle:
     def _mpl_plot(self,):
         """Plots stl components with matplotlib.
         """
-        if self.wings is not None:
+        if len(self.wings) > 0:
             # Create a new plot
             figure = plt.figure()
             ax = mplot3d.Axes3D(figure)
@@ -666,7 +656,7 @@ class Vehicle:
             fuse_coll.set_facecolor('r')
             ax.add_collection3d(fuse_coll)
             
-            if self.fins[0] is not None:
+            if len(self.fins) > 0:
                 for fin_mesh in self.meshes['fin']:
                     fin_coll = mplot3d.art3d.Poly3DCollection(fin_mesh.vectors)
                     fin_coll.set_facecolor('c')

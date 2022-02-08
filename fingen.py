@@ -37,7 +37,7 @@ def hyper_fin_main(fin_geometries: dict, verbosity: int = 1) -> list:
 
     patches = []
     
-    if fin_geometries[0] is not None:
+    if len(fin_geometries) > 0:
         print("FIN GEOMETRY GENERATION")    
         for fin_number, fin_geometry in enumerate(fin_geometries):
             print(f"  Fin {fin_number+1}")
