@@ -39,6 +39,7 @@ class Vehicle:
             The verbosity of the code (default value is 1; moderate verbosity).
         """
         self.verbosity = verbosity
+        self.vehicle_name = "generic hypersonic vehicle"
         
         self.wings = []
         self.fuselage = None
@@ -67,14 +68,15 @@ class Vehicle:
         
     
     def __repr__(self):
-        return "Parameterised hypersonic vehicle geometry."
+        return f"Parameterised {self.vehicle_name}."
     
     
     def configure(self, verbosity: int = 1, write_stl: bool = True, 
                   stl_resolution: int = 5, stl_filename: str = 'test',
                   show_in_figure: bool = False, write_vtk: bool = False,
                   vtk_resolution: int = 5, vtk_filename: str = 'test',
-                  filename_prefix: str = 'test') -> None:
+                  filename_prefix: str = 'test',
+                  name: str = "generic hypersonic vehicle") -> None:
         """Configures run options for Vehicle geometry generation.
 
         Parameters
@@ -97,13 +99,16 @@ class Vehicle:
             The filename prefix for VTK files. The default is 'test'.
         filename_prefix : str, optional
             The filename prefix for STL and VTK files. The default is 'test'.
-
+        name : str, optional
+            The vehicle name. The default is "generic hypersonic vehicle".
+    
         Returns
         -------
         None
             This method assigns the settings to the vehicle instance.
         """
         self.verbosity = verbosity
+        self.vehicle_name = name
         
         # STL options
         self.write_stl = write_stl
