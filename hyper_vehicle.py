@@ -36,6 +36,8 @@ class Vehicle:
         
         self.patches = {}
         self.grids = {}
+        self.surfaces = {}
+        self.stl_data = {}
         self.meshes = {}
         
     
@@ -201,14 +203,64 @@ class Vehicle:
         self.patches['fuselage'] = hyper_fuselage_main(self.fuselage)
         self.patches['fin'] = hyper_fin_main(self.fins)
     
-        
-        # Step 5:
-        #########
+
         # Add curvature
         if self.verbosity > 0:
             print("")
             print("START: Adding curvature.")
         
+        self._add_curvature()
+        
+        if self.verbosity > 0:
+            print("  DONE: Adding curvature.")
+            print("")
+        
+        
+        # Add vehicle offset angle to correct any curve induced AOA change
+        if self.vehicle_angle != 0:
+            self._rotate_vehicle()
+            
+            
+        # Eilmer Grid surface grids
+        if self.write_vtk:
+            if self.verbosity > 0:
+                print("START: Creating Eilmer Grid and vtk files.")
+            
+            self._write_vtk()
+            
+            if self.verbosity > 0:
+                print("  DONE: Creating Eilmer Grid and vtk files.")
+                print("")
+    
+        
+        # STL object
+        if self.write_stl:
+            if self.verbosity > 0:
+                print("START: Creating STL object(s).")
+                print(f"    Creating STL with resolution of {self.stl_resolution}")
+            
+            self._create_surfaces()
+            self._create_stl_data()
+            self._create_stl()
+            self._write_stl()
+            print("  DONE: Creating STL object(s).")
+    
+            self._evaluate_mesh_properties()
+    
+            if self.show_mpl:
+                if self.verbosity > 0:
+                    print("START: Show in matplotlib")
+        
+                self._mpl_plot()
+                
+                if self.verbosity > 0:
+                    print("  DONE: Show in matplotlib")
+                    print("")
+    
+    
+    def _add_curvature(self,) -> None:
+        """Adds curvature by the provided curvature functions.
+        """
         # Wing curvature
         if self.wings is not None:
             for ix, wing_geometry_dict in enumerate(self.wings):
@@ -261,357 +313,339 @@ class Vehicle:
                                     direction='y', fun=self.fuselage['FUSELAGE_FUNC_CURV_Y'],
                                     fun_dash=self.fuselage['FUSELAGE_FUNC_CURV_Y_DASH'])
         
-        if self.verbosity > 0:
-            print("  DONE: Adding curvature.")
-            print("")
-        
-        
-        # Add vehicle offset angle to correct any curve induced AOA change
-        if self.vehicle_angle != 0:
-            # Rotate wings
-            for ix, wing_geometry_dict in enumerate(self.wings):
+    
+    def _rotate_vehicle(self):
+        """Rotates entire vehicle to add offset angle.
+        """
+        # Rotate wings
+        for ix, wing_geometry_dict in enumerate(self.wings):
+            if wing_geometry_dict is not None:
                 for key in self.patches['wing'][ix]:
                     self.patches['wing'][ix][key] = RotatedPatch(self.patches['wing'][ix][key], 
                                                             np.deg2rad(self.vehicle_angle), 
                                                             axis='y')
-            
-            # Rotate fins
-            for ix, fin_geometry_dict in enumerate(self.fins):
+        
+        # Rotate fins
+        for ix, fin_geometry_dict in enumerate(self.fins):
+            if fin_geometry_dict is not None:
                 for key in self.patches['fin'][ix]:
                     self.patches['fin'][ix][key] = RotatedPatch(self.patches['fin'][ix][key], 
                                                            np.deg2rad(self.vehicle_angle), 
                                                            axis='y')
-            
-            # Rotate fuselage
-            for key in self.patches['fuselage']:
-                self.patches['fuselage'][key] = RotatedPatch(self.patches['fuselage'][key], 
-                                                    np.deg2rad(self.vehicle_angle), 
-                                                    axis='y')
-            
-        # Step 6:
-        #########
-        # Eilmer Grid surface grids
-        if self.write_vtk:
-            if self.verbosity > 0:
-                print("START: Creating Eilmer Grid and vtk files.")
-            
-            # Wings
-            wing_grid_list = []
-            for wing_patch_dict in self.patches['wing']:
-                wing_grid_dict = {}
-                for key in wing_patch_dict:
-                    wing_grid_dict[key] = StructuredGrid(psurf=wing_patch_dict[key],
-                                  niv=self.vtk_resolution, njv=self.vtk_resolution)
-                wing_grid_list.append(wing_grid_dict)
-                
-            # Fuselage
-            fuse_grid_dict = {}
-            for key in self.patches['fuselage']:
-                fuse_grid_dict[key] = StructuredGrid(psurf=self.patches['fuselage'][key],
+        
+        # Rotate fuselage
+        for key in self.patches['fuselage']:
+            self.patches['fuselage'][key] = RotatedPatch(self.patches['fuselage'][key], 
+                                                np.deg2rad(self.vehicle_angle), 
+                                                axis='y')
+    
+    def _write_vtk(self) -> None:
+        """Writes VTK files.
+        """
+        # TODO - split this method into create vtk and write vtk
+        # Wings
+        self.grids['wing'] = []
+        for wing_patch_dict in self.patches['wing']:
+            wing_grid_dict = {}
+            for key in wing_patch_dict:
+                wing_grid_dict[key] = StructuredGrid(psurf=wing_patch_dict[key],
                               niv=self.vtk_resolution, njv=self.vtk_resolution)
+            self.grids['wing'].append(wing_grid_dict)
             
-            # Fins
-            fin_grid_list = []
-            for fin_patch_dict in self.patches['fin']:
-                fin_grid_dict = {}
-                for key in fin_patch_dict:
-                    fin_grid_dict[key] = StructuredGrid(psurf=fin_patch_dict[key],
-                                  niv=self.vtk_resolution, njv=self.vtk_resolution)
-                fin_grid_list.append(fin_grid_dict)
-            
-            if self.verbosity > 0:
-                print("    Structure Grid Creates")
-                print("    Writing grid files to {}-label.vtk".format(self.vtk_filename))
-    
-    
-            # Step 7:
-            #########
-            # write the grids to VTK
-            
-            # Wings
-            for wing_grid_dict in  wing_grid_list:
-                for key in wing_grid_dict:
-                    wing_grid_dict[key].write_to_vtk_file("{0}-wing_{1}.vtk".format(self.vtk_filename, key))
-    
-            # Fuselage
-            for key in fuse_grid_dict:
-                fuse_grid_dict[key].write_to_vtk_file("{0}-fuse_{1}.vtk".format(self.vtk_filename, key))
-            
-            # Fins
-            for fin_grid_dict in fin_grid_list:
-                for key in fin_grid_dict:
-                    fin_grid_dict[key].write_to_vtk_file(f"{self.vtk_filename}-fin_{key}.vtk")
-            
-            if self.verbosity > 0:
-                print("  DONE: Creating Eilmer Grid and vtk files.")
-                print("")
-    
-        # Step 8:
+        # Fuselage
+        self.grids['fuselage'] = {}
+        for key in self.patches['fuselage']:
+            self.grids['fuselage'][key] = StructuredGrid(psurf=self.patches['fuselage'][key],
+                                                         niv=self.vtk_resolution, 
+                                                         njv=self.vtk_resolution)
+        
+        # Fins
+        self.grids['fin'] = []
+        for fin_patch_dict in self.patches['fin']:
+            fin_grid_dict = {}
+            for key in fin_patch_dict:
+                fin_grid_dict[key] = StructuredGrid(psurf=fin_patch_dict[key],
+                              niv=self.vtk_resolution, njv=self.vtk_resolution)
+            self.grids['fin'].append(fin_grid_dict)
+        
+        if self.verbosity > 0:
+            print("    Structure Grid Creates")
+            print("    Writing grid files to {}-label.vtk".format(self.vtk_filename))
+
+
+        # Step 7:
         #########
-        # STL object
-        if self.write_stl:
+        # write the grids to VTK
+        
+        # Wings
+        for wing_grid_dict in  self.grids['wing']:
+            for key in wing_grid_dict:
+                wing_grid_dict[key].write_to_vtk_file("{0}-wing_{1}.vtk".format(self.vtk_filename, key))
+
+        # Fuselage
+        for key in self.grids['fuselage']:
+            self.grids['fuselage'][key].write_to_vtk_file("{0}-fuse_{1}.vtk".format(self.vtk_filename, key))
+        
+        # Fins
+        for fin_grid_dict in self.grids['fin']:
+            for key in fin_grid_dict:
+                fin_grid_dict[key].write_to_vtk_file(f"{self.vtk_filename}-fin_{key}.vtk")
+        
+    
+    def _create_surfaces(self,) -> None:
+        """Creates parameteric surfaces.
+        """
+        
+        # Wings
+        self.surfaces['wing'] = []
+        for wing_patch_dict in self.patches['wing']:
+            wing_stl_mesh_list = []
+            for key in wing_patch_dict:
+                wing_stl_mesh_list.append(parametricSurfce2stl(wing_patch_dict[key],
+                                                               self.stl_resolution))
+            self.surfaces['wing'].append(wing_stl_mesh_list)
+        
+        # Fuselage
+        self.surfaces['fuselage'] = []
+        for key in self.patches['fuselage']:
+            self.surfaces['fuselage'].append(parametricSurfce2stl(self.patches['fuselage'][key],
+                                                                self.stl_resolution))
+        
+        # Fins
+        self.surfaces['fin'] = []
+        for fin_patch_dict in self.patches['fin']:
+            fin_stl_mesh_list = []
+            for key in fin_patch_dict:
+                fin_stl_mesh_list.append(parametricSurfce2stl(fin_patch_dict[key],
+                                                              self.stl_resolution))
+            self.surfaces['fin'].append(fin_stl_mesh_list)
+        
+    
+    def _create_stl_data(self) -> None:
+        """Creates STL data elements.
+        """
+        # Wings
+        self.stl_data['wing'] = []
+        for wing_stl_mesh_list in self.surfaces['wing']:
+            wing_stl_data = []
+            for val in wing_stl_mesh_list:
+                wing_stl_data.append(val.data.copy())
+            self.stl_data['wing'].append(wing_stl_data)
+        
+        # Fuselage
+        self.stl_data['fuselage'] = []
+        for val in self.surfaces['fuselage']:
+            self.stl_data['fuselage'].append(val.data.copy())
+        
+        # Fins
+        self.stl_data['fin'] = []
+        for fin_stl_mesh_list in self.surfaces['fin']:
+            fin_stl_data = []
+            for val in fin_stl_mesh_list:
+                fin_stl_data.append(val.data.copy())
+            self.stl_data['fin'].append(fin_stl_data)
+        
+        # add stl elements for mirrored section
+        if self.mirror:
             if self.verbosity > 0:
-                print("START: Creating STL object(s).")
-                print(f"    Creating STL with resolution of {self.stl_resolution}")
+                print("    Adding Mirror Image of wing.")
             
-            # Wings
-            all_wing_stl_mesh_list = []
+            all_wing_stl_mesh_list_m = []
             for wing_patch_dict in self.patches['wing']:
-                wing_stl_mesh_list = []
+                wing_stl_mesh_list_m = []
                 for key in wing_patch_dict:
-                    wing_stl_mesh_list.append(parametricSurfce2stl(wing_patch_dict[key],
-                                              self.stl_resolution))
-                all_wing_stl_mesh_list.append(wing_stl_mesh_list)
+                    wing_stl_mesh_list_m.append(parametricSurfce2stl(
+                        wing_patch_dict[key], self.stl_resolution, mirror_y=True))
+                    
+                all_wing_stl_mesh_list_m.append(wing_stl_mesh_list_m)
+                
+            # add elements to stl_data lists
+            for ix, wing_stl_mesh_list_m in enumerate(all_wing_stl_mesh_list_m):
+                for val in wing_stl_mesh_list_m:
+                    self.stl_data['wing'][ix].append(val.data.copy())
+        
+        if self.mirror_fins: 
+            # Repeat for fins
+            if self.verbosity > 0:
+                print("    Adding Mirror Image of fin.")
             
-            # Fuselage
-            fuse_stl_mesh_list = []
-            for key in self.patches['fuselage']:
-                fuse_stl_mesh_list.append(parametricSurfce2stl(self.patches['fuselage'][key],
-                                          self.stl_resolution))
-            
-            # Fins
-            all_fin_stl_mesh_list = []
+            all_fin_stl_mesh_list_m = []
             for fin_patch_dict in self.patches['fin']:
-                fin_stl_mesh_list = []
+                fin_stl_mesh_list_m = []
                 for key in fin_patch_dict:
-                    fin_stl_mesh_list.append(parametricSurfce2stl(fin_patch_dict[key],
-                                              self.stl_resolution))
-                all_fin_stl_mesh_list.append(fin_stl_mesh_list)
-    
-            # create data structure containting all stl elements
-            # Wings
-            all_wing_stl_data = []
-            for wing_stl_mesh_list in all_wing_stl_mesh_list:
-                wing_stl_data = []
-                for val in wing_stl_mesh_list:
-                    wing_stl_data.append(val.data.copy())
-                all_wing_stl_data.append(wing_stl_data)
-            
-            # Fuselage
-            fuse_stl_data = []
-            for val in fuse_stl_mesh_list:
-                fuse_stl_data.append(val.data.copy())
-            
-            # Fins
-            all_fin_stl_data = []
-            for fin_stl_mesh_list in all_fin_stl_mesh_list:
-                fin_stl_data = []
-                for val in fin_stl_mesh_list:
-                    fin_stl_data.append(val.data.copy())
-                all_fin_stl_data.append(fin_stl_data)
-            
-            # add stl elements for mirrored section
-            if self.mirror:
-                if self.verbosity > 0:
-                    print("    Adding Mirror Image of wing.")
-                
-                all_wing_stl_mesh_list_m = []
-                for wing_patch_dict in self.patches['wing']:
-                    wing_stl_mesh_list_m = []
-                    for key in wing_patch_dict:
-                        wing_stl_mesh_list_m.append(parametricSurfce2stl(
-                            wing_patch_dict[key], self.stl_resolution, mirror_y=True))
-                        
-                    all_wing_stl_mesh_list_m.append(wing_stl_mesh_list_m)
+                    fin_stl_mesh_list_m.append(parametricSurfce2stl(
+                        fin_patch_dict[key], self.stl_resolution, mirror_y=True))
                     
-                # add elements to stl_data lists
-                for ix, wing_stl_mesh_list_m in enumerate(all_wing_stl_mesh_list_m):
-                    for val in wing_stl_mesh_list_m:
-                        all_wing_stl_data[ix].append(val.data.copy())
-            
-            if self.mirror_fins: 
-                # Repeat for fins
-                if self.verbosity > 0:
-                    print("    Adding Mirror Image of fin.")
+                all_fin_stl_mesh_list_m.append(fin_stl_mesh_list_m)
                 
-                all_fin_stl_mesh_list_m = []
-                for fin_patch_dict in self.patches['fin']:
-                    fin_stl_mesh_list_m = []
-                    for key in fin_patch_dict:
-                        fin_stl_mesh_list_m.append(parametricSurfce2stl(
-                            fin_patch_dict[key], self.stl_resolution, mirror_y=True))
-                        
-                    all_fin_stl_mesh_list_m.append(fin_stl_mesh_list_m)
-                    
-                # add elements to stl_data lists
-                for ix, fin_stl_mesh_list_m in enumerate(all_fin_stl_mesh_list_m):
-                    for val in fin_stl_mesh_list_m:
-                        all_fin_stl_data[ix].append(val.data.copy())
-            
-            
-            # create stl mesh and save to file
-            # Wings
-            if self.wings is not None:
-                # Create stl object
-                for wing_no, wing_stl_data in enumerate(all_wing_stl_data):
-                    wing_stl_mesh = mesh.Mesh(np.concatenate(wing_stl_data))
-                    
-                    # Save to .stl file
-                    wing_filename = f"{self.stl_filename}-wing{wing_no+1}.stl"
-                    wing_stl_mesh.save(wing_filename)
-                    if self.verbosity > 0:
-                        print(f"    Wing {wing_no+1} stl object created - written to {wing_filename}.")
+            # add elements to stl_data lists
+            for ix, fin_stl_mesh_list_m in enumerate(all_fin_stl_mesh_list_m):
+                for val in fin_stl_mesh_list_m:
+                    self.stl_data['fin'][ix].append(val.data.copy())
+    
+    def _create_stl(self):
+        """Creases stl objects
+        """
+        # Wings
+        if self.wings is not None:
+            # Create stl object
+            self.meshes['wing'] = []
+            for wing_no, wing_stl_data in enumerate(self.stl_data['wing']):
+                self.meshes['wing'].append(mesh.Mesh(np.concatenate(wing_stl_data)))
                 
-            # Fuselage
-            if self.fuselage is not None:
-                fuse_stl_mesh = mesh.Mesh(np.concatenate(fuse_stl_data))
+        # Fuselage
+        if self.fuselage is not None:
+            self.meshes['fuselage'] = mesh.Mesh(np.concatenate(self.stl_data['fuselage']))
+            if self.verbosity > 0:
+                    print("    fuselage stl object created")
+
+        # Fins
+        if self.fins is not None:
+            self.meshes['fin'] = []
+            
+            for fin_no, fin_stl_data in enumerate(self.stl_data['fin']):
+                self.meshes['fin'].append(mesh.Mesh(np.concatenate(fin_stl_data)))
                 if self.verbosity > 0:
-                        print("    fuselage stl object created")
+                        print("    fin stl object created")
+
     
-                fuse_filename = "{}-fuse.stl".format(self.stl_filename)
-                fuse_stl_mesh.save(fuse_filename)
+    def _write_stl(self):
+        """Writes STL files.
+        """
+        # Wings
+        if self.wings is not None:
+            # Create stl object
+            for wing_no, wing_mesh in enumerate(self.meshes['wing']):
+                # Save to .stl file
+                wing_filename = f"{self.stl_filename}-wing{wing_no+1}.stl"
+                wing_mesh.save(wing_filename)
                 if self.verbosity > 0:
-                    print("    Writing stl to - {}".format(fuse_filename))
+                    print(f"    Wing {wing_no+1} stl object created - written to {wing_filename}.")
             
-            # Fins
-            if self.fins is not None:
-                for fin_no, fin_stl_data in enumerate(all_fin_stl_data):
-                    fin_stl_mesh = mesh.Mesh(np.concatenate(fin_stl_data))
-                    if self.verbosity > 0:
-                            print("    fin stl object created")
-            
-                    fin_filename = f"{self.stl_filename}-fin{fin_no+1}.stl"
-                    fin_stl_mesh.save(fin_filename)
-                    if self.verbosity > 0:
-                        print("    Writing stl to - {}".format(fin_filename))
-            
-                    if self.verbosity > 0:
-                        print("    Done writing stl file")
-            print("  DONE: Creating STL object(s).")
+        # Fuselage
+        if self.fuselage is not None:
+            fuse_filename = "{}-fuse.stl".format(self.stl_filename)
+            self.meshes['fuselage'].save(fuse_filename)
+            if self.verbosity > 0:
+                print(f"    Writing fuselage stl to - {fuse_filename}")
+        
+        # Fins
+        if self.fins is not None:
+            for fin_no, fin_mesh in enumerate(self.meshes['fin']):
+                fin_filename = f"{self.stl_filename}-fin{fin_no+1}.stl"
+                fin_mesh.save(fin_filename)
+                if self.verbosity > 0:
+                    print(f"    Writing fin stl to - {fin_filename}")
+        
     
-    
-            if self.wings[0] is not None:
-                print("")
-                print("START: Evaluating Wing Mesh Properties:")
-                for wing_no, wing_stl_data in enumerate(all_wing_stl_data):
-                    volume, cog, inertia = wing_stl_mesh.get_mass_properties()
-                    print(f"    WING {wing_no+1}")
-                    print("    --------")
-                    print("    Volume                                  = {0}".format(volume))
-                    print("    Position of the center of gravity (COG) = {0}".format(cog))
-                    print("    Inertia matrix at expressed at the COG  = {0}".format(inertia[0,:]))
-                    print("                                              {0}".format(inertia[1,:]))
-                    print("                                              {0}".format(inertia[2,:]))
-                print("  DONE: Evaluating Wing Mesh Properties")
-                print("")
-                
-            if self.fuselage is not None:
-                print("")
-                print("START: Evaluating Fuselage Mesh Properties:")
-                volume, cog, inertia = fuse_stl_mesh.get_mass_properties()
+    def _evaluate_mesh_properties(self,):
+        """Evaluates properties of stl.
+        """
+        if self.wings[0] is not None:
+            print("")
+            print("START: Evaluating Wing Mesh Properties:")
+            for wing_no, wing_mesh in enumerate(self.meshes['wing']):
+                volume, cog, inertia = wing_mesh.get_mass_properties()
+                print(f"    WING {wing_no+1}")
+                print("    --------")
                 print("    Volume                                  = {0}".format(volume))
                 print("    Position of the center of gravity (COG) = {0}".format(cog))
                 print("    Inertia matrix at expressed at the COG  = {0}".format(inertia[0,:]))
                 print("                                              {0}".format(inertia[1,:]))
                 print("                                              {0}".format(inertia[2,:]))
-                print("  DONE: Evaluating Mesh Properties")
-                print("")
-                
-            if self.fins[0] is not None:
-                print("")
-                print("START: Evaluating Fin Mesh Properties:")
-                for fin_no, fin_stl_data in enumerate(all_fin_stl_data):
-                    volume, cog, inertia = fin_stl_mesh.get_mass_properties()
-                    print(f"    Fin {fin_no+1}")
-                    print("    --------")
-                    print("    Volume                                  = {0}".format(volume))
-                    print("    Position of the center of gravity (COG) = {0}".format(cog))
-                    print("    Inertia matrix at expressed at the COG  = {0}".format(inertia[0,:]))
-                    print("                                              {0}".format(inertia[1,:]))
-                    print("                                              {0}".format(inertia[2,:]))
-                print("DONE Evaluating Fin Mesh Properties")
-                print("")
+            print("  DONE: Evaluating Wing Mesh Properties")
+            print("")
+            
+        if self.fuselage is not None:
+            print("")
+            print("START: Evaluating Fuselage Mesh Properties:")
+            volume, cog, inertia = self.meshes['fuselage'].get_mass_properties()
+            print("    Volume                                  = {0}".format(volume))
+            print("    Position of the center of gravity (COG) = {0}".format(cog))
+            print("    Inertia matrix at expressed at the COG  = {0}".format(inertia[0,:]))
+            print("                                              {0}".format(inertia[1,:]))
+            print("                                              {0}".format(inertia[2,:]))
+            print("  DONE: Evaluating Mesh Properties")
+            print("")
+            
+        if self.fins[0] is not None:
+            print("")
+            print("START: Evaluating Fin Mesh Properties:")
+            for fin_no, fin_mesh in enumerate(self.meshes['fin']):
+                volume, cog, inertia = fin_mesh.get_mass_properties()
+                print(f"    Fin {fin_no+1}")
+                print("    --------")
+                print("    Volume                                  = {0}".format(volume))
+                print("    Position of the center of gravity (COG) = {0}".format(cog))
+                print("    Inertia matrix at expressed at the COG  = {0}".format(inertia[0,:]))
+                print("                                              {0}".format(inertia[1,:]))
+                print("                                              {0}".format(inertia[2,:]))
+            print("DONE Evaluating Fin Mesh Properties")
+            print("")
     
-            if self.show_mpl:
-                # self._mpl_plot()
-                if self.verbosity > 0:
-                    print("START: Show in matplotlib")
-        
-                if self.wings is not None:
-                    # Create a new plot
-                    figure = plt.figure()
-                    ax = mplot3d.Axes3D(figure)
-        
-                    # Render the wing
-                    ax.add_collection3d(mplot3d.art3d.Poly3DCollection(wing_stl_mesh.vectors))
-                    # Auto scale to the mesh size
-                    scale = wing_stl_mesh.points.flatten()
-                    ax.auto_scale_xyz(scale, scale, scale)
-                    ax.set_xlabel("X-axis")
-                    ax.set_ylabel("Y-axis")
-                    ax.set_zlabel("Z-axis")
-                    
-                if self.fuselage is not None:
-                    # Create a new plot
-                    figure = plt.figure()
-                    ax = mplot3d.Axes3D(figure)
-        
-                    # Render the fuselage
-                    ax.add_collection3d(mplot3d.art3d.Poly3DCollection(fuse_stl_mesh.vectors))
-                    # Auto scale to the mesh size
-                    scale = fuse_stl_mesh.points.flatten()
-                    ax.auto_scale_xyz(scale, scale, scale)
-                    ax.set_xlabel("X-axis")
-                    ax.set_ylabel("Y-axis")
-                    ax.set_zlabel("Z-axis")
-                    
-                if self.wings is not None and self.fuselage is not None:
-                    # Create a new plot
-                    figure = plt.figure()
-                    ax = mplot3d.Axes3D(figure)
-        
-                    # Render the wing and fuselage
-                    wing_coll = mplot3d.art3d.Poly3DCollection(wing_stl_mesh.vectors)
-                    ax.add_collection3d(wing_coll)
-                    fuse_coll = mplot3d.art3d.Poly3DCollection(fuse_stl_mesh.vectors)
-                    fuse_coll.set_facecolor('r')
-                    ax.add_collection3d(fuse_coll)
-                    
-                    if self.fins[0] is not None:
-                        # TODO - this needs to be updated (and probably the wing plotting)
-                        fin_coll = mplot3d.art3d.Poly3DCollection(fin_stl_mesh.vectors)
-                        fin_coll.set_facecolor('c')
-                        ax.add_collection3d(fin_coll)
-        
-        
-                    # Auto scale to the mesh size
-                    scale = wing_stl_mesh.points.flatten()
-                    ax.auto_scale_xyz(scale, scale, scale)
-                    ax.set_xlabel("X-axis")
-                    ax.set_ylabel("Y-axis")
-                    ax.set_zlabel("Z-axis")
-        
-                # Show the plot to the screen
-                plt.show()
-                if self.verbosity > 0:
-                    print("  DONE: Show in matplotlib")
-                    print("")
-    
-    def _add_curvature(self,):
-        """Adds curvature by the provided curvature functions.
-        """
-        
-        
-    
-    def _rotate_vehicle(self):
-        """Rotates entire vehicle to add offset angle.
-        """
-    
-    def _write_vtk(self):
-        """Writes VTK files.
-        """
-    
-    def _write_stl(self):
-        """Writes STL files.
-        """
-    
-    def _evaluate_mesh_properties(self,):
-        """Evaluates properties of stl.
-        """
     
     def _mpl_plot(self,):
         """Plots stl components with matplotlib.
         """
+        if self.wings is not None:
+            # Create a new plot
+            figure = plt.figure()
+            ax = mplot3d.Axes3D(figure)
+
+            # Render the wing(s)
+            for wing_mesh in self.meshes['wing']:
+               ax.add_collection3d(mplot3d.art3d.Poly3DCollection(wing_mesh.vectors))
+               scale = wing_mesh.points.flatten()
+            
+            # Auto scale to the mesh size
+            ax.auto_scale_xyz(scale, scale, scale)
+            ax.set_xlabel("X-axis")
+            ax.set_ylabel("Y-axis")
+            ax.set_zlabel("Z-axis")
+            
+        if self.fuselage is not None:
+            # Create a new plot
+            figure = plt.figure()
+            ax = mplot3d.Axes3D(figure)
+
+            # Render the fuselage
+            ax.add_collection3d(mplot3d.art3d.Poly3DCollection(self.meshes['fuselage'].vectors))
+            # Auto scale to the mesh size
+            scale = self.meshes['fuselage'].points.flatten()
+            ax.auto_scale_xyz(scale, scale, scale)
+            ax.set_xlabel("X-axis")
+            ax.set_ylabel("Y-axis")
+            ax.set_zlabel("Z-axis")
+            
+        if self.wings is not None and self.fuselage is not None:
+            # Create a new plot
+            figure = plt.figure()
+            ax = mplot3d.Axes3D(figure)
+
+            # Render the wing and fuselage
+            for wing_mesh in self.meshes['wing']:
+                wing_coll = mplot3d.art3d.Poly3DCollection(wing_mesh.vectors)
+                ax.add_collection3d(wing_coll)
+                scale = wing_mesh.points.flatten()
+                
+            fuse_coll = mplot3d.art3d.Poly3DCollection(self.meshes['fuselage'].vectors)
+            fuse_coll.set_facecolor('r')
+            ax.add_collection3d(fuse_coll)
+            
+            if self.fins[0] is not None:
+                for fin_mesh in self.meshes['fin']:
+                    fin_coll = mplot3d.art3d.Poly3DCollection(fin_mesh.vectors)
+                    fin_coll.set_facecolor('c')
+                    ax.add_collection3d(fin_coll)
+
+            # Auto scale to the mesh size
+            ax.auto_scale_xyz(scale, scale, scale)
+            ax.set_xlabel("X-axis")
+            ax.set_ylabel("Y-axis")
+            ax.set_zlabel("Z-axis")
+
+        # Show the plot to the screen
+        plt.show()
         
         
     def generate(self):
