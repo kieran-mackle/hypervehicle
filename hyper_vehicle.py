@@ -190,8 +190,8 @@ class Vehicle:
         GConf.check_inputs()
         
         # create the vehicle components
-        if GConf.CREATE_WING == True:
-            wing_patch_list = hyper_wing_main(GConf)
+        if self.wings is not None:
+            wing_patch_list = hyper_wing_main(self.wings)
         else:
             wing_patch_list = []
             
@@ -705,6 +705,6 @@ if __name__ == '__main__':
 
     else:
         hv.check_uo_dict(uo_dict)
-        global_config = hv.load_global_config(uo_dict) # TODO - assign to attribute
+        global_config = hv.load_global_config(uo_dict)
         hv.add_global_config(global_config)
         hv.main()

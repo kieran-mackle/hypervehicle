@@ -1,14 +1,4 @@
 #!/usr/bin/python3.8
-"""
-Wing Geometry Generator for gliding hypersonic vehicle.
-
-Contains functions to be called from hyper_vehicle.py
-
-Authors: Ingo Jahn, Kieran Mackle
-Created on: 02/07/2021
-Last Modified: 02/07/2021
-"""
-
 import numpy as np
 from scipy.optimize import bisect
 
@@ -29,54 +19,38 @@ from idmoc.hypervehicle.utils import (OffsetPatchFunction,
                                       FlatLeadingEdgePatchFunction
                                       )
 
-def hyper_wing_main(GConf):
-    """
-    Function to generate and manipulate fuselage shape.
+def hyper_wing_main(wing_geometries: list, verbosity: int = 1) -> list:
+    """Wing Geometry Generator for gliding hypersonic vehicle.
 
-    Outputs:
-        patch_dict - dictionary of eilmer parametric surface elements
+    Parameters
+    ----------
+    wing_geometries : list
+        A list containing wing geometry definition dictionaries.
+    verbosity : int, optional
+        The verbosity of the code output. The default is 1.
+
+    Raises
+    ------
+    Exception
+        When an invalid trailing edge option is provided.
+
+    Returns
+    -------
+    patches : list
+        A list of the wing surface patches.
+    
+    References
+    ----------
+    This code is authored by Ingo Jahn and Kieran Mackle.
     """
     
     patches = []
     
     print("\nWING GEOMETRY GENERATION")
-    for wing_no, wing_geometry in enumerate(GConf.WING_GEOMETRY_DICT):
+    for wing_no, wing_geometry in enumerate(wing_geometries):
         # Initialise 
         patch_dict = {}
         
-        ######################################################
-        ### Shape Generation ###
-        ######################################################
-    
-        # Coordinate System Definition
-        # The Body Coordinate system is defined as described in Peter H. Zipfel -
-        #     Modeling and Simualtion of Aerospace Vehicle Dynamics.
-        #
-        # 1^B (X-axis) - points through the nose of the vehicle
-        # 2^B (Y-axis) - points out of the right hand wing
-        # 3^B (Z-axis) - points out of the bottom of the vehicle
-        # The 1^B and 3^B axis define the plane of symmetry
-    
-        # Step 1:
-        #########
-        # Looking from below the vehicle the view of the bottom side of the right wing.
-    
-    
-        #  /\  Y-axis
-        #  |
-        #  |
-        #  +---> X-axis
-        # Looking at vehicle form below
-        #
-        # a) For leading edge define by bezier (or polyline) curve going B0 to TT
-        # Type: bezier
-        # Inputs: Line_B0TT
-        #     B0----------------\__
-        #     |                    B1--__
-        #     |                    |     B2
-        #     |                    |       \
-        #     A0------------------A1-------TT
-    
         # Extract construction points for planform
         A0 = wing_geometry['A0']
         A1 = wing_geometry['A1']
@@ -84,11 +58,11 @@ def hyper_wing_main(GConf):
         B0 = wing_geometry['B0']
         Line_B0TT = wing_geometry['Line_B0TT']
     
-        if GConf.VERBOSITY > 0:
+        if verbosity > 0:
             print(f"START: Creating wing {wing_no+1} planform.")
             
         if wing_geometry['Line_B0TT_TYPE'].lower() == "bezier":
-            if GConf.VERBOSITY > 0:
+            if verbosity > 0:
                 print("    Constructing Planform using Bezier Curve as Leading Edge shape.")
             
             # Find Locations
@@ -110,7 +84,7 @@ def hyper_wing_main(GConf):
         else:
             raise Exception("Option for 'Line_B0TT'={} not supported.".format(wing_geometry['Line_B0TT_TYPE']))
     
-        ## create wing planform shape
+        # create wing planform shape
         wing_patch = [np.nan, np.nan]
         wing_patch_flipped = [np.nan, np.nan]
         wing_patch[0] = CoonsPatch(south=Line(p0=A0, p1=A1),
@@ -133,15 +107,13 @@ def hyper_wing_main(GConf):
                                        north=Line_B1B2_flipped,
                                        east=Line(p0=A1, p1=B1),
                                        west=Line_TTB2)
-        if GConf.VERBOSITY > 0:
+        if verbosity > 0:
             print("  DONE: Creating wing planform.")
             print("")
     
     
-        # Step 2:
-        #########
-        ## create wing top & bottom surface
-        if GConf.VERBOSITY > 0:
+        # Create wing top & bottom surface
+        if verbosity > 0:
             print("START: Adding thickness to wing.")
         top_patch = [np.nan, np.nan]
         bot_patch = [np.nan, np.nan]
@@ -152,7 +124,7 @@ def hyper_wing_main(GConf):
             bot_patch[i] = OffsetPatchFunction(wing_patch[i],
                                        function=wing_geometry['FUNC_BOT_THICKNESS'])
             # flipped moves to top as z-positive points downwards
-        if GConf.VERBOSITY > 0:
+        if verbosity > 0:
             print("  DONE: Adding thickness to wing.")
             print("")
             
@@ -161,11 +133,8 @@ def hyper_wing_main(GConf):
         patch_dict[f"w{wing_no}_bot_patch_0"] = bot_patch[0]    # bot B0B1A1A0
         patch_dict[f"w{wing_no}_bot_patch_1"] = bot_patch[1]    # bot B1B2TTA1
     
-    
-        # Step 3:
-        #########
         # Add leading edge.
-        if GConf.VERBOSITY > 0:
+        if verbosity > 0:
             print("START: Adding Leading Edge to wing.")
         
         # Get mean line between upper and lower wing patches
@@ -218,20 +187,18 @@ def hyper_wing_main(GConf):
             patch_dict[f"w{wing_no}_LE_bot_patch_2"] = LE_bot_patch[2]
         
         
-        if GConf.VERBOSITY > 0:
+        if verbosity > 0:
             print("  DONE: Adding Leading Edge to wing.")
             print("")
     
     
-        # Step 4:
-        #########
         # Add trailing Edge
-        if GConf.VERBOSITY > 0:
+        if verbosity > 0:
             print("START: Adding Trailing Edge.")
             print("    Tail options - {}".format(wing_geometry['TAIL_OPTION']))
             
         if wing_geometry['TAIL_OPTION'] == 'FLAP':
-            if GConf.VERBOSITY > 0:
+            if verbosity > 0:
                 print("    Flap length = {}".format(wing_geometry['FLAP_LENGTH']))
                 print("    Flap angle  = {}".format(wing_geometry['FLAP_ANGLE']))
     
@@ -307,7 +274,7 @@ def hyper_wing_main(GConf):
         
         else:
             raise Exception("Tail option = {} not supported.".format(wing_geometry['TAIL_OPTION']))
-        if GConf.VERBOSITY > 0:
+        if verbosity > 0:
             print("  DONE: Adding Trailing Edge.")
             print("")
         
@@ -316,7 +283,7 @@ def hyper_wing_main(GConf):
         if 'CLOSE_WING' in wing_geometry and wing_geometry['CLOSE_WING']:
             # Add patch to close wing
             
-            if GConf.VERBOSITY > 0:
+            if verbosity > 0:
                 print("Closing interior side of wing.")
             
             TT_top = TT + wing_geometry['FUNC_TOP_THICKNESS'](x=TT.x, y=TT.y, z=TT.z)
