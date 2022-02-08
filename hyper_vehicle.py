@@ -1,5 +1,5 @@
 #!/usr/bin/python3.8
-
+from __future__ import annotations
 from getopt import getopt
 import numpy as np
 import os
@@ -32,6 +32,12 @@ class Vehicle:
         self.verbosity = verbosity
         self.global_config = None
         
+        # TODO - include defaults here
+        
+        self.patches = {}
+        self.grids = {}
+        self.meshes = {}
+        
     
     def __repr__(self):
         return "Parameterised hypersonic vehicle geometry."
@@ -40,6 +46,9 @@ class Vehicle:
     def add_component(component_type: str, component_dict: dict):
         """Adds a vehicle component.
         """
+        
+        # Will append dict to a components dict, containing the component 
+        # type and definition. Will allow for greater code efficiency
         
         
     def add_global_config(self, global_config: dict) -> None:
@@ -187,21 +196,10 @@ class Vehicle:
         """Run hypervehicle geometry generation code.
         """
         
-        # create the vehicle components
-        if self.wings[0] is not None:
-            wing_patch_list = hyper_wing_main(self.wings)
-        else:
-            wing_patch_list = []
-            
-        if self.fuselage is not None:
-            fuse_patch_dict = hyper_fuselage_main(self.fuselage)
-        else:
-            fuse_patch_dict = {}
-        
-        if self.fins[0] is not None:
-            fin_patch_list = hyper_fin_main(self.fins)
-        else:
-            fin_patch_list = []
+        # Create the vehicle components
+        wing_patch_list = hyper_wing_main(self.wings)
+        fuse_patch_dict = hyper_fuselage_main(self.fuselage)
+        fin_patch_list = hyper_fin_main(self.fins)
     
         # Step 5:
         #########
@@ -609,12 +607,34 @@ class Vehicle:
         """
     
     def _mpl_plot(self,):
-        """Plots stl components.
+        """Plots stl components with matplotlib.
         """
+        
         
     def generate(self):
         """Public API to generate vehicle geometry.
         """
+    
+    @classmethod
+    def from_config(cls, global_config: dict, verbosity: int = 1) -> Vehicle:
+        """Creates hypervehicle Vehicle object directly from global configuration
+        dictionary.
+
+        Parameters
+        ----------
+        global_config : dict
+            A dictionary containing a dictionary for each component to be generated..
+        verbosity : int, optional
+            The verbosity of the code. The default is 1.
+
+        Returns
+        -------
+        Vehicle
+            Parameterised hypersonic vehicle geometry.
+        """
+        
+        # TODO - implement
+    
     
     @staticmethod
     def usage():
