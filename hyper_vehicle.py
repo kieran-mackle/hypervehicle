@@ -194,7 +194,7 @@ class Vehicle:
             return f'{self.message}'
         
     
-    def main(self) -> None:
+    def generate(self) -> None:
         """Run hypervehicle geometry generation code.
         """
         
@@ -646,11 +646,7 @@ class Vehicle:
         # Show the plot to the screen
         plt.show()
         
-        
-    def generate(self):
-        """Public API to generate vehicle geometry.
-        """
-    
+
     @classmethod
     def from_config(cls, global_config: dict, verbosity: int = 1) -> Vehicle:
         """Creates hypervehicle Vehicle object directly from global configuration
@@ -762,4 +758,4 @@ if __name__ == '__main__':
         hv.check_uo_dict(uo_dict)
         global_config = hv.load_global_config(uo_dict)
         hv.add_global_config(global_config)
-        hv.main()
+        hv.generate()
