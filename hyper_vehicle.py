@@ -19,6 +19,29 @@ from idmoc.hypervehicle.utils import parametricSurfce2stl, CurvedPatch, RotatedP
 class Vehicle:
     """hypervehicle object.
     
+    Attributes (set via configure method)
+    -------------------------------------
+    verbosity : int, optional
+        The verbosity of the code. The default is 1.
+    write_stl : bool, optional
+        Write vehicle geometry to .stl files. The default is True.
+    stl_resolution : int, optional
+        The number of cell vertices per edge for the STL files. The default is 5.
+    stl_filename : str, optional
+        The filename prefix for STL files. The default is 'test'.
+    show_in_figure : bool, optional
+        Show the STL files in a matplotlib figure. The default is False.
+    write_vtk : bool, optional
+        Write vehicle geometry to .vtk files. The default is False.
+    vtk_resolution : int, optional
+        The number of cell vertices per edge for the VTK files. The default is 5.
+    vtk_filename : str, optional
+        The filename prefix for VTK files. The default is 'test'.
+    filename_prefix : str, optional
+        The filename prefix for STL and VTK files. The default is 'test'.
+    name : str, optional
+        The vehicle name. The default is "generic hypersonic vehicle".
+    
     Documentation
     -------------
     Documentation for this code can be found at the link below.
@@ -30,15 +53,10 @@ class Vehicle:
     This code was authored by Ingo Jahn and Kieran Mackle.
     """
     
-    def __init__(self, verbosity: int = 1) -> None:
+    def __init__(self) -> None:
         """Vehicle constructor method. 
-        
-        Parameters
-        ----------
-        verbosity : int, optional
-            The verbosity of the code (default value is 1; moderate verbosity).
         """
-        self.verbosity = verbosity
+        self.verbosity = 1
         self.vehicle_name = "generic hypersonic vehicle"
         
         self.wings = []
