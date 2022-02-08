@@ -32,8 +32,25 @@ class Vehicle:
         self.verbosity = verbosity
         self.global_config = None
         
-        # TODO - include defaults here
+        self.wings = [None]     # TODO - make default just None, not in list
+        self.fuselage = None
+        self.fins = [None]      # TODO - make default just None, not in list
+        self.mirror_fins = True
+        self.vehicle_angle = 0
         
+        # STL options
+        self.write_stl = True
+        self.stl_filename = 'test.stl'
+        self.stl_resolution = 5
+        self.mirror = False
+        self.show_mpl = False
+        
+        # VTK options
+        self.write_vtk = False
+        self.vtk_resolution = 5
+        self.vtk_filename = 'test.vtk'
+        
+        # Processed objects
         self.patches = {}
         self.grids = {}
         self.surfaces = {}
@@ -45,12 +62,30 @@ class Vehicle:
         return "Parameterised hypersonic vehicle geometry."
     
     
-    def add_component(component_type: str, component_dict: dict):
-        """Adds a vehicle component.
+    def configure(self):
+        """Configures options for Vehicle geometry generation.
         """
-        # TODO - implement
-        # Will append dict to a components dict, containing the component 
-        # type and definition. Will allow for greater code efficiency
+        # Allows specifying options easier
+    
+    def add_component(self, component_type: str, component_dict: dict) -> None:
+        """Adds a vehicle component.
+        
+        Parameters
+        ----------
+        component_type : str
+            The type of component being added (wing, fin or fuselage).
+        component_dict : dict
+            The geometry definition dictionary for the component.
+        """
+        
+        # TODO - this wont work until defaults for wings and fins are empty lists
+        
+        if component_type.lower() == 'wing':
+            self.wings.append(component_dict)
+        elif component_type.lower() == 'fin':
+            self.fins.append(component_dict)    
+        elif component_type.lower() == 'fuselage':
+            self.fuselage = component_dict
         
         
     def add_global_config(self, global_config: dict) -> None:
@@ -198,7 +233,7 @@ class Vehicle:
         """Run hypervehicle geometry generation code.
         """
         
-        # Create the vehicle component patches
+        # Create component patches
         self.patches['wing'] = hyper_wing_main(self.wings)
         self.patches['fuselage'] = hyper_fuselage_main(self.fuselage)
         self.patches['fin'] = hyper_fin_main(self.fins)
@@ -643,7 +678,6 @@ class Vehicle:
             ax.set_ylabel("Y-axis")
             ax.set_zlabel("Z-axis")
 
-        # Show the plot to the screen
         plt.show()
         
 
