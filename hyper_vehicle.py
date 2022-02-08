@@ -195,8 +195,8 @@ class Vehicle:
         else:
             wing_patch_list = []
             
-        if GConf.CREATE_FUSELAGE == True:
-            fuse_patch_dict = hyper_fuselage_main(GConf)
+        if self.fuselage is not None:
+            fuse_patch_dict = hyper_fuselage_main(self.fuselage)
         else:
             fuse_patch_dict = {}
         
@@ -216,7 +216,8 @@ class Vehicle:
         if self.wings is not None:
             for ix, wing_geometry_dict in enumerate(self.wings):
                 # Curvature about the x-axis
-                if wing_geometry_dict['WING_FUNC_CURV_X'] == None and wing_geometry_dict['WING_FUNC_CURV_X_DASH'] == None:
+                if wing_geometry_dict['WING_FUNC_CURV_X'] is None and \
+                    wing_geometry_dict['WING_FUNC_CURV_X_DASH'] is None:
                     print("    Skipping wing X-curvature.")
                 else:
                     # (a) Longitudal Curvature
@@ -227,7 +228,8 @@ class Vehicle:
                                         fun_dash=wing_geometry_dict['WING_FUNC_CURV_X_DASH'])
                 
                 # Curvature about the y-axis
-                if wing_geometry_dict['WING_FUNC_CURV_Y'] == None and wing_geometry_dict['WING_FUNC_CURV_Y_DASH'] == None:
+                if wing_geometry_dict['WING_FUNC_CURV_Y'] is None and \
+                    wing_geometry_dict['WING_FUNC_CURV_Y_DASH'] is None:
                     print("    Skipping wing Y-curvature.")
                 else:
                     # (b) Spanwise Curvature
@@ -353,7 +355,7 @@ class Vehicle:
         if self.write_stl:
             if self.verbosity > 0:
                 print("START: Creating STL object(s).")
-                print(f"    Creating STL with resolution of {GConf.STL_RESOLUTION}")
+                print(f"    Creating STL with resolution of {self.stl_resolution}")
             
             # Wings
             all_wing_stl_mesh_list = []
@@ -402,7 +404,7 @@ class Vehicle:
                 all_fin_stl_data.append(fin_stl_data)
             
             # add stl elements for mirrored section
-            if GConf.STL_INCLUDE_MIRROR == True:
+            if self.mirror:
                 if self.verbosity > 0:
                     print("    Adding Mirror Image of wing.")
                 
@@ -411,7 +413,7 @@ class Vehicle:
                     wing_stl_mesh_list_m = []
                     for key in wing_patch_dict:
                         wing_stl_mesh_list_m.append(parametricSurfce2stl(
-                            wing_patch_dict[key], GConf.STL_RESOLUTION, mirror_y=True))
+                            wing_patch_dict[key], self.stl_resolution, mirror_y=True))
                         
                     all_wing_stl_mesh_list_m.append(wing_stl_mesh_list_m)
                     
@@ -430,7 +432,7 @@ class Vehicle:
                     fin_stl_mesh_list_m = []
                     for key in fin_patch_dict:
                         fin_stl_mesh_list_m.append(parametricSurfce2stl(
-                            fin_patch_dict[key], GConf.STL_RESOLUTION, mirror_y=True))
+                            fin_patch_dict[key], self.stl_resolution, mirror_y=True))
                         
                     all_fin_stl_mesh_list_m.append(fin_stl_mesh_list_m)
                     
@@ -465,13 +467,13 @@ class Vehicle:
                     print("    Writing stl to - {}".format(fuse_filename))
             
             # Fins
-            if GConf.FIN_GEOMETRY_DICT is not None:
+            if self.fins is not None:
                 for fin_no, fin_stl_data in enumerate(all_fin_stl_data):
                     fin_stl_mesh = mesh.Mesh(np.concatenate(fin_stl_data))
                     if self.verbosity > 0:
                             print("    fin stl object created")
             
-                    fin_filename = f"{GConf.STL_FILENAME}-fin{fin_no+1}.stl"
+                    fin_filename = f"{self.stl_filename}-fin{fin_no+1}.stl"
                     fin_stl_mesh.save(fin_filename)
                     if self.verbosity > 0:
                         print("    Writing stl to - {}".format(fin_filename))
@@ -481,7 +483,7 @@ class Vehicle:
             print("  DONE: Creating STL object(s).")
     
     
-            if GConf.CREATE_WING == True:
+            if self.wings[0] is not None:
                 print("")
                 print("START: Evaluating Wing Mesh Properties:")
                 for wing_no, wing_stl_data in enumerate(all_wing_stl_data):
@@ -508,7 +510,7 @@ class Vehicle:
                 print("  DONE: Evaluating Mesh Properties")
                 print("")
                 
-            if GConf.FIN_GEOMETRY_DICT[0] is not None:
+            if self.fins[0] is not None:
                 print("")
                 print("START: Evaluating Fin Mesh Properties:")
                 for fin_no, fin_stl_data in enumerate(all_fin_stl_data):

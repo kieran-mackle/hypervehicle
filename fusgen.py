@@ -1,65 +1,37 @@
 #!/usr/bin/python3.8
-"""
-Fuselage Geometry Generator for gliding hypersonic vehicle.
-
-Contains functions to be called from hyper_vehicle.py
-
-Authors: Ingo Jahn, Kieran Mackle
-Created on: 24/09/2021
-Last Modified: 25/09/2021
-"""
-
 import numpy as np
 from eilmer.geom.vector3 import Vector3
 from eilmer.geom.path import Arc, Line
 from eilmer.geom.surface import CoonsPatch
 from idmoc.hypervehicle.utils import ConePatch, RotatedPatch
 
-def hyper_fuselage_main(GConf):
-    """
-    Function to generate and manipulate fuselage shape.
+def hyper_fuselage_main(fuselage_geometry: dict, verbosity: int = 1) -> dict:
+    """Fuselage Geometry Generator for hypersonic vehicle.
 
-    Outputs:
-        patch_dict - dictionary of eilmer parametric surface elements
+    Parameters
+    ----------
+    fuselage_geometry : dict
+        A dictionary defining the fuselage geometry.
+    verbosity : int, optional
+        The verbosity of the code output. The default is 1.
+
+    Raises
+    ------
+    Exception
+        When an invalid nose option is provided.
+        
+    Returns
+    -------
+    patches : list
+        A list of the fin surface patches.
+
+    References
+    ----------
+    This code was authored by Ingo Jahn and Kieran Mackle.
     """
 
     patch_dict = {}
-    fuselage_geometry = GConf.FUSELAGE_GEOMETRY_DICT
 
-    #   /\  R-axis
-    #   |
-    #   |
-    #   +---> X-axis
-    #
-    # Cross-section examples:
-    #
-    # FUSELAGE_NOSE_OPTION = 'sharp-cone'
-    # GConf.FUSELAGE_TAIL_OPTION = 'flat'
-    #    R3-----------------R2-____
-    #     |                 |      -----R1-_
-    #     |                 |           |   -_
-    #     |                 |           |     -_
-    #    X3----------------X2----------X1-------Xn
-    #
-    #
-    # FUSELAGE_NOSE_OPTION = 'blunt-cone'  # NOT IMPLEMENTED YET
-    # GConf.FUSELAGE_TAIL_OPTION = 'flat'
-    #    R3-----------------R2-____
-    #     |                 |      -----R1-- __
-    #     |                 |           |      -Rn-_
-    #     |                 |           |        |  \
-    #    X3----------------X2----------X1-------Xn--x
-    # Note: Nose tip will be at Xn+Rn
-    #
-    #
-    # FUSELAGE_NOSE_OPTION = 'sharp-cone'
-    # GConf.FUSELAGE_TAIL_OPTION = 'sharp-cone'
-    #         _-R3---------------R2-____
-    #       _- |                 |      -----R1-_
-    #     _-   |                 |           |   -_
-    #   _-     |                 |           |     -_
-    #  X4-----X3----------------X2----------X1-------Xn
-    #
     Xn = fuselage_geometry['Xn']
     X1 = fuselage_geometry['X1']
     X2 = fuselage_geometry['X2']
@@ -69,13 +41,13 @@ def hyper_fuselage_main(GConf):
     R2 = fuselage_geometry['R2']
     R3 = fuselage_geometry['R3']
 
-    if GConf.VERBOSITY > 0:
+    if verbosity > 0:
         print("")
         print("FUSELAGE GEOMETRY GENERATION")
         print("START: Creating fuselage.")
 
 
-    if GConf.VERBOSITY > 0:
+    if verbosity > 0:
         print("    Fuselage nose - {}".format(fuselage_geometry['FUSELAGE_NOSE_OPTION']))
     if fuselage_geometry['FUSELAGE_NOSE_OPTION'] == 'sharp-cone':
         # create cylinder-0
@@ -99,7 +71,7 @@ def hyper_fuselage_main(GConf):
     patch_dict['cone_2_w'] = RotatedPatch(underlying_surf=patch_dict['cone_2_n'], angle=np.deg2rad(270.))
 
 
-    if GConf.VERBOSITY > 0:
+    if verbosity > 0:
         print("    Fuselage tail - {}".format(fuselage_geometry['FUSELAGE_TAIL_OPTION']))
     # create tail
     if fuselage_geometry['FUSELAGE_TAIL_OPTION'].lower() == 'flat':
@@ -133,7 +105,7 @@ def hyper_fuselage_main(GConf):
     else:
         raise Exception("Value set for FUSELAGE_TAIL_OPTION = '{}' is not supported".format(fuselage_geometry['FUSELAGE_TAIL_OPTION']))
 
-    if GConf.VERBOSITY > 0:
+    if verbosity > 0:
         print("  DONE: Creating fuselage.")
         print("")
 

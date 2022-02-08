@@ -16,12 +16,12 @@ from idmoc.hypervehicle.utils import (LeadingEdgePatchFunction,
                                       )
 
 def hyper_fin_main(fin_geometries: dict, verbosity: int = 1) -> list:
-    """Fin Geometry Generator for gliding hypersonic vehicle.
+    """Fin Geometry Generator for hypersonic vehicle.
 
     Parameters
     ----------
     fin_geometries : dict
-        A list containing fin geometry definition dictionaries..
+        A list containing fin geometry definition dictionaries.
     verbosity : int, optional
         The verbosity of the code output. The default is 1.
 
