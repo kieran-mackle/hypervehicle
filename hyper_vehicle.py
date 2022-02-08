@@ -102,6 +102,21 @@ class Vehicle:
         to Vehicle.
         """
         self.verbosity = global_config["VERBOSITY"]
+        self.wings = global_config["WING_GEOMETRY_DICT"]
+        self.fuselage = global_config["FUSELAGE_GEOMETRY_DICT"]
+        self.fins = global_config["FIN_GEOMETRY_DICT"]
+        self.vehicle_angle = global_config["VEHICLE_ANGLE"]
+        
+        # STL
+        self.create_stl = global_config["CREATE_STL_OBJECT"]
+        self.stl_filename = global_config["STL_FILENAME"]
+        self.stl_resolution = global_config["STL_RESOLUTION"]
+        self.mirror = global_config["STL_INCLUDE_MIRROR"]
+        
+        # VTK 
+        self.create_vtk = global_config["CREATE_VTK_MESH"]
+        self.vtk_resolution = global_config["VTK_RESOLUTION"]
+        self.vtk_filename = global_config["VTK_FILENAME"]
         
     
     @staticmethod
