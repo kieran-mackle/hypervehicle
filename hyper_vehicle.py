@@ -11,7 +11,6 @@ from mpl_toolkits import mplot3d
 from eilmer.geom.sgrid import StructuredGrid
 
 from idmoc.hypervehicle.utils import parametricSurfce2stl, CurvedPatch, RotatedPatch
-from idmoc.hypervehicle.config import GConf
 from idmoc.hypervehicle.fusgen import hyper_fuselage_main
 from idmoc.hypervehicle.wingen import hyper_wing_main
 from idmoc.hypervehicle.fingen import hyper_fin_main
@@ -84,7 +83,7 @@ class Vehicle:
                           "WING_GEOMETRY_DICT": None,
                           "FUSELAGE_GEOMETRY_DICT": None,
                           "FIN_GEOMETRY_DICT": [None],
-                          "MIRROR_FIN": True}
+                          "MIRROR_FINS": True}
         
         for option, value in global_config.items():
             if option not in default_config:
@@ -105,6 +104,7 @@ class Vehicle:
         self.wings = global_config["WING_GEOMETRY_DICT"]
         self.fuselage = global_config["FUSELAGE_GEOMETRY_DICT"]
         self.fins = global_config["FIN_GEOMETRY_DICT"]
+        self.mirror_fins = global_config["MIRROR_FINS"]
         self.vehicle_angle = global_config["VEHICLE_ANGLE"]
         
         # STL
@@ -112,6 +112,7 @@ class Vehicle:
         self.stl_filename = global_config["STL_FILENAME"]
         self.stl_resolution = global_config["STL_RESOLUTION"]
         self.mirror = global_config["STL_INCLUDE_MIRROR"]
+        self.show_mpl = global_config["STL_SHOW_IN_MATPLOT"]
         
         # VTK 
         self.write_vtk = global_config["CREATE_VTK_MESH"]
@@ -140,7 +141,7 @@ class Vehicle:
                                                    "TAIL_OPTION": ["NONE", "FLAP"],},
                             "FUSELAGE_GEOMETRY_DICT": {"FUSELAGE_NOSE_OPTION": ["sharp-cone"],
                                                        "FUSELAGE_TAIL_OPTION": ["sharp-cone", "flat"],},
-                            "MIRROR_FIN": [True, False],
+                            "MIRROR_FINS": [True, False],
                             }
         
         # Ensure wing and fin geometry dict(s) in list form
@@ -185,9 +186,6 @@ class Vehicle:
     def main(self) -> None:
         """Run hypervehicle geometry generation code.
         """
-        
-        GConf.read_inputs(self.global_config)
-        GConf.check_inputs()
         
         # create the vehicle components
         if self.wings[0] is not None:
@@ -422,7 +420,7 @@ class Vehicle:
                     for val in wing_stl_mesh_list_m:
                         all_wing_stl_data[ix].append(val.data.copy())
             
-            if GConf.MIRROR_FIN: 
+            if self.mirror_fins: 
                 # Repeat for fins
                 if self.verbosity > 0:
                     print("    Adding Mirror Image of fin.")
@@ -450,18 +448,18 @@ class Vehicle:
                     wing_stl_mesh = mesh.Mesh(np.concatenate(wing_stl_data))
                     
                     # Save to .stl file
-                    wing_filename = f"{GConf.STL_FILENAME}-wing{wing_no+1}.stl"
+                    wing_filename = f"{self.stl_filename}-wing{wing_no+1}.stl"
                     wing_stl_mesh.save(wing_filename)
                     if self.verbosity > 0:
                         print(f"    Wing {wing_no+1} stl object created - written to {wing_filename}.")
                 
             # Fuselage
-            if GConf.CREATE_FUSELAGE == True:
+            if self.fuselage is not None:
                 fuse_stl_mesh = mesh.Mesh(np.concatenate(fuse_stl_data))
                 if self.verbosity > 0:
                         print("    fuselage stl object created")
     
-                fuse_filename = "{}-fuse.stl".format(GConf.STL_FILENAME)
+                fuse_filename = "{}-fuse.stl".format(self.stl_filename)
                 fuse_stl_mesh.save(fuse_filename)
                 if self.verbosity > 0:
                     print("    Writing stl to - {}".format(fuse_filename))
@@ -498,7 +496,7 @@ class Vehicle:
                 print("  DONE: Evaluating Wing Mesh Properties")
                 print("")
                 
-            if GConf.CREATE_FUSELAGE == True:
+            if self.fuselage is not None:
                 print("")
                 print("START: Evaluating Fuselage Mesh Properties:")
                 volume, cog, inertia = fuse_stl_mesh.get_mass_properties()
@@ -525,12 +523,12 @@ class Vehicle:
                 print("DONE Evaluating Fin Mesh Properties")
                 print("")
     
-            if GConf.STL_SHOW_IN_MATPLOT == True:
+            if self.show_mpl:
                 # self._mpl_plot()
                 if self.verbosity > 0:
                     print("START: Show in matplotlib")
         
-                if GConf.CREATE_WING == True:
+                if self.wings is not None:
                     # Create a new plot
                     figure = plt.figure()
                     ax = mplot3d.Axes3D(figure)
@@ -544,7 +542,7 @@ class Vehicle:
                     ax.set_ylabel("Y-axis")
                     ax.set_zlabel("Z-axis")
                     
-                if GConf.CREATE_FUSELAGE == True:
+                if self.fuselage is not None:
                     # Create a new plot
                     figure = plt.figure()
                     ax = mplot3d.Axes3D(figure)
@@ -558,7 +556,7 @@ class Vehicle:
                     ax.set_ylabel("Y-axis")
                     ax.set_zlabel("Z-axis")
                     
-                if GConf.CREATE_WING == True and GConf.CREATE_FUSELAGE == True:
+                if self.wings is not None and self.fuselage is not None:
                     # Create a new plot
                     figure = plt.figure()
                     ax = mplot3d.Axes3D(figure)
@@ -570,7 +568,7 @@ class Vehicle:
                     fuse_coll.set_facecolor('r')
                     ax.add_collection3d(fuse_coll)
                     
-                    if GConf.FIN_GEOMETRY_DICT[0] is not None:
+                    if self.fins[0] is not None:
                         # TODO - this needs to be updated (and probably the wing plotting)
                         fin_coll = mplot3d.art3d.Poly3DCollection(fin_stl_mesh.vectors)
                         fin_coll.set_facecolor('c')
