@@ -108,13 +108,13 @@ class Vehicle:
         self.vehicle_angle = global_config["VEHICLE_ANGLE"]
         
         # STL
-        self.create_stl = global_config["CREATE_STL_OBJECT"]
+        self.write_stl = global_config["CREATE_STL_OBJECT"]
         self.stl_filename = global_config["STL_FILENAME"]
         self.stl_resolution = global_config["STL_RESOLUTION"]
         self.mirror = global_config["STL_INCLUDE_MIRROR"]
         
         # VTK 
-        self.create_vtk = global_config["CREATE_VTK_MESH"]
+        self.write_vtk = global_config["CREATE_VTK_MESH"]
         self.vtk_resolution = global_config["VTK_RESOLUTION"]
         self.vtk_filename = global_config["VTK_FILENAME"]
         
@@ -213,8 +213,8 @@ class Vehicle:
             print("START: Adding curvature.")
         
         # Wing curvature
-        if GConf.CREATE_WING == True:
-            for ix, wing_geometry_dict in enumerate(GConf.WING_GEOMETRY_DICT):
+        if self.wings is not None:
+            for ix, wing_geometry_dict in enumerate(self.wings):
                 # Curvature about the x-axis
                 if wing_geometry_dict['WING_FUNC_CURV_X'] == None and wing_geometry_dict['WING_FUNC_CURV_X_DASH'] == None:
                     print("    Skipping wing X-curvature.")
@@ -268,9 +268,9 @@ class Vehicle:
         
         
         # Add vehicle offset angle to correct any curve induced AOA change
-        if GConf.VEHICLE_ANGLE != 0:
+        if self.vehicle_angle != 0:
             # Rotate wings
-            for ix, wing_geometry_dict in enumerate(GConf.WING_GEOMETRY_DICT):
+            for ix, wing_geometry_dict in enumerate(self.wings):
                 for key in wing_patch_list[ix]:
                     wing_patch_list[ix][key] = RotatedPatch(wing_patch_list[ix][key], 
                                                             np.deg2rad(GConf.VEHICLE_ANGLE), 
@@ -293,7 +293,7 @@ class Vehicle:
         # Step 6:
         #########
         # Eilmer Grid surface grids
-        if GConf.CREATE_VTK_MESH == True:
+        if self.write_vtk:
             if self.verbosity > 0:
                 print("START: Creating Eilmer Grid and vtk files.")
             
@@ -351,7 +351,7 @@ class Vehicle:
         # Step 8:
         #########
         # STL object
-        if GConf.CREATE_STL_OBJECT == True:
+        if self.write_stl:
             if self.verbosity > 0:
                 print("START: Creating STL object(s).")
                 print(f"    Creating STL with resolution of {GConf.STL_RESOLUTION}")
@@ -443,7 +443,7 @@ class Vehicle:
             
             # create stl mesh and save to file
             # Wings
-            if GConf.CREATE_WING == True:
+            if self.wings is not None:
                 # Create stl object
                 for wing_no, wing_stl_data in enumerate(all_wing_stl_data):
                     wing_stl_mesh = mesh.Mesh(np.concatenate(wing_stl_data))
