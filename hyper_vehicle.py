@@ -795,10 +795,9 @@ class Vehicle:
             The absolute path of the working directory (where the template is
             to be copied to).
         """
-        # TODO - copy from idmoc bin (use MANIFEST.in ?)
         if directory is not None:
             install_dir = os.environ["IDMOC"]
-            template_job_location = os.path.join(install_dir, 'bin', 'job_template.py')
+            template_job_location = os.path.join(install_dir, 'bin', 'hypervehicle_template.py')
             shutil.copy(template_job_location, directory)
         else:
             raise Exception("Please provide the absolute path to your " + \
