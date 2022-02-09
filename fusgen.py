@@ -43,12 +43,10 @@ def hyper_fuselage_main(fuselage_geometry: dict, verbosity: int = 1) -> dict:
         R3 = fuselage_geometry['R3']
     
         if verbosity > 0:
-            print("")
-            print("FUSELAGE GEOMETRY GENERATION")
-            print("START: Creating fuselage.")
+            print("Creating fuselage patches...")
     
-        if verbosity > 0:
-            print("    Fuselage nose - {}".format(fuselage_geometry['FUSELAGE_NOSE_OPTION']))
+        if verbosity > 1:
+            print("  Fuselage nose - {}".format(fuselage_geometry['FUSELAGE_NOSE_OPTION']))
         if fuselage_geometry['FUSELAGE_NOSE_OPTION'] == 'sharp-cone':
             # create cylinder-0
             patch_dict['cone_0_n'] = ConePatch(x0=Xn, x1=X1, r0=0., r1=R1, angle0=np.deg2rad(45.), angle1=np.deg2rad(135.) )
@@ -71,8 +69,8 @@ def hyper_fuselage_main(fuselage_geometry: dict, verbosity: int = 1) -> dict:
         patch_dict['cone_2_w'] = RotatedPatch(underlying_surf=patch_dict['cone_2_n'], angle=np.deg2rad(270.))
     
     
-        if verbosity > 0:
-            print("    Fuselage tail - {}".format(fuselage_geometry['FUSELAGE_TAIL_OPTION']))
+        if verbosity > 1:
+            print("  Fuselage tail - {}".format(fuselage_geometry['FUSELAGE_TAIL_OPTION']))
         # create tail
         if fuselage_geometry['FUSELAGE_TAIL_OPTION'].lower() == 'flat':
             # create the tail (blunt)
@@ -105,8 +103,5 @@ def hyper_fuselage_main(fuselage_geometry: dict, verbosity: int = 1) -> dict:
         else:
             raise Exception("Value set for FUSELAGE_TAIL_OPTION = '{}' is not supported".format(fuselage_geometry['FUSELAGE_TAIL_OPTION']))
     
-        if verbosity > 0:
-            print("  DONE: Creating fuselage.")
-            print("")
-
+        print("  Fuselage complete.")
     return patch_dict

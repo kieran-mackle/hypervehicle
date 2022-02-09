@@ -38,10 +38,15 @@ def hyper_fin_main(fin_geometries: dict, verbosity: int = 1) -> list:
     patches = []
     
     if len(fin_geometries) > 0:
-        print("FIN GEOMETRY GENERATION")    
-        for fin_number, fin_geometry in enumerate(fin_geometries):
-            print(f"  Fin {fin_number+1}")
+        if verbosity > 0:
+            print("\nCreating fin patches...")
             
+        for fin_number, fin_geometry in enumerate(fin_geometries):
+            if verbosity > 1:
+                print("  ------------------------")
+                print(f"           Fin {fin_number+1}")
+                print("  ------------------------")
+                
             # Initialise 
             fin_patch_dict = {}
             temp_fin_patch_dict = {}
@@ -61,8 +66,8 @@ def hyper_fin_main(fin_geometries: dict, verbosity: int = 1) -> list:
             p2p3 = Line(p2, p3)
             p1p3 = Polyline(segments=[p1p2, p2p3])
             
-            
-            print("START: Creating fin planform.")
+            if verbosity > 1:
+                print("    Creating fin planform.")
             p0p1 = Line(p0, p1)
             fin_patch = CoonsPatch(north    = Line(p1, p2),
                                    east     = Line(p3, p2),
@@ -72,18 +77,17 @@ def hyper_fin_main(fin_geometries: dict, verbosity: int = 1) -> list:
                                            east = Line(p1, p2),
                                            south = Line(p0, p1),
                                            west = Line(p0, p3))
-            print("  DONE: Creating fin planform.")
             
             
-            print("\nSTART: Adding thickness to fin.")
+            if verbosity > 1:
+                print("    Adding thickness to fin.")
             top_patch = OffsetPatchFunction(flipped_fin_patch, fin_thickness_function_top)
             bot_patch = OffsetPatchFunction(fin_patch, fin_thickness_function_bot)
             temp_fin_patch_dict[f'fin_{fin_number}_top_patch'] = top_patch
             temp_fin_patch_dict[f'fin_{fin_number}_bot_patch'] = bot_patch
-            print("  DONE: Adding thickness to fin.")
             
-            
-            print("\nSTART: Adding Leading Edge to fin.")
+            if verbosity > 1:
+                print("    Adding Leading Edge to fin.")
             LE_top_patch = LeadingEdgePatchFunction(p1p3, 
                                                      fin_thickness_function_top, 
                                                      leading_edge_width_function, 
@@ -98,10 +102,9 @@ def hyper_fin_main(fin_geometries: dict, verbosity: int = 1) -> list:
                                                       side='bot')
             temp_fin_patch_dict[f'fin_{fin_number}_top_LE'] = LE_top_patch
             temp_fin_patch_dict[f'fin_{fin_number}_bot_LE'] = LE_bot_patch
-            print("  DONE: Adding Leading Edge to fin.")
             
-            
-            print("\nSTART: Adding bottom face.")
+            if verbosity > 1:
+                print("    Adding bottom face.")
             thickness_top = fin_thickness_function_top(x=p3.x, y=p3.y).z
             thickness_bot = fin_thickness_function_bot(x=p3.x, y=p3.y).z
             elipse_top = ElipsePath(centre = p3, 
@@ -160,10 +163,8 @@ def hyper_fin_main(fin_geometries: dict, verbosity: int = 1) -> list:
             temp_fin_patch_dict[f'fin_{fin_number}_bot_1'] = bot_1
             temp_fin_patch_dict[f'fin_{fin_number}_bot_2'] = bot_2
             
-            print("  DONE: Adding bottom face.")
-            
-            
-            print("\nSTART: Adding Trailing Edge.")
+            if verbosity > 1:
+                print("    Adding Trailing Edge.")
             if fin_geometry['rudder_type'] == 'sharp':
                 # Create sharp trailing edge
                 
@@ -291,20 +292,17 @@ def hyper_fin_main(fin_geometries: dict, verbosity: int = 1) -> list:
                 temp_fin_patch_dict[f'fin_{fin_number}_TE_1'] = TE_back_1
                 temp_fin_patch_dict[f'fin_{fin_number}_TE_2'] = TE_back_2
             
-            print("  DONE: Adding Trailing Edge.")
-        
-            
             # Rotate patches and add to fin_patch_dict
             for patch in temp_fin_patch_dict:
                 fin_patch_dict[patch] = RotatedPatch(temp_fin_patch_dict[patch], 
                                                      fin_angle)
             
             if 'offset_function' in fin_geometry and fin_geometry['offset_function'] is not None:
-                print("\nSTART: Applying offset function.")
+                if verbosity > 1:
+                    print("    Applying fin offset function.")
                 for patch in fin_patch_dict:
                     fin_patch_dict[patch] = OffsetPatchFunction(fin_patch_dict[patch],
                                                                 fin_geometry['offset_function'])
-                print("  DONE: Applying offset function.")
             
             # Rotate patches again for rudder angle
             if 'pivot_angle' in fin_geometry:
@@ -314,6 +312,9 @@ def hyper_fin_main(fin_geometries: dict, verbosity: int = 1) -> list:
                                                          axis = 'z',
                                                          point=fin_geometry['pivot_point'])
             
+            if verbosity > 0 and len(fin_geometries) > 1:
+                print(f"  Fin {fin_number+1} complete.")
+                
             # Append fin patches to list
             patches.append(fin_patch_dict)
         

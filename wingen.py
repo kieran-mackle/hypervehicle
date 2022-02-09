@@ -47,8 +47,15 @@ def hyper_wing_main(wing_geometries: list, verbosity: int = 1) -> list:
     patches = []
     
     if len(wing_geometries) > 0:
-        print("\nWING GEOMETRY GENERATION")
+        if verbosity > 0:
+            print("\nCreating wing patches...")
+        
         for wing_no, wing_geometry in enumerate(wing_geometries):
+            if verbosity > 1:
+                print("  ------------------------")
+                print(f"           Wing {wing_no+1}")
+                print("  ------------------------")
+                
             # Initialise 
             patch_dict = {}
             
@@ -59,12 +66,12 @@ def hyper_wing_main(wing_geometries: list, verbosity: int = 1) -> list:
             B0 = wing_geometry['B0']
             Line_B0TT = wing_geometry['Line_B0TT']
         
-            if verbosity > 0:
-                print(f"START: Creating wing {wing_no+1} planform.")
+            if verbosity > 1:
+                print(f"  Generating wing {wing_no+1} planform.")
                 
             if wing_geometry['Line_B0TT_TYPE'].lower() == "bezier":
-                if verbosity > 0:
-                    print("    Constructing Planform using Bezier Curve as Leading Edge shape.")
+                if verbosity > 1:
+                    print("    Constructing planform using Bezier Curve as Leading Edge shape.")
                 
                 # Find Locations
                 if wing_geometry['t_B1'] == None:
@@ -108,14 +115,10 @@ def hyper_wing_main(wing_geometries: list, verbosity: int = 1) -> list:
                                            north=Line_B1B2_flipped,
                                            east=Line(p0=A1, p1=B1),
                                            west=Line_TTB2)
-            if verbosity > 0:
-                print("  DONE: Creating wing planform.")
-                print("")
-        
         
             # Create wing top & bottom surface
-            if verbosity > 0:
-                print("START: Adding thickness to wing.")
+            if verbosity > 1:
+                print("    Adding thickness to wing.")
             top_patch = [np.nan, np.nan]
             bot_patch = [np.nan, np.nan]
         
@@ -125,19 +128,16 @@ def hyper_wing_main(wing_geometries: list, verbosity: int = 1) -> list:
                 bot_patch[i] = OffsetPatchFunction(wing_patch[i],
                                            function=wing_geometry['FUNC_BOT_THICKNESS'])
                 # flipped moves to top as z-positive points downwards
-            if verbosity > 0:
-                print("  DONE: Adding thickness to wing.")
-                print("")
                 
             patch_dict[f"w{wing_no}_top_patch_0"] = top_patch[0]    # top B0B1A1A0
             patch_dict[f"w{wing_no}_top_patch_1"] = top_patch[1]    # top B1B2TTA1
             patch_dict[f"w{wing_no}_bot_patch_0"] = bot_patch[0]    # bot B0B1A1A0
             patch_dict[f"w{wing_no}_bot_patch_1"] = bot_patch[1]    # bot B1B2TTA1
         
+        
             # Add leading edge.
-            if verbosity > 0:
-                print("START: Adding Leading Edge to wing.")
-            
+            if verbosity > 1:
+                print("    Adding Leading Edge to wing.")
             # Get mean line between upper and lower wing patches
             top_edge_path = OffsetPathFunction(Line_B0TT, wing_geometry['FUNC_TOP_THICKNESS'])
             bot_edge_path = OffsetPathFunction(Line_B0TT, wing_geometry['FUNC_BOT_THICKNESS'])
@@ -186,22 +186,16 @@ def hyper_wing_main(wing_geometries: list, verbosity: int = 1) -> list:
                 patch_dict[f"w{wing_no}_LE_bot_patch_0"] = LE_bot_patch[0]
                 patch_dict[f"w{wing_no}_LE_bot_patch_1"] = LE_bot_patch[1]
                 patch_dict[f"w{wing_no}_LE_bot_patch_2"] = LE_bot_patch[2]
-            
-            
-            if verbosity > 0:
-                print("  DONE: Adding Leading Edge to wing.")
-                print("")
-        
         
             # Add trailing Edge
-            if verbosity > 0:
-                print("START: Adding Trailing Edge.")
-                print("    Tail options - {}".format(wing_geometry['TAIL_OPTION']))
+            if verbosity > 1:
+                print("    Adding Trailing Edge.")
+                print("      Tail options - {}".format(wing_geometry['TAIL_OPTION']))
                 
             if wing_geometry['TAIL_OPTION'] == 'FLAP':
-                if verbosity > 0:
-                    print("    Flap length = {}".format(wing_geometry['FLAP_LENGTH']))
-                    print("    Flap angle  = {}".format(wing_geometry['FLAP_ANGLE']))
+                if verbosity > 1:
+                    print("        Flap length = {}".format(wing_geometry['FLAP_LENGTH']))
+                    print("        Flap angle  = {}".format(wing_geometry['FLAP_ANGLE']))
         
                 # Define top and bottom TE paths
                 TE_top = TrailingEdgePath(A0, B0, thickness_function=wing_geometry['FUNC_TOP_THICKNESS'])
@@ -275,17 +269,14 @@ def hyper_wing_main(wing_geometries: list, verbosity: int = 1) -> list:
             
             else:
                 raise Exception("Tail option = {} not supported.".format(wing_geometry['TAIL_OPTION']))
-            if verbosity > 0:
-                print("  DONE: Adding Trailing Edge.")
-                print("")
             
             
             # Close wing volume
             if 'CLOSE_WING' in wing_geometry and wing_geometry['CLOSE_WING']:
                 # Add patch to close wing
                 
-                if verbosity > 0:
-                    print("Closing interior side of wing.")
+                if verbosity > 1:
+                    print("    Closing interior side of wing.")
                 
                 TT_top = TT + wing_geometry['FUNC_TOP_THICKNESS'](x=TT.x, y=TT.y, z=TT.z)
                 TT_bot = TT + wing_geometry['FUNC_BOT_THICKNESS'](x=TT.x, y=TT.y, z=TT.z)
@@ -349,6 +340,9 @@ def hyper_wing_main(wing_geometries: list, verbosity: int = 1) -> list:
                                                   west=Line(p0=TE_mean_line(0), p1=TE_top(0)))
                 
                 patch_dict[f"w{wing_no}_interior_flap_patch"] = interior_flap_patch
+            
+            if verbosity > 0 and len(wing_geometries) > 1:
+                print(f"  Wing {wing_no+1} complete.")
                 
             # Append wing patches to list
             patches.append(patch_dict)

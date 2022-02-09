@@ -3,6 +3,7 @@ from __future__ import annotations
 import os
 import sys
 import shutil
+import pyfiglet
 import numpy as np
 from stl import mesh
 from getopt import getopt
@@ -71,6 +72,7 @@ class Vehicle:
         self.stl_resolution = 5
         self.mirror = False
         self.show_mpl = False
+        self.evaluate_properties = False
         
         # VTK options
         self.write_vtk = False
@@ -93,7 +95,8 @@ class Vehicle:
                   stl_resolution: int = 5, stl_filename: str = 'test',
                   show_in_figure: bool = False, write_vtk: bool = False,
                   vtk_resolution: int = 5, vtk_filename: str = 'test',
-                  filename_prefix: str = 'test',
+                  filename_prefix: str = 'test', 
+                  evaluate_mesh_properties: bool = False,
                   name: str = "generic hypersonic vehicle") -> None:
         """Configures run options for Vehicle geometry generation.
 
@@ -117,6 +120,8 @@ class Vehicle:
             The filename prefix for VTK files. The default is 'test'.
         filename_prefix : str, optional
             The filename prefix for STL and VTK files. The default is 'test'.
+        evaluate_mesh_properties : bool, optional
+            Flag to evaluate STL mesh properties.
         name : str, optional
             The vehicle name. The default is "generic hypersonic vehicle".
     
@@ -125,6 +130,9 @@ class Vehicle:
         None
             This method assigns the settings to the vehicle instance.
         """
+        
+        # TODO - this will overwrite any values from global config... 
+        
         self.verbosity = verbosity
         self.vehicle_name = name
         
@@ -133,6 +141,7 @@ class Vehicle:
         self.stl_filename = stl_filename
         self.stl_resolution = stl_resolution
         self.show_mpl = show_in_figure
+        self.evaluate_properties = evaluate_mesh_properties
         
         # VTK options
         self.write_vtk = write_vtk
@@ -176,188 +185,49 @@ class Vehicle:
         self._unpack_inputs(global_config)
     
     
-    @staticmethod
-    def _read_inputs(global_config: dict) -> dict:
-        """Reads all keys provided in the global configuration dictionary
-        and replaces default values if present.
-        """
-        
-        default_config = {"VERBOSITY": 1,               # 0, 1, 2 - set reporting level.
-                          "VEHICLE_ANGLE": 0,           # Vehicle angle adjustment
-                          "CREATE_WING": True,          # create wing geometry
-                          "CREATE_FUSELAGE": False,     # create fuselage geometry
-                          "CREATE_VTK_MESH": False,
-                          "VTK_FILENAME": "test",
-                          "VTK_RESOLUTION": 10,         # number of cell vertices per edge
-                          "CREATE_STL_OBJECT": True,
-                          "STL_FILENAME": "test",
-                          "STL_RESOLUTION": 10,         # number of triangle vertices per edge
-                          "STL_INCLUDE_MIRROR": True,   # include mirror image in STL
-                          "STL_SHOW_IN_MATPLOT": False, # Create Matplotlib image
-                          "WING_GEOMETRY_DICT": [],     # List of geometry definition dictionaries
-                          "FUSELAGE_GEOMETRY_DICT": None,
-                          "FIN_GEOMETRY_DICT": [],
-                          "MIRROR_FINS": True}
-        
-        for option, value in global_config.items():
-            if option not in default_config:
-                raise Exception(f'Invalid configuration variable "{option}"'+\
-                                ' provided. Please check and try again.')
-            
-            # Overwrite
-            default_config[option] = value
-        
-        return default_config
-    
-    @staticmethod
-    def _check_inputs(global_config: dict) -> None:
-        """Checks that global config inputs are valid.
-        
-        The function checks that the values provided in the global 
-        configuration dictionary are in the set of valid inputs for that
-        option.
-        """
-        
-        # Define valid inputs
-        valid_input_dict = {"VERBOSITY": [0, 1, 2, 3],
-                            "CREATE_WING": [True, False],
-                            "CREATE_FUSELAGE": [True, False],
-                            "CREATE_VTK_MESH": [True, False],
-                            "CREATE_STL_OBJECT": [True, False],
-                            "STL_INCLUDE_MIRROR": [True, False],
-                            "STL_SHOW_IN_MATPLOT": [True, False],
-                            "WING_GEOMETRY_DICT": {"Line_B0TT_TYPE": ["Bezier"],
-                                                   "TAIL_OPTION": ["NONE", "FLAP"],},
-                            "FUSELAGE_GEOMETRY_DICT": {"FUSELAGE_NOSE_OPTION": ["sharp-cone"],
-                                                       "FUSELAGE_TAIL_OPTION": ["sharp-cone", "flat"],},
-                            "MIRROR_FINS": [True, False],
-                            }
-        
-        # Ensure wing and fin geometry dict(s) in list form
-        for component in ['WING', 'FIN']:
-            if (f'{component}_GEOMETRY_DICT' in global_config) and (type(global_config[f'{component}_GEOMETRY_DICT']) != list):
-                global_config[f'{component}_GEOMETRY_DICT'] = [global_config[f'{component}_GEOMETRY_DICT']]
-        
-        # Check provided options
-        for option, valid_inputs in valid_input_dict.items():
-            if option == "WING_GEOMETRY_DICT":
-                # Check inputs for wing geometry dictionary
-                for wing_geom_dict in global_config["WING_GEOMETRY_DICT"]:
-                    for wing_option, valid_wing_inputs in valid_inputs.items():
-                        if wing_geom_dict[wing_option] not in valid_wing_inputs:
-                            raise Vehicle.InvalidInputError(wing_option, valid_wing_inputs)
-            
-            elif option == "FUSELAGE_GEOMETRY_DICT":
-                # Check inputs for fuselage geometry dictionary
-                if global_config["FUSELAGE_GEOMETRY_DICT"] is not None:
-                    for fuse_option, valid_fuse_inputs in valid_inputs.items():
-                        if global_config["FUSELAGE_GEOMETRY_DICT"][fuse_option] not in valid_fuse_inputs:
-                            raise Vehicle.InvalidInputError(fuse_option, valid_fuse_inputs)
-            
-            elif global_config[option] not in valid_inputs:
-                raise Vehicle.InvalidInputError(option, valid_inputs)
-    
-    def _unpack_inputs(self, global_config: dict) -> None:
-        """Unpacks global configuration dictionary and assigns attributes
-        to Vehicle.
-        """
-        self.verbosity = global_config["VERBOSITY"]
-        self.wings = global_config["WING_GEOMETRY_DICT"]
-        self.fuselage = global_config["FUSELAGE_GEOMETRY_DICT"]
-        self.fins = global_config["FIN_GEOMETRY_DICT"]
-        self.mirror_fins = global_config["MIRROR_FINS"]
-        self.vehicle_angle = global_config["VEHICLE_ANGLE"]
-        
-        # STL
-        self.write_stl = global_config["CREATE_STL_OBJECT"]
-        self.stl_filename = global_config["STL_FILENAME"]
-        self.stl_resolution = global_config["STL_RESOLUTION"]
-        self.mirror = global_config["STL_INCLUDE_MIRROR"]
-        self.show_mpl = global_config["STL_SHOW_IN_MATPLOT"]
-        
-        # VTK 
-        self.write_vtk = global_config["CREATE_VTK_MESH"]
-        self.vtk_resolution = global_config["VTK_RESOLUTION"]
-        self.vtk_filename = global_config["VTK_FILENAME"]
-    
-    
-    class InvalidInputError(Exception):
-        """Invalid input exception.
-        """
-        
-        def __init__(self, option, valid_inputs):
-            self.option = option
-            self.message = f'Value provided for option "{option}" is ' +\
-                f'not valid. Valid options are: {valid_inputs}.'
-            super().__init__(self.message)
-        
-        def __str__(self):
-            return f'{self.message}'
-        
-    
     def generate(self) -> None:
-        """Run hypervehicle geometry generation code.
+        """Run hypervehicle geometry generation code to build geometry.
         """
         
+        if self.verbosity > 0:
+            banner = pyfiglet.figlet_format("HYPERVEHICLE", font='contessa')
+            print(banner)
         # Create component patches
-        self.patches['wing'] = hyper_wing_main(self.wings)
-        self.patches['fuselage'] = hyper_fuselage_main(self.fuselage)
-        self.patches['fin'] = hyper_fin_main(self.fins)
-        
+        self.patches['wing'] = hyper_wing_main(self.wings, self.verbosity)
+        self.patches['fuselage'] = hyper_fuselage_main(self.fuselage, self.verbosity)
+        self.patches['fin'] = hyper_fin_main(self.fins, self.verbosity)
 
         # Add curvature
         if self.verbosity > 0:
-            print("")
-            print("START: Adding curvature.")
-        
+            print("\nAdding curvature to vehicle components.")
         self._add_curvature()
         
-        if self.verbosity > 0:
-            print("  DONE: Adding curvature.")
-            print("")
-        
-        
         # Add vehicle offset angle to correct any curve induced AOA change
+        if self.verbosity > 0:
+            print("\nAdding vehicle angle.")
         if self.vehicle_angle != 0:
             self._rotate_vehicle()
-            
             
         # Eilmer Grid surface grids
         if self.write_vtk:
             if self.verbosity > 0:
-                print("START: Creating Eilmer Grid and vtk files.")
-            
+                print("\nCreating Eilmer Grid and vtk files.")
             self._create_grids()
             self._write_to_vtk()
-            
-            if self.verbosity > 0:
-                print("  DONE: Creating Eilmer Grid and vtk files.")
-                print("")
-    
         
         # STL object
         if self.write_stl:
             if self.verbosity > 0:
-                print("START: Creating STL object(s).")
-                print(f"    Creating STL with resolution of {self.stl_resolution}")
-            
+                print(f"\nCreating STL object(s) with resolution of {self.stl_resolution}.")
             self._create_surfaces()
             self._create_stl_data()
             self._create_stl()
             self._write_stl()
-            print("  DONE: Creating STL object(s).")
-    
-            self._evaluate_mesh_properties()
+            if self.evaluate_properties:
+                self._evaluate_mesh_properties()
     
             if self.show_mpl:
-                if self.verbosity > 0:
-                    print("START: Show in matplotlib")
-        
                 self._mpl_plot()
-                
-                if self.verbosity > 0:
-                    print("  DONE: Show in matplotlib")
-                    print("")
     
     
     def _add_curvature(self,) -> None:
@@ -744,7 +614,128 @@ class Vehicle:
 
         plt.show()
         
-
+    
+    @staticmethod
+    def _read_inputs(global_config: dict) -> dict:
+        """Reads all keys provided in the global configuration dictionary
+        and replaces default values if present.
+        """
+        
+        default_config = {"VERBOSITY": 1,               # 0, 1, 2 - set reporting level.
+                          "VEHICLE_ANGLE": 0,           # Vehicle angle adjustment
+                          "CREATE_WING": True,          # create wing geometry
+                          "CREATE_FUSELAGE": False,     # create fuselage geometry
+                          "CREATE_VTK_MESH": False,
+                          "VTK_FILENAME": "test",
+                          "VTK_RESOLUTION": 10,         # number of cell vertices per edge
+                          "CREATE_STL_OBJECT": True,
+                          "STL_FILENAME": "test",
+                          "STL_RESOLUTION": 10,         # number of triangle vertices per edge
+                          "STL_INCLUDE_MIRROR": True,   # include mirror image in STL
+                          "STL_SHOW_IN_MATPLOT": False, # Create Matplotlib image
+                          "WING_GEOMETRY_DICT": [],     # List of geometry definition dictionaries
+                          "FUSELAGE_GEOMETRY_DICT": None,
+                          "FIN_GEOMETRY_DICT": [],
+                          "MIRROR_FINS": True}
+        
+        for option, value in global_config.items():
+            if option not in default_config:
+                raise Exception(f'Invalid configuration variable "{option}"'+\
+                                ' provided. Please check and try again.')
+            
+            # Overwrite
+            default_config[option] = value
+        
+        return default_config
+    
+    
+    @staticmethod
+    def _check_inputs(global_config: dict) -> None:
+        """Checks that global config inputs are valid.
+        
+        The function checks that the values provided in the global 
+        configuration dictionary are in the set of valid inputs for that
+        option.
+        """
+        
+        # Define valid inputs
+        valid_input_dict = {"VERBOSITY": [0, 1, 2, 3],
+                            "CREATE_WING": [True, False],
+                            "CREATE_FUSELAGE": [True, False],
+                            "CREATE_VTK_MESH": [True, False],
+                            "CREATE_STL_OBJECT": [True, False],
+                            "STL_INCLUDE_MIRROR": [True, False],
+                            "STL_SHOW_IN_MATPLOT": [True, False],
+                            "WING_GEOMETRY_DICT": {"Line_B0TT_TYPE": ["Bezier"],
+                                                   "TAIL_OPTION": ["NONE", "FLAP"],},
+                            "FUSELAGE_GEOMETRY_DICT": {"FUSELAGE_NOSE_OPTION": ["sharp-cone"],
+                                                       "FUSELAGE_TAIL_OPTION": ["sharp-cone", "flat"],},
+                            "MIRROR_FINS": [True, False],
+                            }
+        
+        # Ensure wing and fin geometry dict(s) in list form
+        for component in ['WING', 'FIN']:
+            if (f'{component}_GEOMETRY_DICT' in global_config) and (type(global_config[f'{component}_GEOMETRY_DICT']) != list):
+                global_config[f'{component}_GEOMETRY_DICT'] = [global_config[f'{component}_GEOMETRY_DICT']]
+        
+        # Check provided options
+        for option, valid_inputs in valid_input_dict.items():
+            if option == "WING_GEOMETRY_DICT":
+                # Check inputs for wing geometry dictionary
+                for wing_geom_dict in global_config["WING_GEOMETRY_DICT"]:
+                    for wing_option, valid_wing_inputs in valid_inputs.items():
+                        if wing_geom_dict[wing_option] not in valid_wing_inputs:
+                            raise Vehicle.InvalidInputError(wing_option, valid_wing_inputs)
+            
+            elif option == "FUSELAGE_GEOMETRY_DICT":
+                # Check inputs for fuselage geometry dictionary
+                if global_config["FUSELAGE_GEOMETRY_DICT"] is not None:
+                    for fuse_option, valid_fuse_inputs in valid_inputs.items():
+                        if global_config["FUSELAGE_GEOMETRY_DICT"][fuse_option] not in valid_fuse_inputs:
+                            raise Vehicle.InvalidInputError(fuse_option, valid_fuse_inputs)
+            
+            elif global_config[option] not in valid_inputs:
+                raise Vehicle.InvalidInputError(option, valid_inputs)
+    
+    
+    def _unpack_inputs(self, global_config: dict) -> None:
+        """Unpacks global configuration dictionary and assigns attributes
+        to Vehicle.
+        """
+        self.verbosity = global_config["VERBOSITY"]
+        self.wings = global_config["WING_GEOMETRY_DICT"]
+        self.fuselage = global_config["FUSELAGE_GEOMETRY_DICT"]
+        self.fins = global_config["FIN_GEOMETRY_DICT"]
+        self.mirror_fins = global_config["MIRROR_FINS"]
+        self.vehicle_angle = global_config["VEHICLE_ANGLE"]
+        
+        # STL
+        self.write_stl = global_config["CREATE_STL_OBJECT"]
+        self.stl_filename = global_config["STL_FILENAME"]
+        self.stl_resolution = global_config["STL_RESOLUTION"]
+        self.mirror = global_config["STL_INCLUDE_MIRROR"]
+        self.show_mpl = global_config["STL_SHOW_IN_MATPLOT"]
+        
+        # VTK 
+        self.write_vtk = global_config["CREATE_VTK_MESH"]
+        self.vtk_resolution = global_config["VTK_RESOLUTION"]
+        self.vtk_filename = global_config["VTK_FILENAME"]
+    
+    
+    class InvalidInputError(Exception):
+        """Invalid input exception.
+        """
+        
+        def __init__(self, option, valid_inputs):
+            self.option = option
+            self.message = f'Value provided for option "{option}" is ' +\
+                f'not valid. Valid options are: {valid_inputs}.'
+            super().__init__(self.message)
+        
+        def __str__(self):
+            return f'{self.message}'
+        
+    
     @classmethod
     def from_config(cls, global_config: dict, verbosity: int = 1) -> Vehicle:
         """Creates hypervehicle Vehicle object directly from global configuration
@@ -780,7 +771,6 @@ class Vehicle:
         print("------------------------------------------------------------------------")
         print(" --job_template       Create a template job-file.")
         print(" --help               Displays this message.")
-        print(" --instructions       Displays and overview of run instructions.")
         print(" --job=               String containing file name for job-file.")
         print("                          dictionary.")
         print("\n Please refer to the hypervehicle docs for more information.")
