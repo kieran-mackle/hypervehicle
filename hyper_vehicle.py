@@ -58,7 +58,7 @@ class Vehicle:
         """Vehicle constructor method. 
         """
         self.verbosity = None
-        self.vehicle_name = None
+        self.vehicle_name = "generic hypersonic vehicle"
         
         self.wings = []
         self.fuselage = None
@@ -72,7 +72,7 @@ class Vehicle:
         self.stl_resolution = None
         self.mirror = False
         self.show_mpl = None
-        self.evaluate_properties = None
+        self.evaluate_properties = False
         
         # VTK options
         self.write_vtk = None
@@ -91,13 +91,13 @@ class Vehicle:
         return f"Parameterised {self.vehicle_name}."
     
     
-    def configure(self, verbosity: int = 1, write_stl: bool = True, 
-                  stl_resolution: int = 5, stl_filename: str = 'test',
-                  show_in_figure: bool = False, write_vtk: bool = False,
-                  vtk_resolution: int = 5, vtk_filename: str = 'test',
-                  filename_prefix: str = 'test', 
-                  evaluate_mesh_properties: bool = False,
-                  name: str = "generic hypersonic vehicle") -> None:
+    def configure(self, verbosity: int = None, write_stl: bool = None, 
+                  stl_resolution: int = None, stl_filename: str = None,
+                  show_in_figure: bool = None, write_vtk: bool = None,
+                  vtk_resolution: int = None, vtk_filename: str = None,
+                  filename_prefix: str = None, 
+                  evaluate_properties: bool = None,
+                  name: str = None) -> None:
         """Configures run options for Vehicle geometry generation.
 
         Parameters
@@ -120,33 +120,40 @@ class Vehicle:
             The filename prefix for VTK files. The default is 'test'.
         filename_prefix : str, optional
             The filename prefix for STL and VTK files. The default is 'test'.
-        evaluate_mesh_properties : bool, optional
-            Flag to evaluate STL mesh properties.
+        evaluate_properties : bool, optional
+            Flag to evaluate STL mesh properties. The default is False.
         name : str, optional
             The vehicle name. The default is "generic hypersonic vehicle".
-    
+        
+        Warnings
+        --------
+        Any attributes assigned from loading a global configuration dictionary
+        will be overwritten when using this method. For example, setting the
+        verbosity using this method will overwrite the verbosity provided in
+        the global configuration dictionary.
+        
         Returns
         -------
         None
             This method assigns the settings to the vehicle instance.
         """
         
-        self.verbosity = verbosity if self.verbosity is None else self.verbosity
-        self.vehicle_name = name if self.vehicle_name is None else self.vehicle_name
+        self.verbosity = verbosity if verbosity is not None else self.verbosity
+        self.vehicle_name = name if name is not None else self.vehicle_name
         
         # STL options
-        self.write_stl = write_stl if self.write_stl is None else self.write_stl
-        self.stl_filename = stl_filename if self.stl_filename is None else self.stl_filename
-        self.stl_resolution = stl_resolution if self.stl_resolution is None else self.stl_resolution
-        self.show_mpl = show_in_figure if self.show_mpl is None else self.show_mpl
-        self.evaluate_properties = evaluate_mesh_properties if self.evaluate_properties is None else self.evaluate_properties
+        self.write_stl = write_stl if write_stl is not None else self.write_stl
+        self.stl_filename = stl_filename if stl_filename is not None else self.stl_filename
+        self.stl_resolution = stl_resolution if stl_resolution is not None else self.stl_resolution
+        self.show_mpl = show_in_figure if show_in_figure is not None else self.show_mpl
+        self.evaluate_properties = evaluate_properties if evaluate_properties is not None else self.evaluate_properties
         
         # VTK options
-        self.write_vtk = write_vtk if self.write_vtk is None else self.write_vtk
-        self.vtk_resolution = vtk_resolution if self.vtk_resolution is None else self.vtk_resolution
-        self.vtk_filename = vtk_filename if self.vtk_filename is None else self.vtk_filename
+        self.write_vtk = write_vtk if write_vtk is not None else self.write_vtk
+        self.vtk_resolution = vtk_resolution if vtk_resolution is not None else self.vtk_resolution
+        self.vtk_filename = vtk_filename if vtk_filename is not None else self.vtk_filename
         
-    
+
     def add_component(self, component_type: str, component_dict: dict) -> None:
         """Adds a vehicle component.
         
