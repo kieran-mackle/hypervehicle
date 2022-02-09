@@ -57,8 +57,8 @@ class Vehicle:
     def __init__(self) -> None:
         """Vehicle constructor method. 
         """
-        self.verbosity = 1
-        self.vehicle_name = "generic hypersonic vehicle"
+        self.verbosity = None
+        self.vehicle_name = None
         
         self.wings = []
         self.fuselage = None
@@ -67,17 +67,17 @@ class Vehicle:
         self.vehicle_angle = 0
         
         # STL options
-        self.write_stl = True
-        self.stl_filename = 'test'
-        self.stl_resolution = 5
+        self.write_stl = None
+        self.stl_filename = None
+        self.stl_resolution = None
         self.mirror = False
-        self.show_mpl = False
-        self.evaluate_properties = False
+        self.show_mpl = None
+        self.evaluate_properties = None
         
         # VTK options
-        self.write_vtk = False
-        self.vtk_resolution = 5
-        self.vtk_filename = 'test'
+        self.write_vtk = None
+        self.vtk_resolution = None
+        self.vtk_filename = None
         
         # Processed objects
         self.patches = {}
@@ -131,22 +131,20 @@ class Vehicle:
             This method assigns the settings to the vehicle instance.
         """
         
-        # TODO - this will overwrite any values from global config... 
-        
-        self.verbosity = verbosity
-        self.vehicle_name = name
+        self.verbosity = verbosity if self.verbosity is None else self.verbosity
+        self.vehicle_name = name if self.vehicle_name is None else self.vehicle_name
         
         # STL options
-        self.write_stl = write_stl
-        self.stl_filename = stl_filename
-        self.stl_resolution = stl_resolution
-        self.show_mpl = show_in_figure
-        self.evaluate_properties = evaluate_mesh_properties
+        self.write_stl = write_stl if self.write_stl is None else self.write_stl
+        self.stl_filename = stl_filename if self.stl_filename is None else self.stl_filename
+        self.stl_resolution = stl_resolution if self.stl_resolution is None else self.stl_resolution
+        self.show_mpl = show_in_figure if self.show_mpl is None else self.show_mpl
+        self.evaluate_properties = evaluate_mesh_properties if self.evaluate_properties is None else self.evaluate_properties
         
         # VTK options
-        self.write_vtk = write_vtk
-        self.vtk_resolution = vtk_resolution
-        self.vtk_filename = vtk_filename
+        self.write_vtk = write_vtk if self.write_vtk is None else self.write_vtk
+        self.vtk_resolution = vtk_resolution if self.vtk_resolution is None else self.vtk_resolution
+        self.vtk_filename = vtk_filename if self.vtk_filename is None else self.vtk_filename
         
     
     def add_component(self, component_type: str, component_dict: dict) -> None:
@@ -191,6 +189,7 @@ class Vehicle:
         
         if self.verbosity > 0:
             banner = pyfiglet.figlet_format("HYPERVEHICLE", font='contessa')
+            print("")
             print(banner)
         # Create component patches
         self.patches['wing'] = hyper_wing_main(self.wings, self.verbosity)
