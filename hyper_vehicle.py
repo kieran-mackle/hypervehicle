@@ -800,7 +800,7 @@ class Vehicle:
                             "working directory.")
 
     @staticmethod
-    def load_global_config(uodict: dict) -> dict:
+    def load_global_config(uo_dict: dict) -> dict:
         """Loads the global config dict from a hypervehicle job file.
         
         Parameters
