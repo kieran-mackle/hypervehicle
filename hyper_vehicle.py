@@ -1,5 +1,5 @@
 #!/usr/bin/python3.8
-from __future__ import annotations
+# from __future__ import annotations # Only supported in python3.7+
 import os
 import sys
 import shutil
@@ -743,7 +743,7 @@ class Vehicle:
         
     
     @classmethod
-    def from_config(cls, global_config: dict, verbosity: int = 1) -> Vehicle:
+    def from_config(cls, global_config: dict, verbosity: int = 1):
         """Creates hypervehicle Vehicle object directly from global configuration
         dictionary.
 
