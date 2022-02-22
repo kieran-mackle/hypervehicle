@@ -11,6 +11,11 @@ import matplotlib.pyplot as plt
 from mpl_toolkits import mplot3d
 from eilmer.geom.sgrid import StructuredGrid
 
+from typing import Callable
+
+from eilmer.geom.vector3 import Vector3
+from eilmer.geom.path import Polyline
+
 from idmoc.hypervehicle.fusgen import hyper_fuselage_main
 from idmoc.hypervehicle.wingen import hyper_wing_main
 from idmoc.hypervehicle.fingen import hyper_fin_main
@@ -172,7 +177,96 @@ class Vehicle:
         elif component_type.lower() == 'fuselage':
             self.fuselage = component_dict
         
-        
+    
+    def add_wing(self, A0: Vector3 = Vector3(0,0,0), A1: Vector3 = Vector3(0,0,0),
+                 TT: Vector3 = Vector3(0,0,0), B0: Vector3 = Vector3(0,0,0),
+                 Line_B0TT: Polyline = None, Line_B0TT_TYPE: str = "Bezier",
+                 t_B1: float = None, t_B2: float = None, 
+                 top_tf: Callable[[float, float, float], Vector3] = None,
+                 bot_tf: Callable[[float, float, float], Vector3] = None,
+                 LE_wf: Callable[[float], Vector3] = None,
+                 tail_option: str = 'FLAP', flap_length: float = 0, 
+                 flap_angle: float = 0,
+                 curve_x: Callable[[float, float, float], Vector3] = None,
+                 curve_dx: Callable[[float, float, float], Vector3] = None,
+                 curve_y: Callable[[float, float, float], Vector3] = None,
+                 curve_dy: Callable[[float, float, float], Vector3] = None,
+                 mirror: bool = True) -> None:
+        """Creates and appends a new wing to the vehicle.
+
+        Parameters
+        ----------
+        A0 : Vector3, optional
+            Point A0 of the wing geometry. The default is Vector3(0,0,0).
+        A1 : Vector3, optional
+            Point A1 of the wing geometry. The default is Vector3(0,0,0).
+        TT : Vector3, optional
+            Point TT of the wing geometry. The default is Vector3(0,0,0).
+        B0 : Vector3, optional
+            Point B0 of the wing geometry. The default is Vector3(0,0,0).
+        Line_B0TT : Polyline, optional
+            A line object joining B0 to TT. The default is None.
+        Line_B0TT_TYPE : str, optional
+            The type of the line object Line_B0TT. The default is "Bezier".
+        t_B1 : float, optional
+            First parameter to split B0TT. The default is None.
+        t_B2 : float, optional
+            Second parameter to split B0TT. The default is None.
+        top_tf : Callable[[float, float, float], Vector3], optional
+            The thickness function of the top surface. The default is None.
+        bot_tf : Callable[[float, float, float], Vector3], optional
+            The thickness function of the bottom surface. The default is None.
+        LE_wf : Callable[[float], Vector3], optional
+            The leading edge width function. The default is None.
+        tail_option : str, optional
+            The type of trailing edge to use. The default is 'FLAP'.
+        flap_length : float, optional
+            The length of the trailing edge flap. The default is 0.
+        flap_angle : float, optional
+            The angle of the trailing edge flap. The default is 0.
+        curve_x : Callable[[float, float, float], Vector3], optional
+            The curvature function in the x-direction. The default is None.
+        curve_dx : Callable[[float, float, float], Vector3], optional
+            The derivative of the curvature function in the x-direction. The 
+            default is None.
+        curve_y : Callable[[float, float, float], Vector3], optional
+            The curvature function in the y-direction. The default is None.
+        curve_dy : Callable[[float, float, float], Vector3], optional
+            The derivative of the curvature function in the x-direction. The 
+            default is None.
+        mirror : bool, optional
+            Mirror the wing about the x-z plane. The default is True.
+
+        Returns
+        -------
+        None
+            Calling this method will append a wing to the vehicle via the
+            add_component method.
+
+        """
+        new_wing = {"A0": A0, 
+                    "A1": A1, 
+                    "TT": TT,
+                    "B0": B0,
+                    "Line_B0TT": Line_B0TT, 
+                    "Line_B0TT_TYPE": "Bezier", 
+                    "t_B1": t_B1, 
+                    "t_B2": t_B2,
+                    "FUNC_TOP_THICKNESS": top_tf,
+                    "FUNC_BOT_THICKNESS": bot_tf,
+                    "FUNC_LEADING_EDGE_WIDTH": LE_wf,
+                    "TAIL_OPTION": tail_option,
+                    "FLAP_LENGTH": flap_length,
+                    "FLAP_ANGLE": flap_angle,
+                    "WING_FUNC_CURV_X": curve_x, 
+                    "WING_FUNC_CURV_X_DASH": curve_dx,
+                    "WING_FUNC_CURV_Y": curve_y, 
+                    "WING_FUNC_CURV_Y_DASH": curve_dy,
+                    "MIRROR": mirror,
+                    }
+        self.add_component('wing', new_wing)
+    
+    
     def add_global_config(self, global_config: dict) -> None:
         """Unpacks a global configuration dictionary.
         
