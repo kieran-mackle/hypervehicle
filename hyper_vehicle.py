@@ -303,11 +303,17 @@ class Vehicle:
         self._add_curvature()
         
         # Add vehicle offset angle to correct any curve induced AOA change
-        if self.verbosity > 0:
-            print("\nAdding vehicle angle.")
         if self.vehicle_angle != 0:
-            self._rotate_vehicle()
-            
+            if self.verbosity > 0:
+                print("\nAdding vehicle angle.")
+            self._rotate_vehicle(self.vehicle_angle)
+        
+        # Rotate vehicle to align with Cart3D
+        if self.cart3d:
+            if self.verbosity > 0:
+                print("\nRotating vehicle to align with Cart3D flow coordinate system.")
+            self._rotate_vehicle(angle=180, axis='z')
+        
         # Eilmer Grid surface grids
         if self.write_vtk:
             if self.verbosity > 0:
@@ -386,28 +392,38 @@ class Vehicle:
                                     fun_dash=self.fuselage['FUSELAGE_FUNC_CURV_Y_DASH'])
         
     
-    def _rotate_vehicle(self):
-        """Rotates entire vehicle to add offset angle.
+    def _rotate_vehicle(self, angle: float = 0, axis: str = 'y') -> None:
+        """Rotates entire vehicle by specified angle about a given axis.
+        
+        Parameters
+        ----------
+        angle : float, optional
+            Rotation angle. The default is 0.
+        axis : str, optional
+            Rotation axis. The default is 'y'.
+
+        Returns
+        -------
+        None
+            This method overwrites the vehicle patches of the Vehicle instance.
         """
+                
         # Rotate wings
         for ix, wing_geometry_dict in enumerate(self.wings):
             for key in self.patches['wing'][ix]:
                 self.patches['wing'][ix][key] = RotatedPatch(self.patches['wing'][ix][key], 
-                                                        np.deg2rad(self.vehicle_angle), 
-                                                        axis='y')
+                                                        np.deg2rad(angle), axis=axis)
         
         # Rotate fins
         for ix, fin_geometry_dict in enumerate(self.fins):
             for key in self.patches['fin'][ix]:
                 self.patches['fin'][ix][key] = RotatedPatch(self.patches['fin'][ix][key], 
-                                                       np.deg2rad(self.vehicle_angle), 
-                                                       axis='y')
+                                                       np.deg2rad(angle), axis=axis)
         
         # Rotate fuselage
         for key in self.patches['fuselage']:
             self.patches['fuselage'][key] = RotatedPatch(self.patches['fuselage'][key], 
-                                                np.deg2rad(self.vehicle_angle), 
-                                                axis='y')
+                                                np.deg2rad(angle), axis=axis)
     
     def _create_grids(self) -> None:
         """Writes VTK files.
@@ -736,7 +752,8 @@ class Vehicle:
                           "WING_GEOMETRY_DICT": [],     # List of geometry definition dictionaries
                           "FUSELAGE_GEOMETRY_DICT": None,
                           "FIN_GEOMETRY_DICT": [],
-                          "MIRROR_FINS": True}
+                          "MIRROR_FINS": True,
+                          "CART3D": False}
         
         for option, value in global_config.items():
             if option not in default_config:
@@ -771,6 +788,7 @@ class Vehicle:
                             "FUSELAGE_GEOMETRY_DICT": {"FUSELAGE_NOSE_OPTION": ["sharp-cone"],
                                                        "FUSELAGE_TAIL_OPTION": ["sharp-cone", "flat"],},
                             "MIRROR_FINS": [True, False],
+                            "CART3D": [True, False],
                             }
         
         # Ensure wing and fin geometry dict(s) in list form
@@ -808,6 +826,7 @@ class Vehicle:
         self.fins = global_config["FIN_GEOMETRY_DICT"]
         self.mirror_fins = global_config["MIRROR_FINS"]
         self.vehicle_angle = global_config["VEHICLE_ANGLE"]
+        self.cart3d = global_config["CART3D"]
         
         # STL
         self.write_stl = global_config["CREATE_STL_OBJECT"]
