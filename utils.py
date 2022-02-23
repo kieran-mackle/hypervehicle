@@ -635,3 +635,33 @@ class RotatedPatch(ParametricSurface):
             z = pos.z
 
         return Vector3(x=x, y=y, z=z) + self.point
+
+
+class MirroredPatch(ParametricSurface):
+    """Mirrors a surface in an axis-specified direction.
+    """
+    __slots__ = ['underlying_surf', 'mirror_axis']
+
+    def __init__(self, underlying_surf, axis='x'):
+        self.underlying_surf = underlying_surf
+        self.axis = axis.lower()
+
+    def __repr__(self):
+        return self.underlying_surf.__repr__() + f' mirrored along {self.axis}-axis'
+
+    def __call__(self, r, s):
+        pos = self.underlying_surf(r, s)
+        x = pos.x
+        y = pos.y
+        z = pos.z
+        if self.axis == 'x':
+            # Mirror about y-z plane
+            x *= -1
+        elif self.axis == 'y':
+            # Mirror about x-z plane
+            y *= -1
+        elif self.axis == 'z':
+            # Mirror about x-y plane
+            z *= -1
+
+        return Vector3(x=x, y=y, z=z)
