@@ -1,5 +1,6 @@
 #!/usr/bin/python3.8
 import numpy as np
+from scipy.optimize import bisect
 
 from eilmer.geom.vector3 import Vector3
 from eilmer.geom.path import Line, Polyline
@@ -12,8 +13,12 @@ from idmoc.hypervehicle.utils import (LeadingEdgePatchFunction,
                                       ArcLengthParameterizedPath, 
                                       TrailingEdgePatch,
                                       TrailingEdgePath,
-                                      RotatedPatch
+                                      RotatedPatch,
+                                      MeanLeadingEdgePatchFunction,
+                                      OffsetPathFunction,
+                                      GeometricMeanPathFunction,
                                       )
+
 
 def hyper_fin_main(fin_geometries: dict, verbosity: int = 1) -> list:
     """Fin Geometry Generator for hypersonic vehicle.
@@ -88,20 +93,38 @@ def hyper_fin_main(fin_geometries: dict, verbosity: int = 1) -> list:
             
             if verbosity > 1:
                 print("    Adding Leading Edge to fin.")
-            LE_top_patch = LeadingEdgePatchFunction(p1p3, 
-                                                     fin_thickness_function_top, 
-                                                     leading_edge_width_function, 
-                                                     0, 
-                                                     1,
-                                                     side='top')
-            LE_bot_patch = LeadingEdgePatchFunction(p1p3, 
-                                                      fin_thickness_function_bot, 
-                                                      leading_edge_width_function, 
-                                                      0, 
-                                                      1,
-                                                      side='bot')
-            temp_fin_patch_dict[f'fin_{fin_number}_top_LE'] = LE_top_patch
-            temp_fin_patch_dict[f'fin_{fin_number}_bot_LE'] = LE_bot_patch
+                
+            top_edge_path = OffsetPathFunction(p1p3, fin_thickness_function_top)
+            bot_edge_path = OffsetPathFunction(p1p3, fin_thickness_function_bot)
+            mean_path = GeometricMeanPathFunction(top_edge_path, bot_edge_path)
+            
+            # Find Locations
+            fun_B1 = lambda t: p1p3(t).x - p2.x
+            t_B1 = bisect(fun_B1, 0., 1.)
+            t_B2 = 1
+            
+            LE_top_patch = [np.nan, np.nan, np.nan]
+            LE_bot_patch = [np.nan, np.nan, np.nan]
+            
+            # Eliptical LE
+            LE_top_patch[0] = MeanLeadingEdgePatchFunction(mean_path, top_edge_path,
+                                LE_width_function=leading_edge_width_function,
+                                t0=0., t1=t_B1, side='top')
+            LE_top_patch[1] = MeanLeadingEdgePatchFunction(mean_path, top_edge_path,
+                                LE_width_function=leading_edge_width_function,
+                                t0=t_B1, t1=t_B2, side='top')
+            
+            LE_bot_patch[0] = MeanLeadingEdgePatchFunction(mean_path, bot_edge_path,
+                                LE_width_function=leading_edge_width_function,
+                                t0=0., t1=t_B1, side='bot')
+            LE_bot_patch[1] = MeanLeadingEdgePatchFunction(mean_path, bot_edge_path,
+                                LE_width_function=leading_edge_width_function,
+                                t0=t_B1, t1=t_B2, side='bot')
+            
+            temp_fin_patch_dict[f"fin{fin_number}_LE_top_patch_0"] = LE_top_patch[0]
+            temp_fin_patch_dict[f"fin{fin_number}_LE_top_patch_1"] = LE_top_patch[1]
+            temp_fin_patch_dict[f"fin{fin_number}_LE_bot_patch_0"] = LE_bot_patch[0]
+            temp_fin_patch_dict[f"fin{fin_number}_LE_bot_patch_1"] = LE_bot_patch[1]
             
             if verbosity > 1:
                 print("    Adding bottom face.")
