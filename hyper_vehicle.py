@@ -19,7 +19,10 @@ from eilmer.geom.path import Polyline
 from idmoc.hypervehicle.fusgen import hyper_fuselage_main
 from idmoc.hypervehicle.wingen import hyper_wing_main
 from idmoc.hypervehicle.fingen import hyper_fin_main
-from idmoc.hypervehicle.utils import parametricSurfce2stl, CurvedPatch, RotatedPatch
+from idmoc.hypervehicle.utils import (parametricSurfce2stl, 
+                                      CurvedPatch, 
+                                      RotatedPatch, 
+                                      MirroredPatch)
 
 
 class Vehicle:
@@ -85,11 +88,11 @@ class Vehicle:
         self.vtk_filename = None
         
         # Processed objects
-        self.patches = {}
-        self.grids = {}
-        self.surfaces = {}
-        self.stl_data = {}
-        self.meshes = {}
+        self.patches = {}   # Parametric patches
+        self.grids = {}     # Structured grids
+        self.surfaces = {}  # STL surfaces
+        self.stl_data = {}  # STL data
+        self.meshes = {}    # STL meshes
         
     
     def __repr__(self):
@@ -308,11 +311,23 @@ class Vehicle:
                 print("\nAdding vehicle angle.")
             self._rotate_vehicle(self.vehicle_angle)
         
+        # Add mirror image
+        if self.mirror:
+            if self.verbosity > 0:
+                print("\nAdding Mirror Image of wings.")
+            self.patches['wing'] = self._mirror_patches(self.patches['wing'])
+        
+        if self.mirror_fins:
+            if self.verbosity > 0:
+                print("Adding Mirror Image of fins.")
+            self.patches['fin'] = self._mirror_patches(self.patches['fin'])
+
         # Rotate vehicle to align with Cart3D
         if self.cart3d:
             if self.verbosity > 0:
                 print("\nRotating vehicle to align with Cart3D flow coordinate system.")
             self._rotate_vehicle(angle=180, axis='z')
+            self._rotate_vehicle(angle=90, axis='x')
         
         # Eilmer Grid surface grids
         if self.write_vtk:
@@ -324,7 +339,7 @@ class Vehicle:
         # STL object
         if self.write_stl:
             if self.verbosity > 0:
-                print(f"\nCreating STL object(s) with resolution of {self.stl_resolution}.")
+                print(f"\nCreating STL object(s) with a resolution of {self.stl_resolution}.")
             self._create_surfaces()
             self._create_stl_data()
             self._create_stl()
@@ -426,7 +441,7 @@ class Vehicle:
                                                 np.deg2rad(angle), axis=axis)
     
     def _create_grids(self) -> None:
-        """Writes VTK files.
+        """Creates structured grid objects.
         """
         # Wings
         self.grids['wing'] = []
@@ -529,43 +544,6 @@ class Vehicle:
                 fin_stl_data.append(val.data.copy())
             self.stl_data['fin'].append(fin_stl_data)
         
-        # add stl elements for mirrored section
-        if self.mirror:
-            if self.verbosity > 0:
-                print("    Adding Mirror Image of wing.")
-            
-            all_wing_stl_mesh_list_m = []
-            for wing_patch_dict in self.patches['wing']:
-                wing_stl_mesh_list_m = []
-                for key in wing_patch_dict:
-                    wing_stl_mesh_list_m.append(parametricSurfce2stl(
-                        wing_patch_dict[key], self.stl_resolution, mirror_y=True))
-                    
-                all_wing_stl_mesh_list_m.append(wing_stl_mesh_list_m)
-                
-            # add elements to stl_data lists
-            for ix, wing_stl_mesh_list_m in enumerate(all_wing_stl_mesh_list_m):
-                for val in wing_stl_mesh_list_m:
-                    self.stl_data['wing'][ix].append(val.data.copy())
-        
-        if self.mirror_fins: 
-            # Repeat for fins
-            if self.verbosity > 0:
-                print("    Adding Mirror Image of fin.")
-            
-            all_fin_stl_mesh_list_m = []
-            for fin_patch_dict in self.patches['fin']:
-                fin_stl_mesh_list_m = []
-                for key in fin_patch_dict:
-                    fin_stl_mesh_list_m.append(parametricSurfce2stl(
-                        fin_patch_dict[key], self.stl_resolution, mirror_y=True))
-                    
-                all_fin_stl_mesh_list_m.append(fin_stl_mesh_list_m)
-                
-            # add elements to stl_data lists
-            for ix, fin_stl_mesh_list_m in enumerate(all_fin_stl_mesh_list_m):
-                for val in fin_stl_mesh_list_m:
-                    self.stl_data['fin'][ix].append(val.data.copy())
     
     def _create_stl(self):
         """Creases stl objects
@@ -666,6 +644,35 @@ class Vehicle:
                 print("                                              {0}".format(inertia[2,:]))
             print("DONE Evaluating Fin Mesh Properties")
             print("")
+    
+    
+    @staticmethod
+    def _mirror_patches(patch_list: list, axis:str = 'y') -> list:
+        """Mirrors all patches in a patch list.
+
+        Parameters
+        ----------
+        patch_list : list
+            The list containing dictionaries of patches.
+        axis : str, optional
+            The axis to mirror about. The default is 'y'.
+
+        Returns
+        -------
+        list
+            Original list of patches with mirrored patches appended.
+        """
+        
+        for component, patch_dict in enumerate(patch_list):
+            mirrored_patches = {}
+            for patch in patch_dict:
+                mirrored_patches[patch+'_mirrored'] = MirroredPatch(patch_dict[patch], axis=axis)
+            
+            # Append mirrored patches to original patch_dict
+            for patch in mirrored_patches:
+                patch_dict[patch] = mirrored_patches[patch]
+            
+        return patch_list
     
     
     def _mpl_plot(self,):
