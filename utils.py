@@ -487,8 +487,8 @@ def parametricSurfce2stl(parametric_surface, triangles_per_edge, mirror_y=False,
             else:
                 r0 = r_list[i]
                 r1 = r_list[i+1]
-                s0 = s_list[i]
-                s1 = s_list[i+1]
+                s0 = s_list[j]
+                s1 = s_list[j+1]
                 pos00 = parametric_surface(r0, s0)
                 pos10 = parametric_surface(r1, s0)
                 pos01 = parametric_surface(r0, s1)
