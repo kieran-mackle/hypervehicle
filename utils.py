@@ -43,12 +43,12 @@ class SubRangedPath(Path):
 class ElipsePath(Path):
     """
     A path following a quarter elipse from a -> b, around c
-    
+
     b - _
           -_
             \
     c       a
-    
+
     """
     __slots__ = ['centre', 'thickness', 'LE_width', 'side']
 
@@ -66,7 +66,7 @@ class ElipsePath(Path):
         a = self.LE_width
         b = abs(self.thickness)
         #a = b*self.LE_ratio(t).y
-        
+
         # construct elipse
         if self.side == 'bot':
             theta = 0 + r * np.pi/2
@@ -102,12 +102,12 @@ class OffsetPathFunction(Path):
     def __call__(self, t):
         # calculate postion
         pos = self.underlying_line(t)
-        
+
         # calculate local thickness
         offset = self.offset_function(x=pos.x, y=pos.y)
-        
+
         return pos+offset
-    
+
 class GeometricMeanPathFunction(Path):
     """
     Creates a line which is the geometric mean of two underlying lines.
@@ -125,12 +125,12 @@ class GeometricMeanPathFunction(Path):
         # calculate postion
         pos_1 = self.underlying_line_1(t)
         pos_2 = self.underlying_line_2(t)
-        
+
         # calculate local thickness
         mean_point = 0.5 * (pos_1 + pos_2)
-        
+
         return mean_point
-    
+
 class OffsetPatchFunction(ParametricSurface):
     """
     Creates a patch with an offset applied.
@@ -179,7 +179,7 @@ class LeadingEdgePatchFunction(ParametricSurface):
         pos = self.centralLine(t)
         thickness = self.thickness_function(x=pos.x, y=pos.y).z  # we only need to get z-value
         LE_width = self.LE_width_function(t)
-        
+
         # establish local elipse shapes
         elipse = ElipsePath(centre=Vector3(x=0., y=0., z=0),
                             thickness=thickness,
@@ -233,13 +233,13 @@ class MeanLeadingEdgePatchFunction(ParametricSurface):
     def __call__(self, t_raw, r):
         # Convert to global t
         t = self.t1 - t_raw * (self.t1 - self.t0)
-        
+
         # Calculate local thickness
         mean_point = self.mean_line(t)
         guide_point = self.guide_line(t)
         thickness = mean_point.z - guide_point.z
         LE_width = self.LE_width_function(t)
-        
+
         # Establish local elipse shapes
         elipse = ElipsePath(centre=Vector3(x=0., y=0., z=0),
                             thickness=thickness,
@@ -265,13 +265,13 @@ class MeanLeadingEdgePatchFunction(ParametricSurface):
         x = x_elipse * np.cos(angle)
         y = x_elipse * np.sin(angle)
         z = z_elipse
-        
+
         return mean_point + Vector3(x=x, y=y, z=z)
 
 class FlatLeadingEdgePatchFunction(ParametricSurface):
     """
     Creates a flat leading edge between two paths.
-    
+
     TODO - adapt this to allow sharp LE
     """
     __slots__ = ['path1', 'path2', 't0', 't1']
@@ -279,22 +279,22 @@ class FlatLeadingEdgePatchFunction(ParametricSurface):
     def __init__(self, path1, path2, t0, t1):
         self.path1 = path1
         self.path2 = path2
-        
+
         # Parametric section of mean and guide line
-        self.t0 = t0 
+        self.t0 = t0
         self.t1 = t1
-        
+
     def __repr__(self):
         return "Flat leading edge surface patch"
 
     def __call__(self, t_raw, r):
         # Convert to global t
         t = self.t1 - t_raw * (self.t1 - self.t0)
-        
+
         # Calculate local thickness
         point1 = self.path1(t)
         point2 = self.path2(t)
-        
+
         return Vector3(x=point1.x, y=point1.y, z=(1-r)*point1.z + r*point2.z)
 
 class TrailingEdgePath(Path):
@@ -365,7 +365,7 @@ class TrailingEdgePatch(ParametricSurface):
 
 class MeanTrailingEdgePatch(ParametricSurface):
     """
-    Fucntion to create a trailing edge patch, with flap angle defined 
+    Fucntion to create a trailing edge patch, with flap angle defined
     from the geometric mean of upper and lower surfaces.
     """
     __slots__=['mean_line', 'TE_path', 'flap_length', 'flap_angle', 'side']
@@ -387,31 +387,31 @@ class MeanTrailingEdgePatch(ParametricSurface):
     def preparation(self):
         if self.side == 'top':
             north = self.TE_path
-            south = Line(p0=Vector3(x=self.mean_line(0).x-self.flap_length*np.cos(self.flap_angle), 
+            south = Line(p0=Vector3(x=self.mean_line(0).x-self.flap_length*np.cos(self.flap_angle),
                                     y=self.mean_line(0).y,
                                     z=self.mean_line(0).z+self.flap_length*np.sin(self.flap_angle)),
-                         p1=Vector3(x=self.mean_line(1).x-self.flap_length*np.cos(self.flap_angle), 
+                         p1=Vector3(x=self.mean_line(1).x-self.flap_length*np.cos(self.flap_angle),
                                     y=self.mean_line(1).y,
                                     z=self.mean_line(1).z+self.flap_length*np.sin(self.flap_angle)))
-            
-            
+
+
             west = Line(p0=south(0.), p1=north(0.))
             east = Line(p0=south(1.), p1=north(1.))
-            
+
         elif self.side == 'bot':
             south = self.TE_path
-            north = Line(p0=Vector3(x=self.mean_line(0).x-self.flap_length*np.cos(self.flap_angle), 
+            north = Line(p0=Vector3(x=self.mean_line(0).x-self.flap_length*np.cos(self.flap_angle),
                                     y=self.mean_line(0).y,
                                     z=self.mean_line(0).z+self.flap_length*np.sin(self.flap_angle)),
-                         p1=Vector3(x=self.mean_line(1).x-self.flap_length*np.cos(self.flap_angle), 
+                         p1=Vector3(x=self.mean_line(1).x-self.flap_length*np.cos(self.flap_angle),
                                     y=self.mean_line(1).y,
                                     z=self.mean_line(1).z+self.flap_length*np.sin(self.flap_angle)))
             west = Line(p0=south(0.), p1=north(0.))
             east = Line(p0=south(1.), p1=north(1.))
-            
+
         else:
             raise Exception("Value of 'side' not supported")
-            
+
         self.patch = CoonsPatch(south=south, north=north, west=west, east=east)
 
 class CurvedPatch(ParametricSurface):
@@ -449,7 +449,7 @@ class CurvedPatch(ParametricSurface):
             return pos_new
 
 
-def parametricSurfce2stl(parametric_surface, triangles_per_edge, mirror_y=False):
+def parametricSurfce2stl(parametric_surface, triangles_per_edge, mirror_y=False, re_evaluate_centroid=False):
     """
     Function to convert parametric_surface generated using the Eilmer Geometry Package into a stl mesh objecy.
     Inputs:
@@ -476,13 +476,30 @@ def parametricSurfce2stl(parametric_surface, triangles_per_edge, mirror_y=False)
     index = (triangles_per_edge+1)**2
     for i in range(triangles_per_edge):
         for j in range(triangles_per_edge):
-            r = 0.5*(r_list[i]+r_list[i+1])
-            s = 0.5*(s_list[j]+s_list[j+1])
-            pos = parametric_surface(r, s)
-            if mirror_y == False:
-                vertices[index+(j*triangles_per_edge+i)] = [pos.x, pos.y, pos.z]
+            if re_evaluate_centroid is True:
+                r = 0.5 * (r_list[i] + r_list[i+1])
+                r = 0.5 * (s_list[i] + s_list[i+1])
+                pos = parametric_surface(r, s)
+                if mirror_y == False:
+                    vertices[index+(j*triangles_per_edge+i)] = [pos.x, pos.y, pos.z]
+                else:
+                    vertices[index+(j*triangles_per_edge+i)] = [pos.x, -pos.y, pos.z]
             else:
-                vertices[index+(j*triangles_per_edge+i)] = [pos.x, -pos.y, pos.z]
+                r0 = r_list[i]
+                r1 = r_list[i+1]
+                s0 = s_list[i]
+                s1 = s_list[i+1]
+                pos00 = parametric_surface(r0, s0)
+                pos10 = parametric_surface(r1, s0)
+                pos01 = parametric_surface(r0, s1)
+                pos11 = parametric_surface(r1, s1)
+                pos_x = 0.25 * (pos00.x + pos10.x + pos01.x + pos11.x)
+                pos_y = 0.25 * (pos00.y + pos10.y + pos01.y + pos11.y)
+                pos_z = 0.25 * (pos00.z + pos10.z + pos01.z + pos11.z)
+                if mirror_y == False:
+                    vertices[index+(j*triangles_per_edge+i)] = [pos_x, pos_y, pos_z]
+                else:
+                    vertices[index+(j*triangles_per_edge+i)] = [pos_x, -pos_y, pos_z]
     # create list of faces
     faces = []  #np.zeros((triangles_per_edge**2*4, 3))
     for i in range(triangles_per_edge):
@@ -544,7 +561,7 @@ class ConePatch(ParametricSurface):
 class BluntConePatch(ParametricSurface):
     """
     Creates a patch describing a blunt cone.
-    
+
     Parameters:
         x0: x coordinate of base of cone
         y0: y coordinate of base of cone
@@ -553,7 +570,7 @@ class BluntConePatch(ParametricSurface):
         L: length of nominal cone (base to tip before spherical blunting)
         angle0: start revolve angle
         angle1: end revolve angle
-    
+
     """
     __slots__ = ['x0', 'y0', 'rn', 'rb', 'L', 'angle0', 'angle1']
 
@@ -602,7 +619,7 @@ class RotatedPatch(ParametricSurface):
 
     def __call__(self, r, s):
         pos = self.underlying_surf(r, s) - self.point
-        
+
         if self.axis == 'x':
             x = pos.x
             y = pos.y * np.cos(self.angle) - pos.z * np.sin(self.angle)
@@ -611,11 +628,10 @@ class RotatedPatch(ParametricSurface):
             x = pos.x * np.cos(self.angle) + pos.z * np.sin(self.angle)
             y = pos.y
             z = -pos.x * np.sin(self.angle) + pos.z * np.cos(self.angle)
-            
+
         elif self.axis == 'z':
             x = pos.x * np.cos(self.angle) - pos.y * np.sin(self.angle)
             y = pos.x * np.sin(self.angle) + pos.y * np.cos(self.angle)
             z = pos.z
-            
+
         return Vector3(x=x, y=y, z=z) + self.point
-    
