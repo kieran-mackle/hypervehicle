@@ -11,7 +11,8 @@ from eilmer.geom.path import Line, Path, ArcLengthParameterizedPath
 from eilmer.geom.surface import CoonsPatch, ParametricSurface
 
 import numpy as np
-from stl import mesh  # part of 'numpy-stl' package
+from stl import mesh
+
 
 class SubRangedPath(Path):
     """
@@ -39,6 +40,7 @@ class SubRangedPath(Path):
 
     def length(self):
         return self.underlying_path.length()
+
 
 class ElipsePath(Path):
     """
@@ -86,6 +88,7 @@ class ElipsePath(Path):
         elipse_base = self.centre
         return elipse_base + Vector3(x=x, y=y, z=z)
 
+
 class OffsetPathFunction(Path):
     """
     Creates a line with an offset applied
@@ -107,6 +110,7 @@ class OffsetPathFunction(Path):
         offset = self.offset_function(x=pos.x, y=pos.y)
 
         return pos+offset
+
 
 class GeometricMeanPathFunction(Path):
     """
@@ -130,6 +134,7 @@ class GeometricMeanPathFunction(Path):
         mean_point = 0.5 * (pos_1 + pos_2)
 
         return mean_point
+
 
 class OffsetPatchFunction(ParametricSurface):
     """
@@ -211,6 +216,7 @@ class LeadingEdgePatchFunction(ParametricSurface):
         elipse_base = self.centralLine(t)
         return elipse_base + Vector3(x=x, y=y, z=z)
 
+
 class MeanLeadingEdgePatchFunction(ParametricSurface):
     """
     Creates Leading Edge by mean line and guiding line, and LE_width function.
@@ -268,6 +274,7 @@ class MeanLeadingEdgePatchFunction(ParametricSurface):
 
         return mean_point + Vector3(x=x, y=y, z=z)
 
+
 class FlatLeadingEdgePatchFunction(ParametricSurface):
     """
     Creates a flat leading edge between two paths.
@@ -296,6 +303,7 @@ class FlatLeadingEdgePatchFunction(ParametricSurface):
         point2 = self.path2(t)
 
         return Vector3(x=point1.x, y=point1.y, z=(1-r)*point1.z + r*point2.z)
+
 
 class TrailingEdgePath(Path):
     """
@@ -363,6 +371,7 @@ class TrailingEdgePatch(ParametricSurface):
             raise Exception("Value of 'side' not supported")
         self.patch = CoonsPatch(south=south, north=north, west=west, east=east)
 
+
 class MeanTrailingEdgePatch(ParametricSurface):
     """
     Fucntion to create a trailing edge patch, with flap angle defined
@@ -414,6 +423,7 @@ class MeanTrailingEdgePatch(ParametricSurface):
 
         self.patch = CoonsPatch(south=south, north=north, west=west, east=east)
 
+
 class CurvedPatch(ParametricSurface):
     """
     Adds curvature in x or y direction to an existing patch
@@ -449,9 +459,12 @@ class CurvedPatch(ParametricSurface):
             return pos_new
 
 
-def parametricSurfce2stl(parametric_surface, triangles_per_edge, mirror_y=False, re_evaluate_centroid=False):
+def parametricSurfce2stl(parametric_surface, triangles_per_edge, mirror_y=False, 
+                         re_evaluate_centroid=False, flip_faces=False):
     """
-    Function to convert parametric_surface generated using the Eilmer Geometry Package into a stl mesh objecy.
+    Function to convert parametric_surface generated using the Eilmer Geometry 
+    Package into a stl mesh object.
+    
     Inputs:
         parametric_surface - surface object
         triangles_per_edge - resolution for stl object.
@@ -500,7 +513,8 @@ def parametricSurfce2stl(parametric_surface, triangles_per_edge, mirror_y=False,
                     vertices[index+(j*triangles_per_edge+i)] = [pos_x, pos_y, pos_z]
                 else:
                     vertices[index+(j*triangles_per_edge+i)] = [pos_x, -pos_y, pos_z]
-    # create list of faces
+    
+    # Create list of faces
     faces = []  #np.zeros((triangles_per_edge**2*4, 3))
     for i in range(triangles_per_edge):
         for j in range(triangles_per_edge):
@@ -509,16 +523,18 @@ def parametricSurfce2stl(parametric_surface, triangles_per_edge, mirror_y=False,
             p01 = (j+1)*(triangles_per_edge+1)+i  # top left
             p11 = (j+1)*(triangles_per_edge+1)+i+1   # top right
             pzz = index + (j*triangles_per_edge+i)  # vertex at centre of cell
-            if mirror_y == False:
-                faces.append([p00, p10, pzz])
-                faces.append([p10, p11, pzz])
-                faces.append([p11, p01, pzz])
-                faces.append([p01, p00, pzz])
-            else:
+
+            if mirror_y or flip_faces:
                 faces.append([p00, pzz, p10])
                 faces.append([p10, pzz, p11])
                 faces.append([p11, pzz, p01])
                 faces.append([p01, pzz, p00])
+            else:
+                faces.append([p00, p10, pzz])
+                faces.append([p10, p11, pzz])
+                faces.append([p11, p01, pzz])
+                faces.append([p01, p00, pzz])
+            
     faces = np.array(faces)
     # create the mesh object
     stl_mesh = mesh.Mesh(np.zeros(faces.shape[0], dtype=mesh.Mesh.dtype))
@@ -526,6 +542,7 @@ def parametricSurfce2stl(parametric_surface, triangles_per_edge, mirror_y=False,
         for j in range(3):
             stl_mesh.vectors[i][j] = vertices[f[j],:]
     return stl_mesh
+
 
 class ConePatch(ParametricSurface):
     """
@@ -557,6 +574,7 @@ class ConePatch(ParametricSurface):
         y = y0 * (1-r) + y1 * r
         z = z0 * (1-r) + z1 * r
         return Vector3(x=x, y=y, z=z)
+
 
 class BluntConePatch(ParametricSurface):
     """

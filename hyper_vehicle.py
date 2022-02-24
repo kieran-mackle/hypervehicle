@@ -500,15 +500,17 @@ class Vehicle:
         for wing_patch_dict in self.patches['wing']:
             wing_stl_mesh_list = []
             for key in wing_patch_dict:
+                flip = True if key.split('_')[-1] == 'mirrored' else False
                 wing_stl_mesh_list.append(parametricSurfce2stl(wing_patch_dict[key],
-                                                               self.stl_resolution))
+                                                               self.stl_resolution,
+                                                               flip_faces=flip))
             self.surfaces['wing'].append(wing_stl_mesh_list)
         
         # Fuselage
         self.surfaces['fuselage'] = []
         for key in self.patches['fuselage']:
             self.surfaces['fuselage'].append(parametricSurfce2stl(self.patches['fuselage'][key],
-                                                                self.stl_resolution))
+                                                                  self.stl_resolution))
         
         # Fins
         self.surfaces['fin'] = []
@@ -516,7 +518,8 @@ class Vehicle:
             fin_stl_mesh_list = []
             for key in fin_patch_dict:
                 fin_stl_mesh_list.append(parametricSurfce2stl(fin_patch_dict[key],
-                                                              self.stl_resolution))
+                                                              self.stl_resolution,
+                                                               flip_faces=flip))
             self.surfaces['fin'].append(fin_stl_mesh_list)
         
     
