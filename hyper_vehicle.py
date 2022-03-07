@@ -3,7 +3,7 @@
 import os
 import sys
 import shutil
-import pyfiglet
+# import pyfiglet
 import numpy as np
 from stl import mesh
 from getopt import getopt
@@ -292,9 +292,11 @@ class Vehicle:
         """
         
         if self.verbosity > 0:
-            banner = pyfiglet.figlet_format("HYPERVEHICLE", font='contessa')
-            print("")
-            print(banner)
+            # banner = pyfiglet.figlet_format("HYPERVEHICLE", font='contessa')
+            # print("")
+            # print(banner)
+            print("\nHYPERVEHICLE\n")
+            
         # Create component patches
         self.patches['wing'] = hyper_wing_main(self.wings, self.verbosity)
         self.patches['fuselage'] = hyper_fuselage_main(self.fuselage, self.verbosity)
