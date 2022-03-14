@@ -24,6 +24,21 @@ from idmoc.hypervehicle.utils import (parametricSurfce2stl,
                                       RotatedPatch, 
                                       MirroredPatch)
 
+'''
+I think the fact that mirrored wings being a single stl object, despite being
+two distinctly separate bodies.
+
+I want to add an option on a wing-basis, to separate mirrored components from 
+their original component.
+
+Attributes and methods of interest are:
+    - self.mirror
+    - self.mirror_fins
+    > self._mirror_patches: this method appends the mirrored patches to the 
+      original patch dicts, meaning the mirrored components are appended 
+      to the existing component. Instead, want to create a new component.
+'''
+
 
 class Vehicle:
     """hypervehicle object.
@@ -66,8 +81,9 @@ class Vehicle:
         """Vehicle constructor method. 
         """
         self.verbosity = None
-        self.vehicle_name = "generic hypersonic vehicle"
+        self.vehicle_name = "hypersonic vehicle"
         
+        # Components
         self.wings = []
         self.fuselage = None
         self.fins = []
@@ -194,7 +210,7 @@ class Vehicle:
                  curve_dx: Callable[[float, float, float], Vector3] = None,
                  curve_y: Callable[[float, float, float], Vector3] = None,
                  curve_dy: Callable[[float, float, float], Vector3] = None,
-                 mirror: bool = True) -> None:
+                 mirror: bool = True, mirror_new_component: bool = False) -> None:
         """Creates and appends a new wing to the vehicle.
 
         Parameters
@@ -239,6 +255,10 @@ class Vehicle:
             default is None.
         mirror : bool, optional
             Mirror the wing about the x-z plane. The default is True.
+        mirror_new_component : bool, optional
+            If mirror is True, use this boolean flag to specify whether the
+            mirrored component will be treated as a new component, or as
+            part of the original component. The default is False.
 
         Returns
         -------
@@ -266,6 +286,7 @@ class Vehicle:
                     "WING_FUNC_CURV_Y": curve_y, 
                     "WING_FUNC_CURV_Y_DASH": curve_dy,
                     "MIRROR": mirror,
+                    "MIRROR_NEW_COMPONENT": mirror_new_component,
                     }
         self.add_component('wing', new_wing)
     
@@ -317,12 +338,14 @@ class Vehicle:
         if self.mirror:
             if self.verbosity > 0:
                 print("\nAdding Mirror Image of wings.")
-            self.patches['wing'] = self._mirror_patches(self.patches['wing'])
+            self.patches['wing'] = self._mirror_patches(self.patches['wing'],
+                                                        components=self.wings)
         
         if self.mirror_fins:
             if self.verbosity > 0:
                 print("Adding Mirror Image of fins.")
-            self.patches['fin'] = self._mirror_patches(self.patches['fin'])
+            self.patches['fin'] = self._mirror_patches(self.patches['fin'],
+                                                        components=self.fins)
 
         # Rotate vehicle to align with Cart3D
         if self.cart3d:
@@ -426,21 +449,20 @@ class Vehicle:
         """
                 
         # Rotate wings
-        for ix, wing_geometry_dict in enumerate(self.wings):
-            for key in self.patches['wing'][ix]:
-                self.patches['wing'][ix][key] = RotatedPatch(self.patches['wing'][ix][key], 
-                                                        np.deg2rad(angle), axis=axis)
-        
+        for patch_dict in self.patches['wing']:
+            for key in patch_dict:
+                patch_dict[key] = RotatedPatch(patch_dict[key], np.deg2rad(angle), axis=axis)
+                
         # Rotate fins
-        for ix, fin_geometry_dict in enumerate(self.fins):
-            for key in self.patches['fin'][ix]:
-                self.patches['fin'][ix][key] = RotatedPatch(self.patches['fin'][ix][key], 
-                                                       np.deg2rad(angle), axis=axis)
+        for patch_dict in self.patches['fin']:
+            for key in patch_dict:
+                patch_dict[key] = RotatedPatch(patch_dict[key], np.deg2rad(angle), axis=axis)
         
         # Rotate fuselage
         for key in self.patches['fuselage']:
             self.patches['fuselage'][key] = RotatedPatch(self.patches['fuselage'][key], 
                                                 np.deg2rad(angle), axis=axis)
+    
     
     def _create_grids(self) -> None:
         """Creates structured grid objects.
@@ -652,15 +674,26 @@ class Vehicle:
     
     
     @staticmethod
-    def _mirror_patches(patch_list: list, axis:str = 'y') -> list:
+    def _mirror_patches(patch_list: list, axis: str = 'y', 
+                        components: list = None) -> list:
         """Mirrors all patches in a patch list.
 
         Parameters
         ----------
         patch_list : list
-            The list containing dictionaries of patches.
+            The list containing dictionaries of patches. Each component is 
+            represented by its own dictionary or patches.
         axis : str, optional
             The axis to mirror about. The default is 'y'.
+            
+        components : list, optional
+            The list of component dictionaries, to allow passing
+            meta-data in. The default is None.
+            
+        create_new : list[bool], optional
+            Create a new component for the mirrored component. If True,
+            a new component will be created rather than appended to the 
+            patches of the parent component. The default is False.
 
         Returns
         -------
@@ -668,15 +701,26 @@ class Vehicle:
             Original list of patches with mirrored patches appended.
         """
         
+        new_components = []
+        
         for component, patch_dict in enumerate(patch_list):
+            # Create mirrored patches
             mirrored_patches = {}
             for patch in patch_dict:
                 mirrored_patches[patch+'_mirrored'] = MirroredPatch(patch_dict[patch], axis=axis)
             
-            # Append mirrored patches to original patch_dict
-            for patch in mirrored_patches:
-                patch_dict[patch] = mirrored_patches[patch]
-            
+            if not components[component]['MIRROR_NEW_COMPONENT']:
+                # Append mirrored patches to original patch_dict
+                for patch in mirrored_patches:
+                    patch_dict[patch] = mirrored_patches[patch]
+            else:
+                # Mirrored component is to be new component
+                new_components.append(mirrored_patches)
+        
+        # Add new components to patch_list
+        for patch_dict in new_components:
+            patch_list.append(patch_dict)
+        
         return patch_list
     
     
