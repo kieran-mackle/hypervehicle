@@ -110,6 +110,8 @@ class Vehicle:
         self.stl_data = {}  # STL data
         self.meshes = {}    # STL meshes
         
+        self.cart3d = False
+        
     
     def __repr__(self):
         return f"Parameterised {self.vehicle_name}."
@@ -203,7 +205,7 @@ class Vehicle:
                  t_B1: float = None, t_B2: float = None, 
                  top_tf: Callable[[float, float, float], Vector3] = None,
                  bot_tf: Callable[[float, float, float], Vector3] = None,
-                 LE_wf: Callable[[float], Vector3] = None,
+                 LE_wf: Callable[[float], Vector3] = None, LE_type: str = None,
                  tail_option: str = 'FLAP', flap_length: float = 0, 
                  flap_angle: float = 0,
                  curve_x: Callable[[float, float, float], Vector3] = None,
@@ -237,6 +239,9 @@ class Vehicle:
             The thickness function of the bottom surface. The default is None.
         LE_wf : Callable[[float], Vector3], optional
             The leading edge width function. The default is None.
+        LE_type : str
+            The leading edge type. Specify 'flat' to create a flat edge, 
+            otherwise provide LE_wf.
         tail_option : str, optional
             The type of trailing edge to use. The default is 'FLAP'.
         flap_length : float, optional
@@ -278,6 +283,7 @@ class Vehicle:
                     "FUNC_TOP_THICKNESS": top_tf,
                     "FUNC_BOT_THICKNESS": bot_tf,
                     "FUNC_LEADING_EDGE_WIDTH": LE_wf,
+                    "LE_TYPE": LE_type.upper(),
                     "TAIL_OPTION": tail_option,
                     "FLAP_LENGTH": flap_length,
                     "FLAP_ANGLE": flap_angle,
