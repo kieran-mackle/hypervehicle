@@ -6,18 +6,17 @@ from eilmer.geom.vector3 import Vector3
 from eilmer.geom.path import Line, Polyline
 from eilmer.geom.surface import CoonsPatch 
 
-from idmoc.hypervehicle.utils import (LeadingEdgePatchFunction, 
-                                      OffsetPatchFunction, 
-                                      SubRangedPath, 
-                                      ElipsePath, 
-                                      ArcLengthParameterizedPath, 
-                                      TrailingEdgePatch,
-                                      TrailingEdgePath,
-                                      RotatedPatch,
-                                      MeanLeadingEdgePatchFunction,
-                                      OffsetPathFunction,
-                                      GeometricMeanPathFunction,
-                                      )
+from hypervehicle.utils import (LeadingEdgePatchFunction, 
+                                OffsetPatchFunction, 
+                                SubRangedPath, 
+                                ElipsePath, 
+                                ArcLengthParameterizedPath, 
+                                TrailingEdgePatch,
+                                TrailingEdgePath,
+                                RotatedPatch,
+                                MeanLeadingEdgePatchFunction,
+                                OffsetPathFunction,
+                                GeometricMeanPathFunction,)
 
 
 def hyper_fin_main(fin_geometries: dict, verbosity: int = 1) -> list:

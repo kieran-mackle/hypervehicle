@@ -1,17 +1,8 @@
-"""
-Wing Geometry Generator for gliding hypersonic vehicle.
-
-Authors: Ingo Jahn, Kieran Mackle
-Created on: 02/07/2021
-Last Modified: 02/07/2021
-"""
-
-from eilmer.geom.vector3 import Vector3
-from eilmer.geom.path import Line, Path, ArcLengthParameterizedPath
-from eilmer.geom.surface import CoonsPatch, ParametricSurface
-
 import numpy as np
 from stl import mesh
+from eilmer.geom.vector3 import Vector3
+from eilmer.geom.surface import CoonsPatch, ParametricSurface
+from eilmer.geom.path import Line, Path, ArcLengthParameterizedPath
 
 
 class SubRangedPath(Path):

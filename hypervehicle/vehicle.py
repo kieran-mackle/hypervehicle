@@ -16,28 +16,13 @@ from typing import Callable
 from eilmer.geom.vector3 import Vector3
 from eilmer.geom.path import Polyline
 
-from idmoc.hypervehicle.fusgen import hyper_fuselage_main
-from idmoc.hypervehicle.wingen import hyper_wing_main
-from idmoc.hypervehicle.fingen import hyper_fin_main
-from idmoc.hypervehicle.utils import (parametricSurfce2stl, 
-                                      CurvedPatch, 
-                                      RotatedPatch, 
-                                      MirroredPatch)
-
-'''
-I think the fact that mirrored wings being a single stl object, despite being
-two distinctly separate bodies.
-
-I want to add an option on a wing-basis, to separate mirrored components from 
-their original component.
-
-Attributes and methods of interest are:
-    - self.mirror
-    - self.mirror_fins
-    > self._mirror_patches: this method appends the mirrored patches to the 
-      original patch dicts, meaning the mirrored components are appended 
-      to the existing component. Instead, want to create a new component.
-'''
+from hypervehicle.components import (hyper_fuselage_main, 
+                                     hyper_wing_main, 
+                                     hyper_fin_main)
+from hypervehicle.utils import (parametricSurfce2stl, 
+                                CurvedPatch, 
+                                RotatedPatch, 
+                                MirroredPatch)
 
 
 class Vehicle:

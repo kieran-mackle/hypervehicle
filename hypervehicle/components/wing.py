@@ -6,18 +6,18 @@ from eilmer.geom.vector3 import Vector3
 from eilmer.geom.path import Line
 from eilmer.geom.surface import CoonsPatch 
 
-from idmoc.hypervehicle.utils import (OffsetPatchFunction, 
-                                      SubRangedPath, 
-                                      ElipsePath, 
-                                      ArcLengthParameterizedPath, 
-                                      TrailingEdgePath,
-                                      OffsetPathFunction,
-                                      GeometricMeanPathFunction,
-                                      MeanLeadingEdgePatchFunction,
-                                      MeanTrailingEdgePatch,
-                                      RotatedPatch,
-                                      FlatLeadingEdgePatchFunction
-                                      )
+from hypervehicle.utils import (OffsetPatchFunction, 
+                                SubRangedPath, 
+                                ElipsePath, 
+                                ArcLengthParameterizedPath, 
+                                TrailingEdgePath,
+                                OffsetPathFunction,
+                                GeometricMeanPathFunction,
+                                MeanLeadingEdgePatchFunction,
+                                MeanTrailingEdgePatch,
+                                RotatedPatch,
+                                FlatLeadingEdgePatchFunction)
+
 
 def hyper_wing_main(wing_geometries: list, verbosity: int = 1) -> list:
     """Wing Geometry Generator for gliding hypersonic vehicle.

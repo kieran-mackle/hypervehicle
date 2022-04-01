@@ -3,7 +3,8 @@ import numpy as np
 from eilmer.geom.vector3 import Vector3
 from eilmer.geom.path import Arc, Line
 from eilmer.geom.surface import CoonsPatch
-from idmoc.hypervehicle.utils import ConePatch, RotatedPatch
+from hypervehicle.utils import ConePatch, RotatedPatch
+
 
 def hyper_fuselage_main(fuselage_geometry: dict, verbosity: int = 1) -> dict:
     """Fuselage Geometry Generator for hypersonic vehicle.
