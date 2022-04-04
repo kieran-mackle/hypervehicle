@@ -1,4 +1,4 @@
-name: Tests
+name: build
 
 on:
   push:
@@ -25,4 +25,4 @@ jobs:
         pip install ./
     - name: Test with pytest
       run: |
-        pytest --cov=hypervehicle --cov-report=xml tests
+        pytest tests/ --cov=hypervehicle --cov-report=xml
