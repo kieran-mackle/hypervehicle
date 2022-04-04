@@ -2,7 +2,7 @@
 # HYPERVEHICLE: Parametric Vehicle Geometry Generation
 A suite of tools to rapidly generate geometry files for hypersonic vehicles.
 
-![tests](https://github.com/kieran-mackle/hyper-vehicle/actions/workflows/tests.yml/badge.svg)
+![tests](https://github.com/kieran-mackle/hypervehicle/actions/workflows/tests.yml/badge.svg)
 
 ## General Information
 The HyperVehicle module of IDMOC revolves around the `Vehicle` class of 
