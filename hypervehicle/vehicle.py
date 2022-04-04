@@ -28,8 +28,8 @@ from hypervehicle.utils import (parametricSurfce2stl,
 class Vehicle:
     """hypervehicle object.
     
-    Attributes (set via configure method)
-    -------------------------------------
+    Attributes
+    ----------
     verbosity : int, optional
         The verbosity of the code. The default is 1.
     write_stl : bool, optional
@@ -51,15 +51,6 @@ class Vehicle:
     name : str, optional
         The vehicle name. The default is "generic hypersonic vehicle".
     
-    Documentation
-    -------------
-    Documentation for this code can be found at the link below.
-    
-    https://bitbucket.org/ingo_jahn/idmoc/src/packaging/docs/hypervehicle.md
-    
-    References
-    ----------
-    This code was authored by Ingo Jahn and Kieran Mackle.
     """
     
     def __init__(self) -> None:
@@ -190,7 +181,7 @@ class Vehicle:
                  t_B1: float = None, t_B2: float = None, 
                  top_tf: Callable[[float, float, float], Vector3] = None,
                  bot_tf: Callable[[float, float, float], Vector3] = None,
-                 LE_wf: Callable[[float], Vector3] = None, LE_type: str = None,
+                 LE_wf: Callable[[float], Vector3] = None, LE_type: str = 'custom',
                  tail_option: str = 'FLAP', flap_length: float = 0, 
                  flap_angle: float = 0,
                  curve_x: Callable[[float, float, float], Vector3] = None,
@@ -226,7 +217,7 @@ class Vehicle:
             The leading edge width function. The default is None.
         LE_type : str
             The leading edge type. Specify 'flat' to create a flat edge, 
-            otherwise provide LE_wf.
+            otherwise provide LE_wf. The default is 'custom'.
         tail_option : str, optional
             The type of trailing edge to use. The default is 'FLAP'.
         flap_length : float, optional
