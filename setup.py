@@ -14,6 +14,10 @@ setup(
                         "numpy-stl",
                         "matplotlib",
                         "scipy",
-                        "pandas"
+                        "pandas",
+                        "furo",
+                        "myst_parser",
+                        "sphinx_copybutton",
+                        "sphinx_inline_tabs", 
                         ],
       )

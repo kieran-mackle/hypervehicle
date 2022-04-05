@@ -28,6 +28,19 @@ python3 -m pytest tests/
 
 
 
+## Documentation
+HYPERVEHICLE is well documented in-code. To access more information on a 
+specific method, use the `help()` method of Python. To view documentation 
+of the entire codebase in html format, run the commands below.
+
+```
+cd docs
+make html
+xo _build/html/index.html
+```
+
+
+
 
 ## General Information
 The HyperVehicle pacakge revolves around the `Vehicle` class of 
