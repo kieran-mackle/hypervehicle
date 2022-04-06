@@ -1,8 +1,17 @@
+"""
+Wing Geometry Generator for gliding hypersonic vehicle.
+
+Authors: Ingo Jahn, Kieran Mackle
+Created on: 02/07/2021
+Last Modified: 02/07/2021
+"""
+
+from eilmer.geom.vector3 import Vector3
+from eilmer.geom.path import Line, Path, ArcLengthParameterizedPath
+from eilmer.geom.surface import CoonsPatch, ParametricSurface
+
 import numpy as np
 from stl import mesh
-from eilmer.geom.vector3 import Vector3
-from eilmer.geom.surface import CoonsPatch, ParametricSurface
-from eilmer.geom.path import Line, Path, ArcLengthParameterizedPath
 
 
 class SubRangedPath(Path):
@@ -674,3 +683,102 @@ class MirroredPatch(ParametricSurface):
             z *= -1
 
         return Vector3(x=x, y=y, z=z)
+        
+        
+class CubePatch(ParametricSurface):
+    """ Creates a cube face patch for a cube of length
+        2a about the Vector3 centre.   
+    """
+    __slots__ = ['a', 'centre', 'face']
+    
+    def __init__(self, a, centre, face):
+        self.a      = a
+        self.face   = face
+        self.centre = centre
+
+    def __repr__(self):
+        return 'Cube: a = {}, centre = {}'.format(self.r, self.centre) + \
+               'face = {}'.format( self.face)
+        
+    def __call__(self, r,s):
+        
+        if self.face == "east":
+            x = 1.0; y = -1.0 + 2.0*r; z = -1.0 + 2.0*s 
+        elif self.face == "west":
+            x = -1.0; y = -1.0 + 2.0*r; z = -1.0 + 2.0*s               
+        elif self.face == "south":
+            x = -1.0 + 2.0*r; y = -1.0; z = -1.0 + 2.0*s
+        elif self.face == "north":
+            x = -1.0 + 2.0*r; y = 1.0; z = -1.0 + 2.0*s
+        elif self.face == "bottom":
+            x = -1.0 + 2.0*r; y = -1.0 + 2.0*s; z = -1.0
+        elif self.face == "top": 
+            x = -1.0 + 2.0*r; y = -1.0 + 2.0*s; z = 1.0
+        
+        else:
+             raise ValueError('Incorrect face name.' + 
+              'Allowable faces are: east, west, south, north, bottom or top.')            
+        
+        x_cube = x * self.a + self.centre.x
+        y_cube = y * self.a + self.centre.y
+        z_cube = z * self.a + self.centre.z
+        
+        return Vector3(x=x_cube, y=y_cube, z=z_cube)
+    
+class SpherePatch(ParametricSurface):
+    """ Creates a sphere face patch for a cube of length
+        2a about the Vector3 centre.   
+    """
+    __slots__ = ['r', 'centre', 'face']
+    
+    def __init__(self, r, centre, face):
+        self.r      = r
+        self.face   = face
+        self.centre = centre
+
+    def __repr__(self):
+        return 'Sphere: r = {}, centre = {}'.format(self.r, self.centre) + \
+               'face = {}'.format( self.face)
+        
+    def __call__(self, r,s):
+        
+        # First create a cube face, then map to a sphere.
+        # Can change below to call a cube patch rather than
+        # computing cube face here, it just adds a dependency.
+        
+        if self.face == "east":
+            x = 1.0; y = -1.0 + 2.0*r; z = -1.0 + 2.0*s 
+        elif self.face == "west":
+            x = -1.0; y = -1.0 + 2.0*r; z = -1.0 + 2.0*s               
+        elif self.face == "south":
+            x = -1.0 + 2.0*r; y = -1.0; z = -1.0 + 2.0*s
+        elif self.face == "north":
+            x = -1.0 + 2.0*r; y = 1.0; z = -1.0 + 2.0*s
+        elif self.face == "bottom":
+            x = -1.0 + 2.0*r; y = -1.0 + 2.0*s; z = -1.0
+        elif self.face == "top":
+            x = -1.0 + 2.0*r; y = -1.0 + 2.0*s; z = 1.0
+        
+        else:
+             raise ValueError('Incorrect face name.' + 
+                  'Allowable faces are: east, west, south, north, bottom or top.')            
+        
+        
+        x_dash = x * np.sqrt(1.0 - 0.5*z*z - 0.5*y*y + y*y*z*z/3.0)
+        y_dash = y * np.sqrt(1.0 - 0.5*z*z - 0.5*x*x + x*x*z*z/3.0)
+        z_dash = z * np.sqrt(1.0 - 0.5*y*y - 0.5*x*x + x*x*y*y/3.0)
+        
+        x_sphere = x_dash * self.r + self.centre.x
+        y_sphere = y_dash * self.r + self.centre.y
+        z_sphere = z_dash * self.r + self.centre.z
+        
+        return Vector3(x=x_sphere, y=y_sphere, z=z_sphere)
+    
+    
+    
+        
+        
+        
+    
+        
+    
