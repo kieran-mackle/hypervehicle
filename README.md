@@ -55,8 +55,8 @@ dictionary for each new component.
 | -------------- | ------ | ----------- |
 |    Wing        | `hypervehicle.components.wing` | Wing geometry generation. |
 |    Fuselage    | `hypervehicle.components.fuselage` | Fuselage geometry generation. |
-|    Fin        | `hypervehicle.components.fin` | Fin geometry generation. |
-
+|    Fin         | `hypervehicle.components.fin` | Fin geometry generation. |
+|    Polygon     | `hypervehicle.components.polygon` | Polygon (cube, sphere) geometry generation. |
 
 The `Vehicle` class and the methods it contains are well documented internally.
 
