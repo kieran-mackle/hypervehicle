@@ -7,8 +7,7 @@ from eilmer.geom.path import Line
 from eilmer.geom.surface import CoonsPatch 
 import eilmer.geom.surface as eilmer
 
-from idmoc.hypervehicle.utils import (CubePatch,
-                                      SpherePatch)
+from hypervehicle.utils import (CubePatch, SpherePatch)
 
 def create_cube(a, centre):
     ''' Function generates a cube by calling
