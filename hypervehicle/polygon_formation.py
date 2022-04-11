@@ -63,6 +63,12 @@ class Polygon_formation:
     def __init__(self) -> None:
         """Poly formation constructor method. 
         """
+        
+        print("Polygon Mesh property calculation currently NOT SUPPORTED!!!")
+        print("Abandoning calculation.")
+        print()
+    
+    
         self.verbosity = None
         self.vehicle_name = "polygons"
         
@@ -396,9 +402,7 @@ class Polygon_formation:
         """Evaluates properties of stl.
         """
 
-    print("Polygon Mesh property calculation currently NOT SUPPORTED!!!")
-    print("Abandoning calculation.")
-    print()
+    
     
     
 #        if len(self.wings) > 0:
