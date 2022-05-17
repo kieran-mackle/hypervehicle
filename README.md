@@ -3,16 +3,14 @@
 A suite of tools to rapidly generate geometry files for hypersonic vehicles.
 
 
+## Dependencies
+Hypervehicle relies on the [Eilmer](https://github.com/gdtk-uq/gdtk) geometry 
+package to function.
+
+
 ## Installation
 
-
-### From PyPi
-
-(Not available)
-
-
-### From Repository clone
-First clone the repository, then install as editable.
+First clone the repository, then install via pip as an editable install.
 
 ```
 git clone https://github.com/kieran-mackle/hypervehicle
@@ -21,7 +19,7 @@ python3 -m pip install -e ./
 ```
 
 
-### Testing your install
+## Testing your install
 ```
 python3 -m pytest tests/
 ```
@@ -36,7 +34,7 @@ of the entire codebase in html format, run the commands below.
 ```
 cd docs
 make html
-xo _build/html/index.html
+xdg-open _build/html/index.html
 ```
 
 
@@ -59,5 +57,11 @@ dictionary for each new component.
 |    Polygon     | `hypervehicle.components.polygon` | Polygon (cube, sphere) geometry generation. |
 
 The `Vehicle` class and the methods it contains are well documented internally.
+
+
+
+## Example Vehicle Generation
+Please see the [example geometry generation](docs/example.md).
+
 
 
