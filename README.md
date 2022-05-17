@@ -61,7 +61,9 @@ The `Vehicle` class and the methods it contains are well documented internally.
 
 
 ## Example Vehicle Generation
-Please see the [example geometry generation](docs/example.md).
+Please see the [example geometry generation](docs/example.md) to generate a mockup of the X-43A, shown below.
+
+![x43](https://user-images.githubusercontent.com/60687606/168926371-a383434b-3ea5-40ab-989a-93f7a8d7b4ff.png)
 
 
 
