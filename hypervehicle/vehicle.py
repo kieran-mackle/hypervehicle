@@ -70,7 +70,7 @@ class Vehicle:
         self.write_stl = None
         self.stl_filename = None
         self.stl_resolution = None
-        self.mirror = False
+        self.mirror = True
         self.show_mpl = None
         self.evaluate_properties = False
         
@@ -90,7 +90,7 @@ class Vehicle:
         
     
     def __repr__(self):
-        return f"Parameterised {self.vehicle_name}."
+        return f"Parameterised {self.vehicle_name}"
     
     
     def configure(self, verbosity: int = None, write_stl: bool = None, 
