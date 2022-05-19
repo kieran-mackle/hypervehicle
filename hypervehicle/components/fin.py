@@ -6,8 +6,7 @@ from eilmer.geom.vector3 import Vector3
 from eilmer.geom.path import Line, Polyline
 from eilmer.geom.surface import CoonsPatch 
 
-from hypervehicle.utils import (LeadingEdgePatchFunction, 
-                                OffsetPatchFunction, 
+from hypervehicle.utils import (OffsetPatchFunction, 
                                 SubRangedPath, 
                                 ElipsePath, 
                                 ArcLengthParameterizedPath, 
