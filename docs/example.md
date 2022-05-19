@@ -307,12 +307,9 @@ Adjusting the design parameters will impact the resultant volumes calculated,
 and so the mass model will be impacted also.
 
 ```python
-# Create mass model
-rhos = {'wing': 5590,
-        'body': 1680,
-        'inlet': 1680,
-        'fin': 5590}
+from hypervehicle utils import assess_inertial_properties
 
+# Calculate inertial properties
 body = x43.meshes['wing'][0]
 wings = x43.meshes['wing'][1]
 inlet = x43.meshes['wing'][2]
@@ -323,22 +320,10 @@ components = {'body': {'type': 'body', 'mesh': body},
               'inlet': {'type': 'inlet', 'mesh': inlet},
               'fin1': {'type': 'fin', 'mesh': fin1},
               'fin2': {'type': 'fin', 'mesh': fin2},}
+component_densities = {'wing': 5590, 'body': 1680,
+                       'inlet': 1680, 'fin': 5590}
 
-volumes = {}
-masses = {}
-cgs = {}
-inertias = {}
-total_mass = 0
-for component, data in components.items():
-    inertia_handle = getattr(data['mesh'], 'get_mass_properties_with_density')
-    volume, vmass, cog, inertia = inertia_handle(rhos[data['type']])
-    volumes[component] = volume
-    masses[component] = vmass
-    cgs[component] = cog
-    inertias[component] = inertia
-    total_mass += vmass
-
-print("Vehicle mass:", total_mass)
+volume, mass, cog, inertia = assess_inertial_properties(components, component_densities)
 ```
 
 
