@@ -1,17 +1,8 @@
-"""
-Wing Geometry Generator for gliding hypersonic vehicle.
-
-Authors: Ingo Jahn, Kieran Mackle
-Created on: 02/07/2021
-Last Modified: 02/07/2021
-"""
-
+import numpy as np
+from stl import mesh
 from eilmer.geom.vector3 import Vector3
 from eilmer.geom.path import Line, Path, ArcLengthParameterizedPath
 from eilmer.geom.surface import CoonsPatch, ParametricSurface
-
-import numpy as np
-from stl import mesh
 
 
 class SubRangedPath(Path):
@@ -774,11 +765,81 @@ class SpherePatch(ParametricSurface):
         
         return Vector3(x=x_sphere, y=y_sphere, z=z_sphere)
     
+
+def assess_inertial_properties(components: dict, component_densities: dict):
+    """
+
+    Parameters
+    ----------
+    components : dict
+        A dictionary containing the mesh components to be analysed. Each key
+        of the dict must contain another dict object, with keys "type" and 
+        "mesh". The "type" key is used to index the component density dict.
+    component_densities : dict
+        A dictionary containing the effective densities for each component. 
+        Note that the keys of the dict must match the "type" keys provided in
+        the components dict.
+
+    Returns
+    -------
+    total_volume : float
+        The total volume.
+    total_mass : float
+        The toal mass.
+    composite_cog : np.array
+        The composite center of gravity.
+    composite_inertia : np.array
+        The composite mass moment of inertia.
     
+    Examples
+    --------
+    >>> components = {'body': {'type': 'body', 'mesh': body},
+                      'wings': {'type': 'wing', 'mesh': wings},
+                      'inlet': {'type': 'inlet', 'mesh': inlet},
+                      'fin1': {'type': 'fin', 'mesh': fin1},
+                      'fin2': {'type': 'fin', 'mesh': fin2}}
+        
+    >>> component_densities = {'wing': 5590, 'body': 1680, 'inlet': 1680, 'fin': 5590}
     
+    >>> volume, mass, cog, inertia = utils.assess_inertial_properties(components, 
+                                                             component_densities)
+    """
+    volumes = {}
+    masses = {}
+    cgs = {}
+    inertias = {}
+    total_mass = 0
+    total_volume = 0
+    for component, data in components.items():
+        inertia_handle = getattr(data['mesh'], 'get_mass_properties_with_density')
         
+        volume, vmass, cog, inertia = inertia_handle(component_densities[data['type']])
         
+        volumes[component] = volume
+        masses[component] = vmass
+        cgs[component] = cog
+        inertias[component] = inertia
+        total_mass += vmass
+        total_volume += volume
         
+    # Composite centre of mass
+    composite_cog = 0
+    for component in components:
+        m = masses[component]
+        composite_cog += m * cgs[component]
     
-        
+    composite_cog *= 1/total_mass
     
+    # Parallel axis theorem
+    shifted_inertias = {}
+    composite_inertia = 0
+    for component in components:
+        m = masses[component]
+        r = cgs[component] - composite_cog
+        I_adj = inertias[component] + m * r**2
+        
+        shifted_inertias[component] = I_adj
+        composite_inertia += I_adj
+    
+    return total_volume, total_mass, composite_cog, composite_inertia
+
