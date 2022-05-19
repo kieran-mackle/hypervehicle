@@ -99,7 +99,8 @@ class Vehicle:
                   vtk_resolution: int = None, vtk_filename: str = None,
                   filename_prefix: str = None, 
                   evaluate_properties: bool = None,
-                  name: str = None) -> None:
+                  name: str = None,
+                  mirror_fins: bool = None) -> None:
         """Configures run options for Vehicle geometry generation.
 
         Parameters
@@ -126,6 +127,9 @@ class Vehicle:
             Flag to evaluate STL mesh properties. The default is False.
         name : str, optional
             The vehicle name. The default is "generic hypersonic vehicle".
+        mirror_fins : bool, optional
+            Set to True to mirror individual fin components. Useful to control 
+            individual fin rudder angles. The default is True.
         
         Warnings
         --------
@@ -154,6 +158,8 @@ class Vehicle:
         self.write_vtk = write_vtk if write_vtk is not None else self.write_vtk
         self.vtk_resolution = vtk_resolution if vtk_resolution is not None else self.vtk_resolution
         self.vtk_filename = vtk_filename if vtk_filename is not None else self.vtk_filename
+        
+        self.mirror_fins = mirror_fins if mirror_fins is not None else self.mirror_fins
         
 
     def add_component(self, component_type: str, component_dict: dict) -> None:
@@ -523,6 +529,7 @@ class Vehicle:
         for fin_patch_dict in self.patches['fin']:
             fin_stl_mesh_list = []
             for key in fin_patch_dict:
+                flip = True if key.split('_')[-1] == 'mirrored' else False
                 fin_stl_mesh_list.append(parametricSurfce2stl(fin_patch_dict[key],
                                                               self.stl_resolution,
                                                                flip_faces=flip))
