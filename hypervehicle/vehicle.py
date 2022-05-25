@@ -100,7 +100,7 @@ class Vehicle:
                   filename_prefix: str = None, 
                   evaluate_properties: bool = None,
                   name: str = None,
-                  mirror_fins: bool = None) -> None:
+                  mirror_fins: bool = None, cart3d: bool = None) -> None:
         """Configures run options for Vehicle geometry generation.
 
         Parameters
@@ -160,6 +160,9 @@ class Vehicle:
         self.vtk_filename = vtk_filename if vtk_filename is not None else self.vtk_filename
         
         self.mirror_fins = mirror_fins if mirror_fins is not None else self.mirror_fins
+        
+        # Cart3d coordinate frame
+        self.cart3d = cart3d if cart3d is not None else self.cart3d
         
 
     def add_component(self, component_type: str, component_dict: dict) -> None:
