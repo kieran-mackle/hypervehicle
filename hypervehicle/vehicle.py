@@ -197,7 +197,8 @@ class Vehicle:
                  curve_dx: Callable[[float, float, float], Vector3] = None,
                  curve_y: Callable[[float, float, float], Vector3] = None,
                  curve_dy: Callable[[float, float, float], Vector3] = None,
-                 mirror: bool = True, mirror_new_component: bool = False) -> None:
+                 mirror: bool = True, mirror_new_component: bool = False,
+                 close_wing: bool = False) -> None:
         """Creates and appends a new wing to the vehicle.
 
         Parameters
@@ -249,6 +250,9 @@ class Vehicle:
             If mirror is True, use this boolean flag to specify whether the
             mirrored component will be treated as a new component, or as
             part of the original component. The default is False.
+        close_wing : bool, optional
+            Close the interior edges of the wing component. The default is 
+            False.
 
         Returns
         -------
@@ -278,6 +282,7 @@ class Vehicle:
                     "WING_FUNC_CURV_Y_DASH": curve_dy,
                     "MIRROR": mirror,
                     "MIRROR_NEW_COMPONENT": mirror_new_component,
+                    "CLOSE_WING": close_wing,
                     }
         self.add_component('wing', new_wing)
     
