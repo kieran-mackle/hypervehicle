@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 from stl import mesh
 from eilmer.geom.vector3 import Vector3
 from eilmer.geom.path import Line, Path, ArcLengthParameterizedPath
@@ -716,6 +717,7 @@ class CubePatch(ParametricSurface):
         
         return Vector3(x=x_cube, y=y_cube, z=z_cube)
     
+    
 class SpherePatch(ParametricSurface):
     """ Creates a sphere face patch for a cube of length
         2a about the Vector3 centre.   
@@ -842,4 +844,66 @@ def assess_inertial_properties(components: dict, component_densities: dict):
         composite_inertia += I_adj
     
     return total_volume, total_mass, composite_cog, composite_inertia
+
+
+class VehicleSensitivity:
+    """
+    Computes the geometric sensitivities using finite differencing.
+    """
+    def __init__(self, vehicle = None):
+        """Vehicle geometry sensitivity constructor.
+
+        Parameters
+        ----------
+        vehicle : TYPE
+            The Vehicle instance containing all component definitions.
+
+        Returns
+        -------
+        VehicleSensitivity object.
+
+        """
+        # TODO - check that the Vehicle object contains at least one 
+        # component definition
+        self.nominal = vehicle
+        
+    
+    
+    def main(self, mesh1, mesh2):
+        # TODO - allow specifying parameter to change, then change automatically
+        
+        # Load / generate stl files
+        # mesh1 = Mesh.from_file('mesh1.stl')
+        # mesh2 = Mesh.from_file('mesh2.stl')
+        
+        # diff = mesh2.points - mesh1.points
+        diff = mesh2.vectors - mesh1.vectors
+        
+        # Resize difference array
+        shape = diff.shape
+        flat_diff = diff.reshape((shape[0]*shape[2], shape[1]))
+        vectors = mesh1.vectors.reshape((shape[0]*shape[2], shape[1]))
+        
+        # Concatenate all data
+        all_data = np.zeros((shape[0]*shape[2], shape[1]*2))
+        all_data[:,0:3] = vectors
+        all_data[:,3:6] = flat_diff
+        
+        # Create DataFrame
+        df = pd.DataFrame(data=all_data, columns=['x', 'y', 'z', 'dx', 'dy', 'dz'])
+        df['magnitude'] = np.sqrt(np.square(df[['dx', 'dy', 'dz']]).sum(axis=1))
+        df = df.round(8)
+        
+        # TODO - Normalise
+        # Absolute delta
+        # Relative delta (eg. delta as percentage of original? Probably better framed 
+        # as percentage of change in parameter, though the parameter may not always
+        # be a length measurement...)
+        
+        # TODO - option to save or not
+        # Save to csv format for visualisation
+        df.to_csv('sensitivity.csv', index=False)
+
+
+
 
