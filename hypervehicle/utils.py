@@ -1013,7 +1013,7 @@ def append_sensitivities_to_tri(dp_files: list,
     
     # Match points_df to sensitivity df
     # data = []
-    data_str = ''
+    data_str = '\n '
     for i in range(len(points_df)):
         tolerance = 1e-5
         match_x = (points_df['x'].iloc[i] - dp_df['x']).abs() < tolerance
@@ -1034,8 +1034,10 @@ def append_sensitivities_to_tri(dp_files: list,
             data_str += '0 0 0\n '
     
     # Write the matched sensitivity df to i.tri file as new xml element
+    attribs = {'Name': 'Sensitivity', 'NumberOfComponents': '2', 'type': 'Float64',
+               'format': 'ascii', 'TRIXtype': 'SHAPE_LINEARIZATION'}
     PointData = ET.SubElement(piece, 'PointData')
-    PointDataArray = ET.SubElement(PointData, 'DataArray')
+    PointDataArray = ET.SubElement(PointData, 'DataArray', attribs)
     PointDataArray.text = data_str
     
     # Save to file
