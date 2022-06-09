@@ -850,33 +850,87 @@ class VehicleSensitivity:
     """
     Computes the geometric sensitivities using finite differencing.
     """
-    def __init__(self, vehicle = None):
+    def __init__(self, vehicle_constructor = None):
         """Vehicle geometry sensitivity constructor.
 
         Parameters
         ----------
-        vehicle : TYPE
-            The Vehicle instance containing all component definitions.
+        vehicle_constructor : TYPE
+            The Vehicle instance constructor ...
 
         Returns
         -------
         VehicleSensitivity object.
 
         """
-        # TODO - check that the Vehicle object contains at least one 
-        # component definition
-        self.nominal = vehicle
+        
+        self.vehicle_constructor = vehicle_constructor
+        
+        # Parameter sensitivities 
+        self.sensitivities = None
         
     
-    
-    def main(self, mesh1, mesh2):
-        # TODO - allow specifying parameter to change, then change automatically
+    def sensitivity_to_component(self, parameter_dict: dict, perturbation: float = 5,
+                                 vehicle_creator_method: str = 'create_instance'):
         
-        # Load / generate stl files
-        # mesh1 = Mesh.from_file('mesh1.stl')
-        # mesh2 = Mesh.from_file('mesh2.stl')
+        # TODO - reduce verbosity from hypervehicle, add custom verbosity messages
         
-        # diff = mesh2.points - mesh1.points
+        # Other tuning parameters
+        # perturbation of parameter amount (eg. 5% perturbation to nominal)
+        # allow specifying nominal and perturbed parameter values
+        # allow specifying just the parameter name, and this will auto adjust
+        
+        # Create Vehicle instance with nominal parameters
+        constructor_instance = self.vehicle_constructor(**parameter_dict)
+        nominal_instance = getattr(constructor_instance, vehicle_creator_method)()
+        
+        # Enforce stl's are not written to file
+        # nominal_instance.write_stl = False # this will prevent stl meshes being generated
+        
+        # Generate stl meshes
+        nominal_instance.generate()
+        
+        nominal_meshes = nominal_instance.meshes
+        
+        # TODO - expand to multiple parameter sensitivities
+        
+        sensitivities = {}
+        
+        # Generate meshes for each parameter
+        for parameter, value in parameter_dict.items():
+            # Create copy
+            adjusted_parameters = parameter_dict.copy()
+            
+            # Adjust current parameter for sensitivity analysis
+            adjusted_parameters[parameter] *= (1+perturbation/100)
+            dP = adjusted_parameters[parameter] - value
+            
+            # Create Vehicle instance with perturbed parameter
+            constructor_instance = self.vehicle_constructor(**adjusted_parameters)
+            parameter_instance = getattr(constructor_instance, vehicle_creator_method)()
+            
+            # Generate stl meshes
+            parameter_instance.generate()
+            parameter_meshes = nominal_instance.meshes
+            
+            # Generate sensitivities
+            for component, meshes in nominal_meshes.items():
+                sensitivities[component] = []
+                for ix, nominal_mesh in enumerate(meshes):
+                    parameter_mesh = parameter_meshes[component][ix]
+                    
+                    sensitivity_df = self.compare_meshes(nominal_mesh, parameter_mesh, dP)
+                    
+                    sensitivities[component].append(sensitivity_df)
+        
+        # Return output
+        self.sensitivities = sensitivities
+        
+        return sensitivities
+        
+
+    @staticmethod
+    def compare_meshes(mesh1, mesh2, dP, save_csv: bool = False):
         diff = mesh2.vectors - mesh1.vectors
         
         # Resize difference array
@@ -892,18 +946,22 @@ class VehicleSensitivity:
         # Create DataFrame
         df = pd.DataFrame(data=all_data, columns=['x', 'y', 'z', 'dx', 'dy', 'dz'])
         df['magnitude'] = np.sqrt(np.square(df[['dx', 'dy', 'dz']]).sum(axis=1))
+        
+        # Sensitivity calculations
+        sensitivities = df[['dx', 'dy', 'dz']] / dP
+        sensitivities.rename(columns={'dx': 'dxdP', 'dy': 'dydP', 'dz': 'dzdP'}, 
+                             inplace=True)
+        
+        # Merge dataframes
+        df = df.merge(sensitivities, left_index=True, right_index=True)
+        
+        # Round floating precision
         df = df.round(8)
         
-        # TODO - Normalise
-        # Absolute delta
-        # Relative delta (eg. delta as percentage of original? Probably better framed 
-        # as percentage of change in parameter, though the parameter may not always
-        # be a length measurement...)
-        
-        # TODO - option to save or not
-        # Save to csv format for visualisation
-        df.to_csv('sensitivity.csv', index=False)
-
-
-
+        if save_csv:
+            # Save to csv format for visualisation
+            # TODO - file naming
+            df.to_csv('sensitivity.csv', index=False)
+            
+        return df
 
