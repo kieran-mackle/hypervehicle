@@ -870,7 +870,7 @@ class VehicleSensitivity:
         self.sensitivities = None
         
     
-    def sensitivity_to_component(self, parameter_dict: dict, perturbation: float = 5,
+    def sensitivity_to_component(self, parameter_dict: dict, perturbation: float = 20,
                                  vehicle_creator_method: str = 'create_instance'):
         
         # TODO - reduce verbosity from hypervehicle, add custom verbosity messages
@@ -911,7 +911,7 @@ class VehicleSensitivity:
             
             # Generate stl meshes
             parameter_instance.generate()
-            parameter_meshes = nominal_instance.meshes
+            parameter_meshes = parameter_instance.meshes
             
             # Generate sensitivities
             for component, meshes in nominal_meshes.items():
@@ -919,7 +919,10 @@ class VehicleSensitivity:
                 for ix, nominal_mesh in enumerate(meshes):
                     parameter_mesh = parameter_meshes[component][ix]
                     
-                    sensitivity_df = self.compare_meshes(nominal_mesh, parameter_mesh, dP)
+                    sensitivity_df = self.compare_meshes(nominal_mesh, 
+                                                         parameter_mesh, 
+                                                         dP,
+                                                         parameter, True)
                     
                     sensitivities[component].append(sensitivity_df)
         
@@ -930,7 +933,8 @@ class VehicleSensitivity:
         
 
     @staticmethod
-    def compare_meshes(mesh1, mesh2, dP, save_csv: bool = False):
+    def compare_meshes(mesh1, mesh2, dP, parameter_name: str, 
+                       save_csv: bool = False):
         diff = mesh2.vectors - mesh1.vectors
         
         # Resize difference array
@@ -960,8 +964,7 @@ class VehicleSensitivity:
         
         if save_csv:
             # Save to csv format for visualisation
-            # TODO - file naming
-            df.to_csv('sensitivity.csv', index=False)
+            df.to_csv(f'{parameter_name}_sensitivity.csv', index=False)
             
         return df
 
