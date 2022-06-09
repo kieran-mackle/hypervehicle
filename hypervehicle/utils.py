@@ -846,7 +846,7 @@ def assess_inertial_properties(components: dict, component_densities: dict):
     return total_volume, total_mass, composite_cog, composite_inertia
 
 
-class VehicleSensitivity:
+class SensitivityStudy:
     """
     Computes the geometric sensitivities using finite differencing.
     """
@@ -870,8 +870,12 @@ class VehicleSensitivity:
         self.sensitivities = None
         
     
-    def sensitivity_to_component(self, parameter_dict: dict, perturbation: float = 20,
-                                 vehicle_creator_method: str = 'create_instance'):
+    def dGdP(self, parameter_dict: dict, perturbation: float = 20,
+             vehicle_creator_method: str = 'create_instance'):
+        """
+        Computes the sensitivity of the geometry with respect to the 
+        parameters.
+        """
         
         # TODO - reduce verbosity from hypervehicle, add custom verbosity messages
         
@@ -886,13 +890,11 @@ class VehicleSensitivity:
         
         # Enforce stl's are not written to file
         # nominal_instance.write_stl = False # this will prevent stl meshes being generated
+        # Maybe enforce write_stl = True
         
         # Generate stl meshes
         nominal_instance.generate()
-        
         nominal_meshes = nominal_instance.meshes
-        
-        # TODO - expand to multiple parameter sensitivities
         
         sensitivities = {}
         
@@ -919,9 +921,10 @@ class VehicleSensitivity:
                 for ix, nominal_mesh in enumerate(meshes):
                     parameter_mesh = parameter_meshes[component][ix]
                     
+                    component_mesh_name = f"{component}_{ix}"
                     sensitivity_df = self.compare_meshes(nominal_mesh, 
                                                          parameter_mesh, 
-                                                         dP,
+                                                         dP, component_mesh_name,
                                                          parameter, True)
                     
                     sensitivities[component].append(sensitivity_df)
@@ -933,7 +936,7 @@ class VehicleSensitivity:
         
 
     @staticmethod
-    def compare_meshes(mesh1, mesh2, dP, parameter_name: str, 
+    def compare_meshes(mesh1, mesh2, dP, component: str, parameter_name: str, 
                        save_csv: bool = False):
         diff = mesh2.vectors - mesh1.vectors
         
@@ -964,7 +967,7 @@ class VehicleSensitivity:
         
         if save_csv:
             # Save to csv format for visualisation
-            df.to_csv(f'{parameter_name}_sensitivity.csv', index=False)
+            df.to_csv(f'{component}_{parameter_name}_sensitivity.csv', index=False)
             
         return df
 
