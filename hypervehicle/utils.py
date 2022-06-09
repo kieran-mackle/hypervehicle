@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 from stl import mesh
+import xml.etree.ElementTree as ET
 from eilmer.geom.vector3 import Vector3
 from eilmer.geom.path import Line, Path, ArcLengthParameterizedPath
 from eilmer.geom.surface import CoonsPatch, ParametricSurface
@@ -971,3 +972,74 @@ class SensitivityStudy:
             
         return df
 
+
+def append_sensitivities_to_tri(dp_files: list, 
+                                components_filepath: str = 'Components.i.tri'):
+    """Appends shape sensitivity data to .i.tri file.
+    
+    Parameters
+    ----------
+    dp_files : list[str]
+        A list of the file names of the sensitivity data.
+
+    Examples
+    ---------
+    >>> dp_files = ['wing_0_body_width_sensitivity.csv', 
+                    'wing_1_body_width_sensitivity.csv']
+
+    """
+    # Parse Components.i.tri file
+    tree = ET.parse(components_filepath)
+    root = tree.getroot()
+    grid = root[0]
+    piece = grid[0]
+    
+    points = piece[0]
+    # cells = piece[1]
+    # cellData = piece[2]
+    
+    points_data = points[0].text
+    
+    points_data_list = [el.split() for el in points_data.splitlines()]
+    points_data_list = [[float(j) for j in i] for i in points_data_list]
+    
+    points_df = pd.DataFrame(points_data_list, columns=['x','y','z']).dropna()
+    
+    # Load and concatenate sensitivity data
+    dp_df = pd.DataFrame()
+    for file in dp_files:
+        df = pd.read_csv(file)
+        dp_df = pd.concat([dp_df, df])
+    
+    # Match points_df to sensitivity df
+    # data = []
+    data_str = ''
+    for i in range(len(points_df)):
+        tolerance = 1e-5
+        match_x = (points_df['x'].iloc[i] - dp_df['x']).abs() < tolerance
+        match_y = (points_df['y'].iloc[i] - dp_df['y']).abs() < tolerance
+        match_z = (points_df['z'].iloc[i] - dp_df['z']).abs() < tolerance
+        
+        match = match_x & match_y & match_z
+        try:
+            # What if there are multiple matches? (due to intersect perturbations)
+            matched_data = dp_df[match].iloc[0][['dxdP', 'dydP', 'dzdP']].values
+            # data.append(matched_data)
+            # TODO - format as float64 dtype
+            data_str += f'{matched_data[0]} {matched_data[1]} {matched_data[2]}\n '
+            
+        except:
+            # No match found, append zeros to maintain order
+            # data.append(np.array([0,0,0]))
+            data_str += '0 0 0\n '
+    
+    # Write the matched sensitivity df to i.tri file as new xml element
+    PointData = ET.SubElement(piece, 'PointData')
+    PointDataArray = ET.SubElement(PointData, 'DataArray')
+    PointDataArray.text = data_str
+    
+    # Save to file
+    tree.write('newComponents.i.tri')
+    
+    
+    
