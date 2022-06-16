@@ -99,8 +99,7 @@ class Vehicle:
                   show_in_figure: bool = None, write_vtk: bool = None,
                   vtk_resolution: int = None, vtk_filename: str = None,
                   filename_prefix: str = None, build_stl: bool = None,
-                  evaluate_properties: bool = None,
-                  name: str = None,
+                  evaluate_properties: bool = None, name: str = None,
                   mirror_fins: bool = None, cart3d: bool = None) -> None:
         """Configures run options for Vehicle geometry generation.
 
@@ -362,6 +361,7 @@ class Vehicle:
             self._write_to_vtk()
         
         # STL object
+        self.build_stl = True if self.write_stl else self.build_stl # Enforce
         if self.build_stl:
             if self.verbosity > 0:
                 print(f"\nBuilding STL object(s) with a resolution of {self.stl_resolution}.")
