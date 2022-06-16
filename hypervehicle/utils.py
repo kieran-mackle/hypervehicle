@@ -966,9 +966,6 @@ class SensitivityStudy:
         # Delete duplicate vertices
         df = df[~df.duplicated()]
         
-        # Round floating precision
-        # df = df.round(8)
-        
         if save_csv:
             # Save to csv format for visualisation
             df.to_csv(f'{component}_{parameter_name}_sensitivity.csv', index=False)
@@ -991,15 +988,12 @@ def append_sensitivities_to_tri(dp_files: list,
                     'wing_1_body_width_sensitivity.csv']
 
     """
-    # Parse Components.i.tri file
+    # Parse .tri file
     tree = ET.parse(components_filepath)
     root = tree.getroot()
     grid = root[0]
     piece = grid[0]
-    
     points = piece[0]
-    # cells = piece[1]
-    # cellData = piece[2]
     
     points_data = points[0].text
     
@@ -1039,14 +1033,14 @@ def append_sensitivities_to_tri(dp_files: list,
     # Write the matched sensitivity df to i.tri file as new xml element
     # NumberOfComponents is how many sensitivity components there are (3 for x,y,z)
     attribs = {'Name': 'Sensitivity', 'NumberOfComponents': '3', 
-               'type': 'Float64', 'format': 'ascii', 'TRIXtype': 'SHAPE_LINEARIZATION'}
+               'type': 'Float64', 'format': 'ascii',
+               'TRIXtype': 'SHAPE_LINEARIZATION'}
     PointData = ET.SubElement(piece, 'PointData')
     PointDataArray = ET.SubElement(PointData, 'DataArray', attribs)
     PointDataArray.text = data_str
     
     # Save to file
-    # TODO - name based on input filename
-    tree.write('newComponents.i.tri')
+    tree.write(components_filepath)
     
     
     
