@@ -877,21 +877,13 @@ class SensitivityStudy:
         Computes the sensitivity of the geometry with respect to the 
         parameters.
         """
-        
-        # TODO - reduce verbosity from hypervehicle, add custom verbosity messages
-        
-        # Other tuning parameters
-        # perturbation of parameter amount (eg. 5% perturbation to nominal)
-        # allow specifying nominal and perturbed parameter values
-        # allow specifying just the parameter name, and this will auto adjust
-        
         # Create Vehicle instance with nominal parameters
+        print("Generating nominal geometry...")
         constructor_instance = self.vehicle_constructor(**parameter_dict)
         nominal_instance = getattr(constructor_instance, vehicle_creator_method)()
-        
-        # Enforce stl's are not written to file
-        # nominal_instance.write_stl = False # this will prevent stl meshes being generated
-        # Maybe enforce write_stl = True
+        nominal_instance.write_stl = True # Only write nominal geometry to file
+        nominal_instance.verbosity = 0
+        print("  Done.")
         
         # Generate stl meshes
         nominal_instance.generate()
@@ -900,6 +892,7 @@ class SensitivityStudy:
         sensitivities = {}
         
         # Generate meshes for each parameter
+        print("Generating perturbed geometries...")
         for parameter, value in parameter_dict.items():
             # Create copy
             adjusted_parameters = parameter_dict.copy()
@@ -911,6 +904,8 @@ class SensitivityStudy:
             # Create Vehicle instance with perturbed parameter
             constructor_instance = self.vehicle_constructor(**adjusted_parameters)
             parameter_instance = getattr(constructor_instance, vehicle_creator_method)()
+            parameter_instance.write_stl = False
+            parameter_instance.verbosity = 0
             
             # Generate stl meshes
             parameter_instance.generate()
@@ -929,6 +924,7 @@ class SensitivityStudy:
                                                          parameter, True)
                     
                     sensitivities[component].append(sensitivity_df)
+        print("  Done.")
         
         # Return output
         self.sensitivities = sensitivities
