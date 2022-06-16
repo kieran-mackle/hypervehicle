@@ -963,8 +963,11 @@ class SensitivityStudy:
         # Merge dataframes
         df = df.merge(sensitivities, left_index=True, right_index=True)
         
+        # Delete duplicate vertices
+        df = df[~df.duplicated()]
+        
         # Round floating precision
-        df = df.round(8)
+        # df = df.round(8)
         
         if save_csv:
             # Save to csv format for visualisation
@@ -1034,13 +1037,15 @@ def append_sensitivities_to_tri(dp_files: list,
             data_str += '0 0 0\n '
     
     # Write the matched sensitivity df to i.tri file as new xml element
-    attribs = {'Name': 'Sensitivity', 'NumberOfComponents': '2', 'type': 'Float64',
-               'format': 'ascii', 'TRIXtype': 'SHAPE_LINEARIZATION'}
+    # NumberOfComponents is how many sensitivity components there are (3 for x,y,z)
+    attribs = {'Name': 'Sensitivity', 'NumberOfComponents': '3', 
+               'type': 'Float64', 'format': 'ascii', 'TRIXtype': 'SHAPE_LINEARIZATION'}
     PointData = ET.SubElement(piece, 'PointData')
     PointDataArray = ET.SubElement(PointData, 'DataArray', attribs)
     PointDataArray.text = data_str
     
     # Save to file
+    # TODO - name based on input filename
     tree.write('newComponents.i.tri')
     
     
