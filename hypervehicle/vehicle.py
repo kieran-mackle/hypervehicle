@@ -67,7 +67,8 @@ class Vehicle:
         self.vehicle_angle = 0
         
         # STL options
-        self.write_stl = None
+        self.build_stl = True       # Build stl mesh objects
+        self.write_stl = True       # Write stl meshes to file
         self.stl_filename = None
         self.stl_resolution = None
         self.mirror = True
@@ -97,7 +98,7 @@ class Vehicle:
                   stl_resolution: int = None, stl_filename: str = None,
                   show_in_figure: bool = None, write_vtk: bool = None,
                   vtk_resolution: int = None, vtk_filename: str = None,
-                  filename_prefix: str = None, 
+                  filename_prefix: str = None, build_stl: bool = None,
                   evaluate_properties: bool = None,
                   name: str = None,
                   mirror_fins: bool = None, cart3d: bool = None) -> None:
@@ -107,6 +108,8 @@ class Vehicle:
         ----------
         verbosity : int, optional
             The verbosity of the code. The default is 1.
+        build_stl : bool, optional
+            Build STL mesh objects. The default is True.
         write_stl : bool, optional
             Write vehicle geometry to .stl files. The default is True.
         stl_resolution : int, optional
@@ -148,6 +151,7 @@ class Vehicle:
         self.vehicle_name = name if name is not None else self.vehicle_name
         
         # STL options
+        self.build_stl = build_stl if build_stl is not None else self.build_stl
         self.write_stl = write_stl if write_stl is not None else self.write_stl
         self.stl_filename = stl_filename if stl_filename is not None else self.stl_filename
         self.stl_resolution = stl_resolution if stl_resolution is not None else self.stl_resolution
@@ -358,13 +362,14 @@ class Vehicle:
             self._write_to_vtk()
         
         # STL object
-        if self.write_stl:
+        if self.build_stl:
             if self.verbosity > 0:
-                print(f"\nCreating STL object(s) with a resolution of {self.stl_resolution}.")
+                print(f"\nBuilding STL object(s) with a resolution of {self.stl_resolution}.")
             self._create_surfaces()
             self._create_stl_data()
             self._create_stl()
-            self._write_stl()
+            if self.write_stl:
+                self._write_stl()
             if self.evaluate_properties:
                 self._evaluate_mesh_properties()
     
