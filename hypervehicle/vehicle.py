@@ -386,7 +386,7 @@ class Vehicle:
                 # Curvature about the x-axis
                 if wing_geometry_dict['WING_FUNC_CURV_X'] is None and \
                     wing_geometry_dict['WING_FUNC_CURV_X_DASH'] is None:
-                    print("    Skipping wing X-curvature.")
+                    if self.verbosity > 0: print("    Skipping wing X-curvature.")
                 else:
                     # (a) Longitudal Curvature
                     for key in self.patches['wing'][ix]:
@@ -398,7 +398,7 @@ class Vehicle:
                 # Curvature about the y-axis
                 if wing_geometry_dict['WING_FUNC_CURV_Y'] is None and \
                     wing_geometry_dict['WING_FUNC_CURV_Y_DASH'] is None:
-                    print("    Skipping wing Y-curvature.")
+                    if self.verbosity > 0: print("    Skipping wing Y-curvature.")
                 else:
                     # (b) Spanwise Curvature
                     for key in self.patches['wing'][ix]:
@@ -413,7 +413,7 @@ class Vehicle:
             # Longitudal Curvature
             if self.fuselage['FUSELAGE_FUNC_CURV_X'] is None and \
                 self.fuselage['FUSELAGE_FUNC_CURV_X_DASH'] is None:
-                print("    Skipping fuselage X-curvature.")
+                if self.verbosity > 0: print("    Skipping fuselage X-curvature.")
                 
             else:
                 for key in self.patches['fuselage']:
@@ -424,7 +424,7 @@ class Vehicle:
             # Spanwise Curvature
             if self.fuselage['FUSELAGE_FUNC_CURV_Y'] is None and \
                 self.fuselage['FUSELAGE_FUNC_CURV_Y_DASH'] is None:
-                print("    Skipping fuselage Y-curvature.")
+                if self.verbosity > 0: print("    Skipping fuselage Y-curvature.")
             else:
                 for key in self.patches['fuselage']:
                     self.patches['fuselage'][key] = \
