@@ -878,9 +878,30 @@ class SensitivityStudy:
     def dGdP(self, parameter_dict: dict, perturbation: float = 20,
              vehicle_creator_method: str = 'create_instance', 
              write_nominal_stl: bool = True):
-        """
-        Computes the sensitivity of the geometry with respect to the 
+        """Computes the sensitivity of the geometry with respect to the 
         parameters.
+
+        Parameters
+        ----------
+        parameter_dict : dict
+            A dictionary of the design parameters to perturb, and their 
+            nominal values.
+        perturbation : float, optional
+            The design parameter perturbation amount, specified as percentage. 
+            The default is 20.
+        vehicle_creator_method : str, optional
+            The name of the method which returns a hypervehicle.Vehicle 
+            instance, ready for generation. The default is 'create_instance'.
+        write_nominal_stl : bool, optional
+            A boolean flag to write the nominal geometry STL(s) to file. The 
+            default is True.
+
+        Returns
+        -------
+        sensitivities : TYPE
+            A dictionary containing the sensitivity information for all 
+            components of the geometry, relative to the nominal geometry.
+
         """
         # Create Vehicle instance with nominal parameters
         if self.verbosity > 0: print("Generating nominal geometry...")
