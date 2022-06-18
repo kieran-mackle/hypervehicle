@@ -851,7 +851,7 @@ class SensitivityStudy:
     """
     Computes the geometric sensitivities using finite differencing.
     """
-    def __init__(self, vehicle_constructor = None):
+    def __init__(self, vehicle_constructor = None, verbosity: int = 1):
         """Vehicle geometry sensitivity constructor.
 
         Parameters
@@ -864,35 +864,40 @@ class SensitivityStudy:
         VehicleSensitivity object.
 
         """
-        
         self.vehicle_constructor = vehicle_constructor
+        self.verbosity = verbosity
         
         # Parameter sensitivities 
         self.sensitivities = None
         
     
+    def __repr__(self):
+        return 'HyperVehicle sensitivity study'
+        
+    
     def dGdP(self, parameter_dict: dict, perturbation: float = 20,
-             vehicle_creator_method: str = 'create_instance'):
+             vehicle_creator_method: str = 'create_instance', 
+             write_nominal_stl: bool = True):
         """
         Computes the sensitivity of the geometry with respect to the 
         parameters.
         """
         # Create Vehicle instance with nominal parameters
-        print("Generating nominal geometry...")
+        if self.verbosity > 0: print("Generating nominal geometry...")
         constructor_instance = self.vehicle_constructor(**parameter_dict)
         nominal_instance = getattr(constructor_instance, vehicle_creator_method)()
-        nominal_instance.write_stl = True # Only write nominal geometry to file
+        nominal_instance.write_stl = write_nominal_stl
         nominal_instance.verbosity = 0
-        print("  Done.")
         
         # Generate stl meshes
         nominal_instance.generate()
         nominal_meshes = nominal_instance.meshes
+        if self.verbosity > 0: print("  Done.")
         
         sensitivities = {}
         
         # Generate meshes for each parameter
-        print("Generating perturbed geometries...")
+        if self.verbosity > 0: print("Generating perturbed geometries...")
         for parameter, value in parameter_dict.items():
             # Create copy
             adjusted_parameters = parameter_dict.copy()
@@ -924,7 +929,7 @@ class SensitivityStudy:
                                                          parameter, True)
                     
                     sensitivities[component].append(sensitivity_df)
-        print("  Done.")
+        if self.verbosity > 0: print("  Done.")
         
         # Return output
         self.sensitivities = sensitivities
@@ -1005,7 +1010,6 @@ def append_sensitivities_to_tri(dp_files: list,
         dp_df = pd.concat([dp_df, df])
     
     # Match points_df to sensitivity df
-    # data = []
     data_str = '\n '
     for i in range(len(points_df)):
         tolerance = 1e-5
@@ -1017,15 +1021,19 @@ def append_sensitivities_to_tri(dp_files: list,
         try:
             # What if there are multiple matches? (due to intersect perturbations)
             matched_data = dp_df[match].iloc[0][['dxdP', 'dydP', 'dzdP']].values
-            # data.append(matched_data)
-            # TODO - format as float64 dtype
-            data_str += f'{matched_data[0]} {matched_data[1]} {matched_data[2]}\n '
+            # :.14e
+            line = ''
+            for i in range(3):
+                line += f"\t{matched_data[i]:.14e}"
+            line += '\n '
+            # data_str += f'{matched_data[0]} {matched_data[1]} {matched_data[2]}\n '
             
         except:
             # No match found, append zeros to maintain order
-            # data.append(np.array([0,0,0]))
-            data_str += '0 0 0\n '
-    
+            line = f"\t{0:.14e}\t{0:.14e}\t{0:.14e}\n "
+            # data_str += '0 0 0\n '
+        data_str += line
+        
     # Write the matched sensitivity df to i.tri file as new xml element
     # NumberOfComponents is how many sensitivity components there are (3 for x,y,z)
     attribs = {'Name': 'Sensitivity', 'NumberOfComponents': '3', 
@@ -1037,6 +1045,5 @@ def append_sensitivities_to_tri(dp_files: list,
     
     # Save to file
     tree.write(components_filepath)
-    
     
     
