@@ -857,7 +857,7 @@ class SensitivityStudy:
         Parameters
         ----------
         vehicle_constructor : TYPE
-            The Vehicle instance constructor ...
+            The Vehicle instance constructor.
 
         Returns
         -------
