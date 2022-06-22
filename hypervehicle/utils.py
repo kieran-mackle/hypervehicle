@@ -996,13 +996,20 @@ class SensitivityStudy:
 
 
 def append_sensitivities_to_tri(dp_files: list, 
-                                components_filepath: str = 'Components.i.tri'):
+                                components_filepath: str = 'Components.i.tri',
+                                sensitivity_name: str = None):
     """Appends shape sensitivity data to .i.tri file.
     
     Parameters
     ----------
     dp_files : list[str]
         A list of the file names of the sensitivity data.
+    components_filepath : str, optional
+        The filepath to the .tri file to be appended to. The default is 
+        'Components.i.tri'.
+    sensitivity_name : str, optional
+        The name of the design feature which the sensitivity is to. If None,
+        this will be detrived from the inputted dp_files. The default is None.
 
     Examples
     ---------
@@ -1057,7 +1064,12 @@ def append_sensitivities_to_tri(dp_files: list,
         
     # Write the matched sensitivity df to i.tri file as new xml element
     # NumberOfComponents is how many sensitivity components there are (3 for x,y,z)
-    attribs = {'Name': 'Sensitivity', 'NumberOfComponents': '3', 
+    if sensitivity_name is None:
+        # Attempt to construct sensitivity name
+        filename = dp_files[0]
+        sensitivity_name = ''.join(''.join(filename.split('_')[2:]).split('.')[:-1])
+        
+    attribs = {'Name': f'{sensitivity_name}', 'NumberOfComponents': '3', 
                'type': 'Float64', 'format': 'ascii',
                'TRIXtype': 'SHAPE_LINEARIZATION'}
     PointData = ET.SubElement(piece, 'PointData')
