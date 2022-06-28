@@ -1049,7 +1049,10 @@ def append_sensitivities_to_tri(dp_files: list,
         try:
             # What if there are multiple matches? (due to intersect perturbations)
             matched_data = dp_df[match].iloc[0][['dxdP', 'dydP', 'dzdP']].values
-            # :.14e
+
+            # Round off infinitesimally small values
+            matched_data[abs(matched_data) < 1e-8] = 0
+            
             line = ''
             for i in range(3):
                 line += f"\t{matched_data[i]:.14e}"
