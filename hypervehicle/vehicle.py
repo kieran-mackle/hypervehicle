@@ -288,6 +288,126 @@ class Vehicle:
                     "CLOSE_WING": close_wing,
                     }
         self.add_component('wing', new_wing)
+
+    
+    def add_fin(self, p0: Vector3,
+                p1: Vector3,
+                p2: Vector3,
+                p3: Vector3,
+                fin_thickness: float,
+                fin_angle: float,
+                top_thickness_function,
+                bot_thickness_function,
+                leading_edge_width_function,
+                mirror: bool = False,
+                rudder_type: str = 'flat',
+                rudder_length: float = 0,
+                rudder_angle: float = 0,
+                pivot_angle: float = 0,
+                pivot_point: Vector3 = Vector3(x=0, y=0)) -> None:
+        """Creates and appends a new fin to the vehicle.
+
+        Parameters
+        ----------
+        p0 : Vector3
+            Point p0 of the fin geometry.
+        p1 : Vector3
+            Point p1 of the fin geometry.
+        p2 : Vector3
+            Point p2 of the fin geometry.
+        p3 : Vector3
+            Point p3 of the fin geometry.
+
+        """
+        new_fin = {
+            'p0': p0,
+            'p1': p1, 
+            'p2': p2, 
+            'p3': p3,
+            'FIN_THICKNESS': fin_thickness,
+            'FIN_ANGLE': fin_angle,
+            'FIN_TOP_THICKNESS_FUNC': top_thickness_function,
+            'FIN_BOTTOM_THICKNESS_FUNC': bot_thickness_function,
+            'FIN_LEADING_EDGE_FUNC': leading_edge_width_function,
+            'MIRROR_NEW_COMPONENT': mirror,
+            'rudder_type': rudder_type,
+            'rudder_length': rudder_length,
+            'rudder_angle': rudder_angle,
+            'pivot_angle': pivot_angle,
+            'pivot_point': pivot_point,
+        }
+        self.add_component('fin', new_fin)
+    
+    
+    def add_fuselage(self, Xn: float, 
+                     X1: float, 
+                     X2: float, 
+                     X3: float,
+                     Rn: float, 
+                     R1: float,
+                     R2: float, 
+                     R3: float, 
+                     X4: float = None,
+                     nose_type: str = 'sharp-cone',
+                     tail_type: str = 'flat',
+                     x_curve_func = None,
+                     x_dash_func = None,
+                     y_curve_func = None,
+                     y_dash_func = None) -> None:
+        """Adds the fuselage to the vehicle.
+
+        Parameters
+        ----------
+        Xn: float
+            The axial location of the fuselage nose.
+        X1: float
+            The axial location of the X1 point.
+        X2: float
+            The axial location of the X2 point.
+        X3: float
+            The axial location of the X3 point.
+        X4: float, optional
+            The axial location of the X4 point. The default is None.
+        Rn: float
+            The radius of the fuselage at the nose.
+        R1: float
+            The radius of the fuselage at X1.
+        R2: float
+            The radius of the fuselage at X2.
+        R3: float
+            The radius of the fuselage at X3.
+        nose_type: str, optional
+            The fuselage nose type. The default is 'sharp-cone'.
+        tail_type: str, optional
+            The fuselage tail type. Options include 'sharp-cone' and 'flat'.
+            When using 'sharp-cone', X4 must be provided. The default is flat.
+        x_curve_func: function, optional
+            The x-curvature function. The default is None.
+        x_dash_func: function, optional
+            The x-curvature derivative function. The default is None.
+        y_curve_func: function, optional
+            The y-curvature function. The default is None.
+        y_dash_func: function, optional
+            The y-curvature derivative function. The default is None.
+        """
+        fuselage = {
+            "FUSELAGE_NOSE_OPTION": nose_type,
+            "FUSELAGE_TAIL_OPTION": tail_type,
+            "Xn": Xn, 
+            "X1": X1, 
+            "X2": X2, 
+            "X3": X3,
+            "X4": X4,
+            "Rn": Rn, 
+            "R1": R1, 
+            "R2": R2, 
+            "R3": R3,
+            "FUSELAGE_FUNC_CURV_X": x_curve_func,
+            "FUSELAGE_FUNC_CURV_X_DASH": x_dash_func,
+            "FUSELAGE_FUNC_CURV_Y": y_curve_func,
+            "FUSELAGE_FUNC_CURV_Y_DASH": y_dash_func,
+        }
+        self.add_component('fuselage', fuselage)
     
     
     def add_global_config(self, global_config: dict) -> None:
