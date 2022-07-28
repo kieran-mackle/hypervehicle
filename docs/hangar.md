@@ -14,6 +14,12 @@ This page is a showcase of vehicle geometries possible using *hypervehicle*.
 ![HiFIRE8](images/hifire8.png)
 
 
+## Hypersonic Technology Vehicle
+
+![HTV](images/htv.png)
+
+![HTV Flaps](images/htv_flaps.png)
+
 
 ## Generic Rocket
 
