@@ -1,5 +1,7 @@
 # Hypervehicle Geometry Generation Example
 
+![X43A Example](images/x43a.png)
+
 ## Package Imports
 ```python
 import numpy as np

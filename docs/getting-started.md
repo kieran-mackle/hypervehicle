@@ -1,18 +1,18 @@
-# Getting Started with BatchJob
+# Getting Started with *hypervehicle*
 
 ## Dependencies
 Hypervehicle relies on the [Eilmer](https://github.com/gdtk-uq/gdtk) geometry 
-package to function.
+Python library to function.
 
 
 
 ## Installation
-First clone the repository, then install via pip as an editable install.
+First clone the repository, then install via pip.
 
 ```
 git clone https://github.com/kieran-mackle/hypervehicle
 cd hypervehicle
-python3 -m pip install -e ./
+python3 -m pip install ./
 ```
 
 ### Testing the installation
