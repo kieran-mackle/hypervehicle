@@ -3,7 +3,7 @@ import numpy as np
 from eilmer.geom.vector3 import Vector3
 from eilmer.geom.path import Arc, Line
 from eilmer.geom.surface import CoonsPatch
-from hypervehicle.utils import ConePatch, RotatedPatch
+from hypervehicle.utils import ConePatch, RotatedPatch, OffsetPatchFunction
 
 
 def hyper_fuselage_main(fuselage_geometry: dict, verbosity: int = 1) -> dict:
@@ -42,6 +42,7 @@ def hyper_fuselage_main(fuselage_geometry: dict, verbosity: int = 1) -> dict:
         R1 = fuselage_geometry['R1']
         R2 = fuselage_geometry['R2']
         R3 = fuselage_geometry['R3']
+        offset = fuselage_geometry['OFFSET'] if 'OFFSET' in fuselage_geometry else None
     
         if verbosity > 0:
             print("Creating fuselage patches...")
@@ -69,9 +70,9 @@ def hyper_fuselage_main(fuselage_geometry: dict, verbosity: int = 1) -> dict:
         patch_dict['cone_2_s'] = RotatedPatch(underlying_surf=patch_dict['cone_2_n'], angle=np.deg2rad(180.))
         patch_dict['cone_2_w'] = RotatedPatch(underlying_surf=patch_dict['cone_2_n'], angle=np.deg2rad(270.))
     
-    
         if verbosity > 1:
             print("  Fuselage tail - {}".format(fuselage_geometry['FUSELAGE_TAIL_OPTION']))
+        
         # create tail
         if fuselage_geometry['FUSELAGE_TAIL_OPTION'].lower() == 'flat':
             # create the tail (blunt)
@@ -83,7 +84,7 @@ def hyper_fuselage_main(fuselage_geometry: dict, verbosity: int = 1) -> dict:
             p11=Vector3(x=X3, y= t_ratio*R3*cos_angle, z=-t_ratio*R3*cos_angle)
             tail_centre_patch = CoonsPatch(p00=p00, p10=p10, p01=p01, p11=p11)
             patch_dict["tail_centre_patch"] = tail_centre_patch
-            #
+            
             a=Vector3(x=X3, y=-R3*cos_angle, z=-R3*cos_angle)
             b=Vector3(x=X3, y= R3*cos_angle, z=-R3*cos_angle)
             c=Vector3(x=X3, y=0., z=0.)
@@ -95,14 +96,22 @@ def hyper_fuselage_main(fuselage_geometry: dict, verbosity: int = 1) -> dict:
             patch_dict["tail_edge_patch_e"] = RotatedPatch(underlying_surf=tail_edge_patch_n, angle=np.deg2rad(90.))
             patch_dict["tail_edge_patch_s"] = RotatedPatch(underlying_surf=tail_edge_patch_n, angle=np.deg2rad(180.))
             patch_dict["tail_edge_patch_w"] = RotatedPatch(underlying_surf=tail_edge_patch_n, angle=np.deg2rad(270.))
+        
         elif fuselage_geometry['FUSELAGE_TAIL_OPTION'].lower() == 'sharp-cone':
             # create cylinder-0
             patch_dict['cone_3_n'] = ConePatch(x0=X3, x1=X4, r0=R2, r1=0., angle0=np.deg2rad(45.), angle1=np.deg2rad(135.) )
             patch_dict['cone_3_e'] = RotatedPatch(underlying_surf=patch_dict['cone_3_n'], angle=np.deg2rad(90.))
             patch_dict['cone_3_s'] = RotatedPatch(underlying_surf=patch_dict['cone_3_n'], angle=np.deg2rad(180.))
             patch_dict['cone_3_w'] = RotatedPatch(underlying_surf=patch_dict['cone_3_n'], angle=np.deg2rad(270.))
+        
         else:
             raise Exception("Value set for FUSELAGE_TAIL_OPTION = '{}' is not supported".format(fuselage_geometry['FUSELAGE_TAIL_OPTION']))
-    
+
+        if offset is not None:
+            for patch_name, patch in patch_dict.items():
+                # Overwrite patches with offset patches
+                patch_dict[patch_name] = OffsetPatchFunction(patch, offset)
+
         print("  Fuselage complete.")
+    
     return patch_dict

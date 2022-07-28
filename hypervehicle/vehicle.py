@@ -352,7 +352,8 @@ class Vehicle:
                      x_curve_func = None,
                      x_dash_func = None,
                      y_curve_func = None,
-                     y_dash_func = None) -> None:
+                     y_dash_func = None,
+                     offset = None) -> None:
         """Adds the fuselage to the vehicle.
 
         Parameters
@@ -402,6 +403,7 @@ class Vehicle:
             "FUSELAGE_FUNC_CURV_X_DASH": x_dash_func,
             "FUSELAGE_FUNC_CURV_Y": y_curve_func,
             "FUSELAGE_FUNC_CURV_Y_DASH": y_dash_func,
+            "OFFSET": offset,
         }
         self.add_component('fuselage', fuselage)
     
