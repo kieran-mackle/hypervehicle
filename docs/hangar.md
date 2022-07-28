@@ -15,3 +15,6 @@ This page is a showcase of vehicle geometries possible using *hypervehicle*.
 
 
 
+## Generic Rocket
+
+![Rocket](images/rocket.png)

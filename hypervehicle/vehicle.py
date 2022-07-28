@@ -343,7 +343,6 @@ class Vehicle:
                      X1: float, 
                      X2: float, 
                      X3: float,
-                     Rn: float, 
                      R1: float,
                      R2: float, 
                      R3: float, 
@@ -368,8 +367,6 @@ class Vehicle:
             The axial location of the X3 point.
         X4: float, optional
             The axial location of the X4 point. The default is None.
-        Rn: float
-            The radius of the fuselage at the nose.
         R1: float
             The radius of the fuselage at X1.
         R2: float
@@ -398,7 +395,6 @@ class Vehicle:
             "X2": X2, 
             "X3": X3,
             "X4": X4,
-            "Rn": Rn, 
             "R1": R1, 
             "R2": R2, 
             "R3": R3,
