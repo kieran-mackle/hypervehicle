@@ -236,7 +236,8 @@ class Vehicle:
         flap_length : float, optional
             The length of the trailing edge flap. The default is 0.
         flap_angle : float, optional
-            The angle of the trailing edge flap. The default is 0.
+            The angle of the trailing edge flap, specified in radians. The
+            default is 0.
         curve_x : Callable[[float, float, float], Vector3], optional
             The curvature function in the x-direction. The default is None.
         curve_dx : Callable[[float, float, float], Vector3], optional
