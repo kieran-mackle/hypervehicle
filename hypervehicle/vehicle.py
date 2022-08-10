@@ -63,6 +63,9 @@ class Vehicle:
         self.wings = []
         self.fuselage = []
         self.fins = []
+        self.wing_resolutions = []
+        self.fuselage_resolutions = []
+        self.fin_resolutions = []
         self.mirror_fins = True
         self.vehicle_angle = 0
         
@@ -168,7 +171,8 @@ class Vehicle:
         self.cart3d = cart3d if cart3d is not None else self.cart3d
         
 
-    def add_component(self, component_type: str, component_dict: dict) -> None:
+    def add_component(self, component_type: str, component_dict: dict,
+        stl_resolution: int = None) -> None:
         """Adds a vehicle component.
         
         Parameters
@@ -181,10 +185,13 @@ class Vehicle:
         
         if component_type.lower() == 'wing':
             self.wings.append(component_dict)
+            self.wing_resolutions.append(stl_resolution)
         elif component_type.lower() == 'fin':
-            self.fins.append(component_dict)    
+            self.fins.append(component_dict)   
+            self.fin_resolutions.append(stl_resolution) 
         elif component_type.lower() == 'fuselage':
             self.fuselage.append(component_dict)
+            self.fuselage_resolutions.append(stl_resolution)
         
     
     def add_wing(self, A0: Vector3 = Vector3(0,0,0), A1: Vector3 = Vector3(0,0,0),
@@ -201,7 +208,8 @@ class Vehicle:
                  curve_y: Callable[[float, float, float], Vector3] = None,
                  curve_dy: Callable[[float, float, float], Vector3] = None,
                  mirror: bool = True, mirror_new_component: bool = False,
-                 close_wing: bool = False) -> None:
+                 close_wing: bool = False,
+                 stl_resolution: int = None) -> None:
         """Creates and appends a new wing to the vehicle.
 
         Parameters
@@ -257,6 +265,9 @@ class Vehicle:
         close_wing : bool, optional
             Close the interior edges of the wing component. The default is 
             False.
+        stl_resolution : int, optional
+            The stl resolution to use when creating the mesh for this 
+            component. The default is None.
 
         Returns
         -------
@@ -288,7 +299,7 @@ class Vehicle:
                     "MIRROR_NEW_COMPONENT": mirror_new_component,
                     "CLOSE_WING": close_wing,
                     }
-        self.add_component('wing', new_wing)
+        self.add_component('wing', new_wing, stl_resolution)
 
     
     def add_fin(self, p0: Vector3,
@@ -305,7 +316,8 @@ class Vehicle:
                 rudder_length: float = 0,
                 rudder_angle: float = 0,
                 pivot_angle: float = 0,
-                pivot_point: Vector3 = Vector3(x=0, y=0)) -> None:
+                pivot_point: Vector3 = Vector3(x=0, y=0),
+                stl_resolution: int = None) -> None:
         """Creates and appends a new fin to the vehicle.
 
         Parameters
@@ -318,7 +330,9 @@ class Vehicle:
             Point p2 of the fin geometry.
         p3 : Vector3
             Point p3 of the fin geometry.
-
+        stl_resolution : int, optional
+            The stl resolution to use when creating the mesh for this 
+            component. The default is None.
         """
         new_fin = {
             'p0': p0,
@@ -337,7 +351,7 @@ class Vehicle:
             'pivot_angle': pivot_angle,
             'pivot_point': pivot_point,
         }
-        self.add_component('fin', new_fin)
+        self.add_component('fin', new_fin, stl_resolution)
     
     
     def add_fuselage(self, Xn: float = None, 
@@ -355,7 +369,8 @@ class Vehicle:
                      x_dash_func = None,
                      y_curve_func = None,
                      y_dash_func = None,
-                     offset = None) -> None:
+                     offset = None,
+                     stl_resolution: int = None) -> None:
         """Adds the fuselage to the vehicle.
 
         Parameters
@@ -391,6 +406,9 @@ class Vehicle:
             The y-curvature function. The default is None.
         y_dash_func: function, optional
             The y-curvature derivative function. The default is None.
+        stl_resolution : int, optional
+            The stl resolution to use when creating the mesh for this 
+            component. The default is None.
         """
         fuselage = {
             "FUSELAGE_NOSE_OPTION": nose_type,
@@ -410,7 +428,7 @@ class Vehicle:
             "FUSELAGE_FUNC_CURV_Y_DASH": y_dash_func,
             "OFFSET": offset,
         }
-        self.add_component('fuselage', fuselage)
+        self.add_component('fuselage', fuselage, stl_resolution)
     
     
     def add_global_config(self, global_config: dict) -> None:
@@ -487,7 +505,7 @@ class Vehicle:
         self.build_stl = True if self.write_stl else self.build_stl # Enforce
         if self.build_stl:
             if self.verbosity > 0:
-                print(f"\nBuilding STL object(s) with a resolution of {self.stl_resolution}.")
+                print("\nBuilding STL object(s).")
             self._create_surfaces()
             self._create_stl_data()
             self._create_stl()
@@ -645,32 +663,38 @@ class Vehicle:
         
         # Wings
         self.surfaces['wing'] = []
-        for wing_patch_dict in self.patches['wing']:
+        for ix, wing_patch_dict in enumerate(self.patches['wing']):
             wing_stl_mesh_list = []
+            resolution = self.wing_resolutions[ix] if self.wing_resolutions[ix] \
+                is not None else self.stl_resolution
             for key in wing_patch_dict:
                 flip = True if key.split('_')[-1] == 'mirrored' else False
                 wing_stl_mesh_list.append(parametricSurfce2stl(wing_patch_dict[key],
-                                                               self.stl_resolution,
+                                                               resolution,
                                                                flip_faces=flip))
             self.surfaces['wing'].append(wing_stl_mesh_list)
         
         # Fuselage
         self.surfaces['fuselage'] = []
-        for fuse_patch_dict in self.patches['fuselage']:
+        for ix, fuse_patch_dict in enumerate(self.patches['fuselage']):
             fuse_stl_mesh_list = []
+            resolution = self.fuselage_resolutions[ix] if self.fuselage_resolutions[ix] \
+                is not None else self.stl_resolution
             for key, item in fuse_patch_dict.items():
-                fuse_stl_mesh_list.append(parametricSurfce2stl(item, self.stl_resolution))
+                fuse_stl_mesh_list.append(parametricSurfce2stl(item, resolution))
             
             self.surfaces['fuselage'].append(fuse_stl_mesh_list)
         
         # Fins
         self.surfaces['fin'] = []
-        for fin_patch_dict in self.patches['fin']:
+        for ix, fin_patch_dict in enumerate(self.patches['fin']):
             fin_stl_mesh_list = []
+            resolution = self.fin_resolutions[ix] if self.fin_resolutions[ix] \
+                is not None else self.stl_resolution
             for key in fin_patch_dict:
                 flip = True if key.split('_')[-1] == 'mirrored' else False
                 fin_stl_mesh_list.append(parametricSurfce2stl(fin_patch_dict[key],
-                                                              self.stl_resolution,
+                                                              resolution,
                                                                flip_faces=flip))
             self.surfaces['fin'].append(fin_stl_mesh_list)
         
