@@ -61,7 +61,7 @@ class Vehicle:
         
         # Components
         self.wings = []
-        self.fuselage = None
+        self.fuselage = []
         self.fins = []
         self.mirror_fins = True
         self.vehicle_angle = 0
@@ -184,7 +184,7 @@ class Vehicle:
         elif component_type.lower() == 'fin':
             self.fins.append(component_dict)    
         elif component_type.lower() == 'fuselage':
-            self.fuselage = component_dict
+            self.fuselage.append(component_dict)
         
     
     def add_wing(self, A0: Vector3 = Vector3(0,0,0), A1: Vector3 = Vector3(0,0,0),
@@ -527,29 +527,29 @@ class Vehicle:
                                         fun_dash=wing_geometry_dict['WING_FUNC_CURV_Y_DASH'])
                     
         # Fuselage curvature       
-        if self.fuselage is not None:
-            
-            # Longitudal Curvature
-            if self.fuselage['FUSELAGE_FUNC_CURV_X'] is None and \
-                self.fuselage['FUSELAGE_FUNC_CURV_X_DASH'] is None:
-                if self.verbosity > 0: print("    Skipping fuselage X-curvature.")
-                
-            else:
-                for key in self.patches['fuselage']:
-                    self.patches['fuselage'][key] = \
-                        CurvedPatch(underlying_surf=self.patches['fuselage'][key],
-                                    direction='x', fun=self.fuselage['FUSELAGE_FUNC_CURV_X'],
-                                    fun_dash=self.fuselage['FUSELAGE_FUNC_CURV_X_DASH'])
-            # Spanwise Curvature
-            if self.fuselage['FUSELAGE_FUNC_CURV_Y'] is None and \
-                self.fuselage['FUSELAGE_FUNC_CURV_Y_DASH'] is None:
-                if self.verbosity > 0: print("    Skipping fuselage Y-curvature.")
-            else:
-                for key in self.patches['fuselage']:
-                    self.patches['fuselage'][key] = \
-                        CurvedPatch(underlying_surf=self.patches['fuselage'][key],
-                                    direction='y', fun=self.fuselage['FUSELAGE_FUNC_CURV_Y'],
-                                    fun_dash=self.fuselage['FUSELAGE_FUNC_CURV_Y_DASH'])
+        if len(self.fuselage) > 0:
+            for ix, fuse_geometry_dict in enumerate(self.fuselage):
+                # Longitudal Curvature
+                if fuse_geometry_dict['FUSELAGE_FUNC_CURV_X'] is None and \
+                    fuse_geometry_dict['FUSELAGE_FUNC_CURV_X_DASH'] is None:
+                    if self.verbosity > 0: print("    Skipping fuselage X-curvature.")
+                    
+                else:
+                    for key in self.patches['fuselage'][ix]:
+                        self.patches['fuselage'][ix][key] = \
+                            CurvedPatch(underlying_surf=self.patches['fuselage'][key],
+                                        direction='x', fun=fuse_geometry_dict['FUSELAGE_FUNC_CURV_X'],
+                                        fun_dash=fuse_geometry_dict['FUSELAGE_FUNC_CURV_X_DASH'])
+                # Spanwise Curvature
+                if fuse_geometry_dict['FUSELAGE_FUNC_CURV_Y'] is None and \
+                    fuse_geometry_dict['FUSELAGE_FUNC_CURV_Y_DASH'] is None:
+                    if self.verbosity > 0: print("    Skipping fuselage Y-curvature.")
+                else:
+                    for key in self.patches['fuselage'][ix]:
+                        self.patches['fuselage'][ix][key] = \
+                            CurvedPatch(underlying_surf=self.patches['fuselage'][key],
+                                        direction='y', fun=fuse_geometry_dict['FUSELAGE_FUNC_CURV_Y'],
+                                        fun_dash=fuse_geometry_dict['FUSELAGE_FUNC_CURV_Y_DASH'])
         
     
     def _rotate_vehicle(self, angle: float = 0, axis: str = 'y') -> None:
@@ -652,9 +652,12 @@ class Vehicle:
         
         # Fuselage
         self.surfaces['fuselage'] = []
-        for key in self.patches['fuselage']:
-            self.surfaces['fuselage'].append(parametricSurfce2stl(self.patches['fuselage'][key],
-                                                                  self.stl_resolution))
+        for fuse_patch_dict in self.patches['fuselage']:
+            fuse_stl_mesh_list = []
+            for key, item in fuse_patch_dict.items():
+                fuse_stl_mesh_list.append(parametricSurfce2stl(item, self.stl_resolution))
+            
+            self.surfaces['fuselage'].append(fuse_stl_mesh_list)
         
         # Fins
         self.surfaces['fin'] = []
@@ -681,8 +684,11 @@ class Vehicle:
         
         # Fuselage
         self.stl_data['fuselage'] = []
-        for val in self.surfaces['fuselage']:
-            self.stl_data['fuselage'].append(val.data.copy())
+        for fuse_stl_mesh_list in self.surfaces['fuselage']:
+            fuse_stl_data = []
+            for val in fuse_stl_mesh_list:
+                fuse_stl_data.append(val.data.copy())
+            self.stl_data['fuselage'].append(fuse_stl_data)
         
         # Fins
         self.stl_data['fin'] = []
@@ -694,7 +700,7 @@ class Vehicle:
         
     
     def _create_stl(self):
-        """Creases stl objects
+        """Creates stl objects.
         """
         # Wings
         if len(self.wings) > 0:
@@ -702,21 +708,25 @@ class Vehicle:
             self.meshes['wing'] = []
             for wing_no, wing_stl_data in enumerate(self.stl_data['wing']):
                 self.meshes['wing'].append(mesh.Mesh(np.concatenate(wing_stl_data)))
+                if self.verbosity > 0:
+                    print(f"    wing {wing_no} stl object created")
+
                 
         # Fuselage
-        if self.fuselage is not None:
-            self.meshes['fuselage'] = mesh.Mesh(np.concatenate(self.stl_data['fuselage']))
-            if self.verbosity > 0:
-                    print("    fuselage stl object created")
+        if len(self.fuselage) > 0:
+            self.meshes['fuselage'] = []
+            for fuse_no, fuse_stl_data in enumerate(self.stl_data['fuselage']):
+                self.meshes['fuselage'].append(mesh.Mesh(np.concatenate(fuse_stl_data)))
+                if self.verbosity > 0:
+                    print(f"    fuselage {fuse_no} stl object created")
 
-        # Fins
+        # FinsS
         if len(self.fins) > 0:
             self.meshes['fin'] = []
-            
             for fin_no, fin_stl_data in enumerate(self.stl_data['fin']):
                 self.meshes['fin'].append(mesh.Mesh(np.concatenate(fin_stl_data)))
                 if self.verbosity > 0:
-                        print("    fin stl object created")
+                    print(f"    fin {fin_no} stl object created")
 
     
     def _write_stl(self):
@@ -730,14 +740,15 @@ class Vehicle:
                 wing_filename = f"{self.stl_filename}-wing{wing_no+1}.stl"
                 wing_mesh.save(wing_filename)
                 if self.verbosity > 0:
-                    print(f"    Wing {wing_no+1} stl object created - written to {wing_filename}.")
+                    print(f"    Writing wing {wing_no+1} stl to {wing_filename}.")
             
         # Fuselage
-        if self.fuselage is not None:
-            fuse_filename = "{}-fuse.stl".format(self.stl_filename)
-            self.meshes['fuselage'].save(fuse_filename)
-            if self.verbosity > 0:
-                print(f"    Writing fuselage stl to - {fuse_filename}")
+        if len(self.fuselage) > 0:
+            for fuse_no, fuse_mesh in enumerate(self.meshes['fuselage']):
+                fuse_filename = f"{self.stl_filename}-fuse{fuse_no+1}.stl"
+                fuse_mesh.save(fuse_filename)
+                if self.verbosity > 0:
+                    print(f"    Writing fuselage {fuse_no} stl to {fuse_filename}.")
         
         # Fins
         if len(self.fins) > 0:
@@ -745,7 +756,7 @@ class Vehicle:
                 fin_filename = f"{self.stl_filename}-fin{fin_no+1}.stl"
                 fin_mesh.save(fin_filename)
                 if self.verbosity > 0:
-                    print(f"    Writing fin stl to - {fin_filename}")
+                    print(f"    Writing fin stl to {fin_filename}.")
         
     
     def _evaluate_mesh_properties(self,):
@@ -766,16 +777,19 @@ class Vehicle:
             print("  DONE: Evaluating Wing Mesh Properties")
             print("")
             
-        if self.fuselage is not None:
+        if len(self.fuselage) > 0:
             print("")
             print("START: Evaluating Fuselage Mesh Properties:")
-            volume, cog, inertia = self.meshes['fuselage'].get_mass_properties()
-            print("    Volume                                  = {0}".format(volume))
-            print("    Position of the center of gravity (COG) = {0}".format(cog))
-            print("    Inertia matrix at expressed at the COG  = {0}".format(inertia[0,:]))
-            print("                                              {0}".format(inertia[1,:]))
-            print("                                              {0}".format(inertia[2,:]))
-            print("  DONE: Evaluating Mesh Properties")
+            for fuse_no, fuse_mesh in enumerate(self.meshes['fuselage']):
+                volume, cog, inertia = fuse_mesh.get_mass_properties()
+                print(f"    FUSELAGE {fuse_no+1}")
+                print("    --------")
+                print("    Volume                                  = {0}".format(volume))
+                print("    Position of the center of gravity (COG) = {0}".format(cog))
+                print("    Inertia matrix at expressed at the COG  = {0}".format(inertia[0,:]))
+                print("                                              {0}".format(inertia[1,:]))
+                print("                                              {0}".format(inertia[2,:]))
+            print("  DONE: Evaluating Fuselage Mesh Properties")
             print("")
             
         if len(self.fins) > 0:
@@ -864,15 +878,17 @@ class Vehicle:
             ax.set_ylabel("Y-axis")
             ax.set_zlabel("Z-axis")
             
-        if self.fuselage is not None:
+        if len(self.fuselage) > 0:
             # Create a new plot
             figure = plt.figure()
             ax = mplot3d.Axes3D(figure)
 
             # Render the fuselage
-            ax.add_collection3d(mplot3d.art3d.Poly3DCollection(self.meshes['fuselage'].vectors))
+            for fuse_mesh in self.meshes['fuselage']:
+                ax.add_collection3d(mplot3d.art3d.Poly3DCollection(fuse_mesh.vectors))
+                scale = fuse_mesh.points.flatten()
+            
             # Auto scale to the mesh size
-            scale = self.meshes['fuselage'].points.flatten()
             ax.auto_scale_xyz(scale, scale, scale)
             ax.set_xlabel("X-axis")
             ax.set_ylabel("Y-axis")
