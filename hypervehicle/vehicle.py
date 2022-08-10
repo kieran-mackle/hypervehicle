@@ -601,9 +601,9 @@ class Vehicle:
                 patch_dict[key] = RotatedPatch(patch_dict[key], np.deg2rad(angle), axis=axis)
         
         # Rotate fuselage
-        for key in self.patches['fuselage']:
-            self.patches['fuselage'][key] = RotatedPatch(self.patches['fuselage'][key], 
-                                                np.deg2rad(angle), axis=axis)
+        for patch_dict in self.patches['fuselage']:
+            for key in patch_dict:
+                patch_dict[key] = RotatedPatch(patch_dict[key], np.deg2rad(angle), axis=axis)
     
     
     def _create_grids(self) -> None:
