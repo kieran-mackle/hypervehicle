@@ -569,6 +569,33 @@ class ConePatch(ParametricSurface):
         return Vector3(x=x, y=y, z=z)
 
 
+class RevolvedPatch(ParametricSurface):
+    """Creates a path by revolving a line about a central
+    axis.
+    """
+    def __init__(self, line, angle0=0, angle1=2*np.pi):
+        self.line = line
+        self.angle0 = angle0
+        self.angle1 = angle1
+    
+    def __repr__(self):
+        return "Revolved Patch"
+    
+    def __call__(self, r, s):
+        # Map s to angular coordinate
+        angle = self.angle0 * (1-s) + self.angle1 * s
+        
+        # Map r to distance along line
+        point = self.line(r)
+
+        # Calculate points
+        x = point.x 
+        y = point.y*np.cos(angle) + point.z*np.sin(angle)
+        z = point.z*np.cos(angle) - point.y*np.sin(angle)
+
+        return Vector3(x=x, y=y, z=z)
+
+
 class BluntConePatch(ParametricSurface):
     """
     Creates a patch describing a blunt cone.
