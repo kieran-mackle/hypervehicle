@@ -340,14 +340,15 @@ class Vehicle:
         self.add_component('fin', new_fin)
     
     
-    def add_fuselage(self, Xn: float, 
-                     X1: float, 
-                     X2: float, 
-                     X3: float,
-                     R1: float,
-                     R2: float, 
-                     R3: float, 
+    def add_fuselage(self, Xn: float = None, 
+                     X1: float = None, 
+                     X2: float = None, 
+                     X3: float = None,
+                     R1: float = None,
+                     R2: float = None, 
+                     R3: float = None, 
                      X4: float = None,
+                     revolve_line = None,
                      nose_type: str = 'sharp-cone',
                      tail_type: str = 'flat',
                      x_curve_func = None,
@@ -375,6 +376,8 @@ class Vehicle:
             The radius of the fuselage at X2.
         R3: float
             The radius of the fuselage at X3.
+        revolve_line : Line|PolyLine|Bezier
+            A line to be revolved about the primary axis. 
         nose_type: str, optional
             The fuselage nose type. The default is 'sharp-cone'.
         tail_type: str, optional
@@ -400,6 +403,7 @@ class Vehicle:
             "R1": R1, 
             "R2": R2, 
             "R3": R3,
+            "revolve_line": revolve_line,
             "FUSELAGE_FUNC_CURV_X": x_curve_func,
             "FUSELAGE_FUNC_CURV_X_DASH": x_dash_func,
             "FUSELAGE_FUNC_CURV_Y": y_curve_func,
