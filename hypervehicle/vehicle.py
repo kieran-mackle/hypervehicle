@@ -7,15 +7,12 @@ import shutil
 import numpy as np
 from stl import mesh
 from getopt import getopt
+from typing import Callable
 import matplotlib.pyplot as plt
 from mpl_toolkits import mplot3d
-from eilmer.geom.sgrid import StructuredGrid
-
-from typing import Callable
-
 from eilmer.geom.vector3 import Vector3
-from eilmer.geom.path import Polyline
-
+from eilmer.geom.sgrid import StructuredGrid
+from eilmer.geom.path import Polyline, Bezier
 from hypervehicle.components import (hyper_fuselage_main, 
                                      hyper_wing_main, 
                                      hyper_fin_main)
@@ -276,6 +273,19 @@ class Vehicle:
             add_component method.
 
         """
+        # Check if a LE function was provided
+        if LE_wf is None and LE_type == 'custom':
+            # Use default function
+            def leading_edge_width_function2(r):
+                temp = Bezier([Vector3(x=0., y=0.001),
+                    Vector3(x=0.5, y=0.001),
+                    Vector3(x=1., y=0.001)])
+                le_width = temp(r).y
+                return le_width
+            
+            # Assign
+            LE_wf = leading_edge_width_function2
+            
         new_wing = {"A0": A0, 
                     "A1": A1, 
                     "TT": TT,
