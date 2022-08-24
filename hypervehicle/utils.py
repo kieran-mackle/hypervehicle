@@ -465,6 +465,9 @@ def parametricSurfce2stl(parametric_surface, triangles_per_edge, mirror_y=False,
     Outputs:
         stl_mesh - triangulated mesh object suitable for numpy-stl
     """
+    if triangles_per_edge is None:
+        raise Exception("Please define STL resolution, either component-wise, or for "+\
+            "the entire vehicle.")
     # create list of vertices
     r_list = np.linspace(0., 1., triangles_per_edge+1)
     s_list = np.linspace(0., 1., triangles_per_edge+1)
