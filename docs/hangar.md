@@ -9,6 +9,11 @@ This page is a showcase of vehicle geometries possible using *hypervehicle*.
 
 
 
+## HiFIRE4
+
+![HiFIRE4](images/hifire4.png)
+
+
 ## HiFIRE8
 
 ![HiFIRE8](images/hifire8.png)
