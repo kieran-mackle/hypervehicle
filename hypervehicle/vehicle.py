@@ -320,7 +320,7 @@ class Vehicle:
                 fin_angle: float,
                 top_thickness_function,
                 bot_thickness_function,
-                leading_edge_width_function,
+                leading_edge_width_function = None,
                 mirror: bool = False,
                 rudder_type: str = 'flat',
                 rudder_length: float = 0,
@@ -344,6 +344,15 @@ class Vehicle:
             The stl resolution to use when creating the mesh for this 
             component. The default is None.
         """
+        if leading_edge_width_function is None:
+            # Use default LE function
+            def leading_edge_width_function(r):
+                temp = Bezier([Vector3(x=0., y=0.001),
+                    Vector3(x=0.5, y=0.001),
+                    Vector3(x=1., y=0.001)])
+                le_width = temp(r).y
+                return le_width
+            
         new_fin = {
             'p0': p0,
             'p1': p1, 
