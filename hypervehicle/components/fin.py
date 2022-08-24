@@ -313,10 +313,25 @@ def hyper_fin_main(fin_geometries: dict, verbosity: int = 1) -> list:
                 temp_fin_patch_dict[f'fin_{fin_number}_TE_1'] = TE_back_1
                 temp_fin_patch_dict[f'fin_{fin_number}_TE_2'] = TE_back_2
             
+            # Create fin patch dict
+            fin_patch_dict = temp_fin_patch_dict.copy()
+
+            # Rotate patches again for rudder angle
+            if 'pivot_angle' in fin_geometry:
+                for key, patch in fin_patch_dict.items():
+                    fin_patch_dict[key] = RotatedPatch(
+                        patch, 
+                        fin_geometry['pivot_angle'],
+                        axis = 'y',
+                        point=fin_geometry['pivot_point']
+                    )
+
             # Rotate patches and add to fin_patch_dict
-            for patch in temp_fin_patch_dict:
-                fin_patch_dict[patch] = RotatedPatch(temp_fin_patch_dict[patch], 
-                                                     fin_angle)
+            for key, patch in fin_patch_dict.items():
+                fin_patch_dict[key] = RotatedPatch(
+                    patch, 
+                    fin_angle
+                )
             
             if 'offset_function' in fin_geometry and fin_geometry['offset_function'] is not None:
                 if verbosity > 1:
@@ -324,14 +339,6 @@ def hyper_fin_main(fin_geometries: dict, verbosity: int = 1) -> list:
                 for patch in fin_patch_dict:
                     fin_patch_dict[patch] = OffsetPatchFunction(fin_patch_dict[patch],
                                                                 fin_geometry['offset_function'])
-            
-            # Rotate patches again for rudder angle
-            if 'pivot_angle' in fin_geometry:
-                for patch in fin_patch_dict:
-                    fin_patch_dict[patch] = RotatedPatch(fin_patch_dict[patch], 
-                                                         fin_geometry['pivot_angle'],
-                                                         axis = 'z',
-                                                         point=fin_geometry['pivot_point'])
             
             if verbosity > 0 and len(fin_geometries) > 1:
                 print(f"  Fin {fin_number+1} complete.")
