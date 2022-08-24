@@ -578,7 +578,7 @@ class Vehicle:
                 else:
                     for key in self.patches['fuselage'][ix]:
                         self.patches['fuselage'][ix][key] = \
-                            CurvedPatch(underlying_surf=self.patches['fuselage'][key],
+                            CurvedPatch(underlying_surf=self.patches['fuselage'][ix][key],
                                         direction='x', fun=fuse_geometry_dict['FUSELAGE_FUNC_CURV_X'],
                                         fun_dash=fuse_geometry_dict['FUSELAGE_FUNC_CURV_X_DASH'])
                 # Spanwise Curvature
@@ -588,7 +588,7 @@ class Vehicle:
                 else:
                     for key in self.patches['fuselage'][ix]:
                         self.patches['fuselage'][ix][key] = \
-                            CurvedPatch(underlying_surf=self.patches['fuselage'][key],
+                            CurvedPatch(underlying_surf=self.patches['fuselage'][ix][key],
                                         direction='y', fun=fuse_geometry_dict['FUSELAGE_FUNC_CURV_Y'],
                                         fun_dash=fuse_geometry_dict['FUSELAGE_FUNC_CURV_Y_DASH'])
         
