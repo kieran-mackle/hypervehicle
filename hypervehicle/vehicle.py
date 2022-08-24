@@ -327,6 +327,7 @@ class Vehicle:
                 rudder_angle: float = 0,
                 pivot_angle: float = 0,
                 pivot_point: Vector3 = Vector3(x=0, y=0),
+                offset_func = None,
                 stl_resolution: int = None) -> None:
         """Creates and appends a new fin to the vehicle.
 
@@ -369,6 +370,7 @@ class Vehicle:
             'rudder_angle': rudder_angle,
             'pivot_angle': pivot_angle,
             'pivot_point': pivot_point,
+            'offset_function': offset_func,
         }
         self.add_component('fin', new_fin, stl_resolution)
     
