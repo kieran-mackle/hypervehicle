@@ -276,15 +276,15 @@ class Vehicle:
         # Check if a LE function was provided
         if LE_wf is None and LE_type == 'custom':
             # Use default function
-            def leading_edge_width_function2(r):
-                temp = Bezier([Vector3(x=0., y=0.001),
-                    Vector3(x=0.5, y=0.001),
-                    Vector3(x=1., y=0.001)])
+            def leading_edge_width_function(r):
+                temp = Bezier([Vector3(x=0., y=0.02),
+                                Vector3(x=0.75, y=0.1),
+                                Vector3(x=1., y=0.3)])
                 le_width = temp(r).y
                 return le_width
             
             # Assign
-            LE_wf = leading_edge_width_function2
+            LE_wf = leading_edge_width_function
             
         new_wing = {"A0": A0, 
                     "A1": A1, 
@@ -347,9 +347,9 @@ class Vehicle:
         if leading_edge_width_function is None:
             # Use default LE function
             def leading_edge_width_function(r):
-                temp = Bezier([Vector3(x=0., y=0.001),
-                    Vector3(x=0.5, y=0.001),
-                    Vector3(x=1., y=0.001)])
+                temp = Bezier([Vector3(x=0., y=0.02),
+                                Vector3(x=0.75, y=0.1),
+                                Vector3(x=1., y=0.3)])
                 le_width = temp(r).y
                 return le_width
             
