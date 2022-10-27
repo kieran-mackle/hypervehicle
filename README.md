@@ -24,6 +24,7 @@ echo "src/lib/" >> .git/info/sparse-checkout
 git pull origin master
 cd src/lib
 pip install -e ./
+cd ../../../
 ```
 
 
