@@ -11,7 +11,7 @@ from hypervehicle.utils import (
 )
 
 
-def hyper_fuselage_main(fuselage_geometries: list, verbosity: int = 1) -> dict:
+def hyper_fuselage_main(fuselage_geometries: list, verbosity: int = 1) -> list:
     """Fuselage Geometry Generator for hypersonic vehicle.
 
     Parameters
