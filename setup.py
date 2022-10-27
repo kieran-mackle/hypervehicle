@@ -20,5 +20,8 @@ setup(
         "myst_parser",
         "sphinx_copybutton",
         "sphinx_inline_tabs",
+        "black",
+        "commitizen",
+        "pre-commit",
     ],
 )
