@@ -2,9 +2,9 @@ import numpy as np
 import pandas as pd
 from stl import mesh
 import xml.etree.ElementTree as ET
-from eilmer.geom.vector3 import Vector3
-from eilmer.geom.path import Line, Path, ArcLengthParameterizedPath
-from eilmer.geom.surface import CoonsPatch, ParametricSurface
+from gdtk.geom.vector3 import Vector3
+from gdtk.geom.path import Line, Path, ArcLengthParameterizedPath
+from gdtk.geom.surface import CoonsPatch, ParametricSurface
 
 
 class SubRangedPath(Path):

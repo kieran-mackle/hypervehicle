@@ -1,7 +1,7 @@
 import numpy as np
 from hypervehicle import Vehicle, utils
-from eilmer.geom.vector3 import Vector3
-from eilmer.geom.path import Bezier, Line, Polyline, Arc
+from gdtk.geom.vector3 import Vector3
+from gdtk.geom.path import Bezier, Line, Polyline, Arc
 
 
 refex = Vehicle()

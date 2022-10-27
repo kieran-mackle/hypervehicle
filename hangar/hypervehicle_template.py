@@ -5,8 +5,8 @@ NOTE: This file may be outdated, check the examples in the test directory for
 a working example.
 """
 
-from eilmer.geom.vector3 import Vector3
-from eilmer.geom.path import Bezier, Line, Polyline
+from gdtk.geom.vector3 import Vector3
+from gdtk.geom.path import Bezier, Line, Polyline
 import numpy as np
 
 # Coordinate System Definition

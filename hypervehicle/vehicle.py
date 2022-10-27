@@ -11,9 +11,9 @@ from getopt import getopt
 from typing import Callable
 import matplotlib.pyplot as plt
 from mpl_toolkits import mplot3d
-from eilmer.geom.vector3 import Vector3
-from eilmer.geom.sgrid import StructuredGrid
-from eilmer.geom.path import Polyline, Bezier
+from gdtk.geom.vector3 import Vector3
+from gdtk.geom.sgrid import StructuredGrid
+from gdtk.geom.path import Polyline, Bezier
 from hypervehicle.components import hyper_fuselage_main, hyper_wing_main, hyper_fin_main
 from hypervehicle.utils import (
     parametricSurfce2stl,

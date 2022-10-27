@@ -3,22 +3,16 @@
 import os
 import sys
 import shutil
-
-# import pyfiglet
 import numpy as np
 from stl import mesh
 from getopt import getopt
+from typing import Callable
 import matplotlib.pyplot as plt
 from mpl_toolkits import mplot3d
-from eilmer.geom.sgrid import StructuredGrid
-
-from typing import Callable
-
-from eilmer.geom.vector3 import Vector3
-from eilmer.geom.path import Polyline
-
+from gdtk.geom.path import Polyline
+from gdtk.geom.vector3 import Vector3
+from gdtk.geom.sgrid import StructuredGrid
 from hypervehicle.components import poly_gen_main
-
 from hypervehicle.utils import (
     parametricSurfce2stl,
     CurvedPatch,

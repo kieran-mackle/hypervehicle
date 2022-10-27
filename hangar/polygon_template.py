@@ -8,8 +8,8 @@ import os
 import numpy as np
 from stl import Mesh
 from hypervehicle import Polygon_formation
-from eilmer.geom.vector3 import Vector3
-from eilmer.geom.path import Bezier, Line, Polyline
+from gdtk.geom.vector3 import Vector3
+from gdtk.geom.path import Bezier, Line, Polyline
 
 # Supported Polygons:
 #

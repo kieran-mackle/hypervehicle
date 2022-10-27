@@ -1,11 +1,9 @@
 #!/usr/bin/python3.8
 import numpy as np
 from scipy.optimize import bisect
-
-from eilmer.geom.vector3 import Vector3
-from eilmer.geom.path import Line, Polyline
-from eilmer.geom.surface import CoonsPatch
-
+from gdtk.geom.vector3 import Vector3
+from gdtk.geom.path import Line, Polyline
+from gdtk.geom.surface import CoonsPatch
 from hypervehicle.utils import (
     OffsetPatchFunction,
     SubRangedPath,
