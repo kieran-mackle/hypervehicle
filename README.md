@@ -6,12 +6,29 @@ for some examples.
 ![x43](https://user-images.githubusercontent.com/60687606/168926371-a383434b-3ea5-40ab-989a-93f7a8d7b4ff.png)
 
 
-## Dependencies
+## Getting Started
+
+### Dependencies
 Hypervehicle relies on the [Eilmer](https://github.com/gdtk-uq/gdtk) geometry 
-package to function.
+package. Note that a full Eilmer install is not required. Instead, do a 
+[sparse checkout](https://stackoverflow.com/questions/600079/how-do-i-clone-a-subdirectory-only-of-a-git-repository)
+of the relevant files, using the commands below.
+
+```
+mkdir gdtk
+cd gdtk/
+git init
+git remote add -f origin https://github.com/gdtk-uq/gdtk.git
+git config core.sparseCheckout true
+echo "src/lib/" >> .git/info/sparse-checkout
+git pull origin master
+cd src/lib
+pip install -e ./
+```
 
 
-## Installation
+
+### Installation
 
 First clone the repository, then install via pip as an editable install.
 
@@ -22,7 +39,7 @@ python3 -m pip install -e ./
 ```
 
 
-## Testing your install
+### Testing your install
 ```
 python3 -m pytest tests/
 ```
