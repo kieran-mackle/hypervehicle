@@ -16,24 +16,28 @@ from eilmer.geom.path import Bezier, Line, Polyline
 #   Cube - side length 2a (m) placed at centre.
 #   Sphere - radius r (m) placed at centre.
 
-poly_geom_list = [{'cube': {'a': 0.0127, 
-                           'centre': Vector3(0,0,0)}},
-                  {'sphere': {'r': 0.01,
-                            'centre': Vector3(0.03,0,0)}}
-             ]
+poly_geom_list = [
+    {"cube": {"a": 0.0127, "centre": Vector3(0, 0, 0)}},
+    {"sphere": {"r": 0.01, "centre": Vector3(0.03, 0, 0)}},
+]
 
 formation = Polygon_formation()
 formation.add_polys(poly_geom_list)
 
-formation.configure(verbosity = 1, write_stl = True, 
-                    stl_resolution = 7, stl_filename = "hyper-cube",
-                    show_in_figure = True, write_vtk = False)
+formation.configure(
+    verbosity=1,
+    write_stl=True,
+    stl_resolution=7,
+    stl_filename="hyper-cube",
+    show_in_figure=True,
+    write_vtk=False,
+)
 
-formation.generate()    
+formation.generate()
 
 # Possible configure parameters
 
-#(self, verbosity: int = None, write_stl: bool = None, 
+# (self, verbosity: int = None, write_stl: bool = None,
 # stl_resolution: int = None, stl_filename: str = None,
 # show_in_figure: bool = None, write_vtk: bool = None,
 # vtk_resolution: int = None, vtk_filename: str = None,
@@ -65,4 +69,3 @@ formation.generate()
 #            Flag to evaluate STL mesh properties. The default is False.
 #        name : str, optional
 #            The vehicle name. The default is "generic hypersonic vehicle".
-

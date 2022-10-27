@@ -6,31 +6,31 @@ from eilmer.geom.path import Bezier, Line, Polyline, Arc
 
 falcon9 = Vehicle()
 falcon9.configure(
-    name='SpaceX Falcon 9', 
+    name="SpaceX Falcon 9",
     verbosity=1,
     write_stl=True,
-    stl_filename='falcon',
+    stl_filename="falcon",
     cart3d=True,
-    )
+)
 
 D = 3.75
 L_b = 60
 
 # Inputs
-h = 5/2
+h = 5 / 2
 r_n = 0.75
 r_o = 7
 
 # Dependencies
-x_o = - np.sqrt((r_o-r_n)**2 - (r_o-h)**2)
-y_t = r_n*(r_o-h)/(r_o-r_n)
+x_o = -np.sqrt((r_o - r_n) ** 2 - (r_o - h) ** 2)
+y_t = r_n * (r_o - h) / (r_o - r_n)
 x_t = x_o - np.sqrt(r_n**2 - y_t**2)
 x_a = x_o - r_n
 
 # Ogive arc
-a_o = Vector3(-x_t, y_t) 
+a_o = Vector3(-x_t, y_t)
 b_o = Vector3(0, h)
-c_o = Vector3(0, -r_o+h)
+c_o = Vector3(0, -r_o + h)
 ogive_arc = Arc(a_o, b_o, c_o)
 
 # Nose arc
@@ -43,15 +43,15 @@ nose_arc = Arc(a_n, b_n, c_n)
 f_L = 6
 f0 = b_o
 f1 = f0 - Vector3(f_L, 0)
-fairing_line = Line(f0,f1)
+fairing_line = Line(f0, f1)
 
 # Body radius
-r_b = D/2
+r_b = D / 2
 
 # Fairing to body
 fb0 = f1
-fb1 = Vector3(f1.x-0.1*f_L, r_b)
-fb2 = Vector3(f1.x-0.3*f_L, 0)
+fb1 = Vector3(f1.x - 0.1 * f_L, r_b)
+fb2 = Vector3(f1.x - 0.3 * f_L, 0)
 fb_line = Polyline([Line(fb0, fb1), Line(fb1, fb2)])
 
 # Fairing component
