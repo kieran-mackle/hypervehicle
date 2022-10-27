@@ -253,3 +253,9 @@ def hyper_fuselage_main(fuselage_geometries: list, verbosity: int = 1) -> list:
                 patches.append(patch_dict)
 
     return patches
+
+
+def swept_fuselage():
+    """Creates a surface by sweeping through a series of cross
+    sections."""
+    pass

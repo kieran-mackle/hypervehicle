@@ -723,6 +723,25 @@ class BluntConePatch(ParametricSurface):
         return Vector3(x=x, y=y, z=z)
 
 
+class SweptPatch(ParametricSurface):
+    """Creates a swept patch from a series of cross sections."""
+
+    __slots__ = ["cross_sections"]
+
+    def __init__(self, cross_sections) -> None:
+        self.cross_sections = cross_sections
+
+    def __repr__(self):
+        return "Swept Patch"
+
+    def __call__(self, r, s) -> Vector3:
+        x = 0.0
+        y = 0.0
+        z = 0.0
+
+        return Vector3(x=x, y=y, z=z)
+
+
 class RotatedPatch(ParametricSurface):
     """
     Rotates a surface about a point in an axis-specified direction.
