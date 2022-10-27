@@ -724,17 +724,39 @@ class BluntConePatch(ParametricSurface):
 
 
 class SweptPatch(ParametricSurface):
-    """Creates a swept patch from a series of cross sections."""
+    """Creates a swept patch from a series of cross sections.
 
-    __slots__ = ["cross_sections"]
+    Parameters
+    -----------
+    cross_sections : list
+        A list containing the cross sections to be blended.
+    section_origins : list
+        A list containing the locations of the cross sections.
+    """
 
-    def __init__(self, cross_sections) -> None:
+    __slots__ = ["cross_sections", "section_origins"]
+
+    def __init__(self, cross_sections: list, section_origins: list) -> None:
+
+        if len(cross_sections) != len(section_origins):
+            raise Exception(
+                "Dimension mismatch between cross sections and "
+                + "cross section origins."
+            )
+
+        # Sort cross sections by axial location
+
+        # Save
         self.cross_sections = cross_sections
+        self.section_origins = section_origins
 
     def __repr__(self):
         return "Swept Patch"
 
     def __call__(self, r, s) -> Vector3:
+
+        # Linearly interpolate r and s between the two bounding sections
+
         x = 0.0
         y = 0.0
         z = 0.0
