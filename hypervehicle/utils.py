@@ -724,20 +724,31 @@ class BluntConePatch(ParametricSurface):
 
 
 class SweptPatch(ParametricSurface):
-    """Creates a swept patch from a series of cross sections.
+    """Creates a swept patch from a series of cross sections."""
 
-    Parameters
-    -----------
-    cross_sections : list
-        A list containing the cross sections to be blended. These must
-        be defined in the x-y plane.
-    """
+    __slots__ = ["cross_sections", "section_origins"]
 
-    __slots__ = ["cross_sections"]
+    def __init__(self, cross_sections: list, sweep_axis: str = "z") -> None:
+        """Construct the SweptPatch object.
 
-    def __init__(self, cross_sections: list) -> None:
+        Parameters
+        -----------
+        cross_sections : list
+            A list containing the cross sections to be blended. These must
+            be defined in the x-y plane.
+        sweep_axis : str, optional
+            The axis to sweep the cross sections along. Note that each cross
+            section should vary along this axis. The default is "z".
+        """
         self.cross_sections = cross_sections
-        self.section_origins = [cs(0, 0).z for cs in cross_sections]
+        self.section_origins = [getattr(cs(0, 0), sweep_axis) for cs in cross_sections]
+        self._sweep_axis = sweep_axis
+        self._other_axes = {"x", "y", "z"} - set(sweep_axis)
+
+        if min(self.section_origins) == max(self.section_origins):
+            raise Exception(
+                "There is no axial variation in the cross " + "sections provided!"
+            )
 
     def __repr__(self):
         return "Swept Patch"
@@ -745,33 +756,30 @@ class SweptPatch(ParametricSurface):
     def __call__(self, r, s) -> Vector3:
 
         # Linearly interpolate r and s between the two bounding sections
-        upper_section_index = next(
+        usi = next(
             x[0]
             for x in enumerate(self.section_origins)
             if x[1] >= r * max(self.section_origins)
         )
-        lower_section_index = upper_section_index - 1
+        lsi = usi - 1
 
         # Create perimeter paths
-        upper_perimeter = SurfacePerimeter(self.cross_sections[upper_section_index])
-        lower_perimeter = SurfacePerimeter(self.cross_sections[lower_section_index])
+        up = SurfacePerimeter(self.cross_sections[usi])
+        lp = SurfacePerimeter(self.cross_sections[lsi])
 
         # Linearly interpolate between cross-sectional perimeters
-        z = r * max(self.section_origins)
-        x = lower_perimeter(s).x + (z - self.section_origins[lower_section_index]) * (
-            upper_perimeter(s).x - lower_perimeter(s).x
-        ) / (
-            self.section_origins[upper_section_index]
-            - self.section_origins[lower_section_index]
-        )
-        y = lower_perimeter(s).y + (z - self.section_origins[lower_section_index]) * (
-            upper_perimeter(s).y - lower_perimeter(s).y
-        ) / (
-            self.section_origins[upper_section_index]
-            - self.section_origins[lower_section_index]
-        )
+        dist = r * max(self.section_origins)
+        sweep_ax = {self._sweep_axis: dist}
+        other_ax = {
+            a: getattr(lp(s), a)
+            + (dist - self.section_origins[lsi])
+            * (getattr(up(s), a) - getattr(lp(s), a))
+            / (self.section_origins[usi] - self.section_origins[lsi])
+            for a in self._other_axes
+        }
+        v3_args = sweep_ax | other_ax
 
-        return Vector3(x=x, y=y, z=z)
+        return Vector3(**v3_args)
 
 
 class RotatedPatch(ParametricSurface):
