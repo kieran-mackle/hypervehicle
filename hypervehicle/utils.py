@@ -729,26 +729,15 @@ class SweptPatch(ParametricSurface):
     Parameters
     -----------
     cross_sections : list
-        A list containing the cross sections to be blended.
-    section_origins : list
-        A list containing the locations of the cross sections.
+        A list containing the cross sections to be blended. These must
+        be defined in the x-y plane.
     """
 
-    __slots__ = ["cross_sections", "section_origins"]
+    __slots__ = ["cross_sections"]
 
-    def __init__(self, cross_sections: list, section_origins: list) -> None:
-
-        if len(cross_sections) != len(section_origins):
-            raise Exception(
-                "Dimension mismatch between cross sections and "
-                + "cross section origins."
-            )
-
-        # Sort cross sections by axial location
-
-        # Save
+    def __init__(self, cross_sections: list) -> None:
         self.cross_sections = cross_sections
-        self.section_origins = section_origins
+        self.section_origins = [cs(0, 0).z for cs in cross_sections]
 
     def __repr__(self):
         return "Swept Patch"
