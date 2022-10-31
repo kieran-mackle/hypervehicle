@@ -1283,3 +1283,40 @@ def append_sensitivities_to_tri(
 
     # Save to file
     tree.write(components_filepath)
+
+
+class SurfacePerimeter(Path):
+    """Returns a path corresponding to the perimiter of an underlying
+    surface."""
+
+    __slots__ = ["underlying_surf"]
+
+    def __init__(self, underlying_surf: ParametricSurface) -> None:
+        self.underlying_surf = underlying_surf
+
+    def __repr__(self):
+        return "Surface Perimeter Path"
+
+    def __call__(self, t) -> Vector3:
+        """Returns the point on the perimeter."""
+        f = 0.25
+        rem = t % f
+
+        # Calculate r,s along perimeter
+        if t < 0.25:
+            r = round(rem / f, 8)
+            s = 0.0
+        elif t < 0.5:
+            r = 1.0
+            s = round(rem / f, 8)
+        elif t < 0.75:
+            r = round(1 - rem / f, 8)
+            s = 1.0
+        elif t < 1:
+            r = 0.0
+            s = round(1 - rem / f, 8)
+        else:
+            r = 0.0
+            s = 0.0
+
+        return self.underlying_surf(r, s)
