@@ -425,6 +425,8 @@ class Vehicle:
         R3: float = None,
         X4: float = None,
         revolve_line=None,
+        cross_sections: list = None,
+        sweep_axis: str = "z",
         nose_type: str = "sharp-cone",
         tail_type: str = "flat",
         x_curve_func=None,
@@ -456,6 +458,11 @@ class Vehicle:
             The radius of the fuselage at X3.
         revolve_line : Line|PolyLine|Bezier
             A line to be revolved about the primary axis.
+        cross_sections : list, optional
+            A list of cross-sectional patches to sweep through.
+        sweep_axis : str, optional
+            The axis to sweep the cross sections through. The default
+            is z.
         nose_type: str, optional
             The fuselage nose type. The default is 'sharp-cone'.
         tail_type: str, optional
@@ -485,6 +492,8 @@ class Vehicle:
             "R2": R2,
             "R3": R3,
             "revolve_line": revolve_line,
+            "cross_sections": cross_sections,
+            "sweep_axis": sweep_axis,
             "FUSELAGE_FUNC_CURV_X": x_curve_func,
             "FUSELAGE_FUNC_CURV_X_DASH": x_dash_func,
             "FUSELAGE_FUNC_CURV_Y": y_curve_func,

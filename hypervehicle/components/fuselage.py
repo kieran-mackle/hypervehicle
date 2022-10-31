@@ -8,6 +8,7 @@ from hypervehicle.utils import (
     RotatedPatch,
     OffsetPatchFunction,
     RevolvedPatch,
+    SweptPatch,
 )
 
 
@@ -65,6 +66,17 @@ def hyper_fuselage_main(fuselage_geometries: list, verbosity: int = 1) -> list:
                         patch_dict[f"revolved_fuse_{i}"] = RevolvedPatch(
                             revolve_line, i * np.pi / 2, (i + 1) * np.pi / 2
                         )
+
+                elif fuselage_geometry["cross_sections"] is not None:
+                    # Create swept fuselage from cross sections
+                    p = SweptPatch(
+                        fuselage_geometry["cross_sections"],
+                        sweep_axis=fuselage_geometry["sweep_axis"],
+                    )
+
+                    patch_dict["swept_fuse"] = p
+                    patch_dict["fuse_end_0"] = fuselage_geometry["cross_sections"][0]
+                    patch_dict["fuse_end_1"] = fuselage_geometry["cross_sections"][-1]
 
                 else:
                     # Legacy fuselage construction
@@ -253,9 +265,3 @@ def hyper_fuselage_main(fuselage_geometries: list, verbosity: int = 1) -> list:
                 patches.append(patch_dict)
 
     return patches
-
-
-def swept_fuselage():
-    """Creates a surface by sweeping through a series of cross
-    sections."""
-    pass
