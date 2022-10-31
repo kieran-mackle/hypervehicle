@@ -36,11 +36,6 @@ This page is a showcase of vehicle geometries possible using *hypervehicle*.
 ![HTV Flaps](images/htv_flaps.png)
 
 
-## Generic Rocket
-
-![Rocket](images/rocket.png)
-
-
 ## [SpaceX Falcon9](https://www.spacex.com/vehicles/falcon-9/)
 
 ![Falcon9](images/falcon9.png)
