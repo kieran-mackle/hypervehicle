@@ -3,8 +3,7 @@
 A suite of tools to rapidly generate parametric geometry for hypersonic vehicles. Check out the [hypervehicle hangar](docs/hangar.md)
 for some examples.
 
-![x43](https://user-images.githubusercontent.com/60687606/168926371-a383434b-3ea5-40ab-989a-93f7a8d7b4ff.png)
-
+[![x43](https://user-images.githubusercontent.com/60687606/168926371-a383434b-3ea5-40ab-989a-93f7a8d7b4ff.png)](docs/hangar.md)
 
 ## Getting Started
 
