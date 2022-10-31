@@ -756,10 +756,31 @@ class SweptPatch(ParametricSurface):
     def __call__(self, r, s) -> Vector3:
 
         # Linearly interpolate r and s between the two bounding sections
+        upper_section_index = next(
+            x[0]
+            for x in enumerate(self.section_origins)
+            if x[1] >= r * max(self.section_origins)
+        )
+        lower_section_index = upper_section_index - 1
 
-        x = 0.0
-        y = 0.0
-        z = 0.0
+        # Create perimeter paths
+        upper_perimeter = SurfacePerimeter(self.cross_sections[upper_section_index])
+        lower_perimeter = SurfacePerimeter(self.cross_sections[lower_section_index])
+
+        # Linearly interpolate between cross-sectional perimeters
+        z = r * max(self.section_origins)
+        x = lower_perimeter(s).x + (z - self.section_origins[lower_section_index]) * (
+            upper_perimeter(s).x - lower_perimeter(s).x
+        ) / (
+            self.section_origins[upper_section_index]
+            - self.section_origins[lower_section_index]
+        )
+        y = lower_perimeter(s).y + (z - self.section_origins[lower_section_index]) * (
+            upper_perimeter(s).y - lower_perimeter(s).y
+        ) / (
+            self.section_origins[upper_section_index]
+            - self.section_origins[lower_section_index]
+        )
 
         return Vector3(x=x, y=y, z=z)
 
