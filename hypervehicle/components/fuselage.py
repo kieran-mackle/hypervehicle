@@ -75,8 +75,12 @@ def hyper_fuselage_main(fuselage_geometries: list, verbosity: int = 1) -> list:
                     )
 
                     patch_dict["swept_fuse"] = p
-                    patch_dict["fuse_end_0"] = fuselage_geometry["cross_sections"][0]
-                    patch_dict["fuse_end_1"] = fuselage_geometry["cross_sections"][-1]
+                    patch_dict["swept_fuse_end_0"] = fuselage_geometry[
+                        "cross_sections"
+                    ][0]
+                    patch_dict["swept_fuse_end_1"] = fuselage_geometry[
+                        "cross_sections"
+                    ][-1]
 
                 else:
                     # Legacy fuselage construction

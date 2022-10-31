@@ -500,6 +500,7 @@ class Vehicle:
             "FUSELAGE_FUNC_CURV_Y_DASH": y_dash_func,
             "OFFSET": offset,
         }
+
         self.add_component("fuselage", fuselage, stl_resolution)
 
     def add_global_config(self, global_config: dict) -> None:
@@ -797,7 +798,14 @@ class Vehicle:
                 else self.stl_resolution
             )
             for key, item in fuse_patch_dict.items():
-                fuse_stl_mesh_list.append(parametricSurfce2stl(item, resolution))
+                # Correct STL resolutions
+                if "swept" in key:
+                    res = (
+                        int(resolution / 4) if "end" in key else int(resolution / 4) * 4
+                    )
+                else:
+                    res = resolution
+                fuse_stl_mesh_list.append(parametricSurfce2stl(item, res))
 
             self.surfaces["fuselage"].append(fuse_stl_mesh_list)
 
