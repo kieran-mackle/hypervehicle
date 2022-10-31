@@ -798,14 +798,19 @@ class Vehicle:
                 else self.stl_resolution
             )
             for key, item in fuse_patch_dict.items():
-                # Correct STL resolutions
+                flip = False
+
+                # Correct STL resolutions and flip
                 if "swept" in key:
                     res = (
                         int(resolution / 4) if "end" in key else int(resolution / 4) * 4
                     )
+                    flip = True if "1" in key else False
                 else:
                     res = resolution
-                fuse_stl_mesh_list.append(parametricSurfce2stl(item, res))
+                fuse_stl_mesh_list.append(
+                    parametricSurfce2stl(item, res, flip_faces=flip)
+                )
 
             self.surfaces["fuselage"].append(fuse_stl_mesh_list)
 
