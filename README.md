@@ -22,7 +22,7 @@ git config core.sparseCheckout true
 echo "src/lib/" >> .git/info/sparse-checkout
 git pull origin master
 cd src/lib
-pip install -e ./
+python3 -m pip install -e ./
 cd ../../../
 ```
 
