@@ -7,6 +7,12 @@ for some examples.
 
 ## Getting Started
 
+### Working in a dedicated environment
+It is *very* recommended that you work in a dedicated environment. This is especially important when running simulations
+on UQ's HPC's, which may not have the latest version of Python. To avoid any conflicts, [Anaconda](https://www.anaconda.com/)
+is recommended, with a Python3.9 environment.
+
+
 ### Dependencies
 Hypervehicle relies on the [Eilmer](https://github.com/gdtk-uq/gdtk) geometry 
 package. Note that a full Eilmer install is not required. Instead, do a 
