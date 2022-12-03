@@ -23,6 +23,7 @@ Vehicle Hangar <hangar>
 
 Getting Started <getting-started>
 Component Definitions <components>
+Sensitivities <sensitivity>
 Example Walkthrough <example>
 API Reference <apiref/reference>
 ```
