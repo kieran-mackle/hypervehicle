@@ -2,5 +2,5 @@
 *egg-info/
 __pycache__/
 .coverage
-docs/_build/
+docs/build/
 testing*
