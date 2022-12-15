@@ -4,6 +4,8 @@ The *hypervehicle* tool also features the generation of
 geometry sensitivities via method of finite differences.
 This page outlines how to use this capability.
 
+![geom](../images/sensitivity/geom.gif)
+
 
 ## Theory
 
@@ -31,7 +33,6 @@ supplied, along with the parameters to be varied.
 
 First create the nominal geometry. 
 
-![Untitled](https://s3-us-west-2.amazonaws.com/secure.notion-static.com/e01ae111-46f9-4a0e-8f8f-59442eabbb8e/Untitled.png)
 
 
 
@@ -116,3 +117,6 @@ select Table to Points (set x, y and z columns before applying),
 then Delaunay 3D filter.
 
 
+![Sensitivity](../images/sensitivity/d_chord.png)
+![Sensitivity](../images/sensitivity/d_thickness.png)
+![Sensitivity](../images/sensitivity/d_wingspan.png)

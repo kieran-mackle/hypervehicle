@@ -1,10 +1,8 @@
-# Home of *hypervehicle* documentation
+# hypervehicle documentation
 
 [Getting Started](getting-started)
 
-[API Reference](apiref/reference)
-
-[Example](example)
+[Example](examples/x43)
 
 
 ```{toctree}
@@ -22,9 +20,30 @@ Vehicle Hangar <hangar>
 :caption: DOCUMENTATION
 
 Getting Started <getting-started>
-Component Definitions <components>
-Sensitivities <sensitivity>
-Example Walkthrough <example>
-API Reference <apiref/reference>
+Component Definitions <documentation/components>
+Sensitivities <documentation/sensitivity>
+Example Walkthrough <examples/x43>
 ```
+
+
+```{toctree}
+:maxdepth: 2
+:hidden:
+:caption: TUTORIALS
+
+Sharp Wedge <examples/wedge>
+NASA X-43A <examples/x43>
+```
+
+
+
+```{toctree}
+:maxdepth: 2
+:hidden:
+:caption: API REFERENCE
+
+Vehicle class <apiref/vehicle>
+Polygon formation class <apiref/polygon>
+```
+
 
