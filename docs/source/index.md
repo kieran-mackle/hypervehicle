@@ -22,7 +22,6 @@ Vehicle Hangar <hangar>
 Getting Started <getting-started>
 Component Definitions <documentation/components>
 Sensitivities <documentation/sensitivity>
-Example Walkthrough <examples/x43>
 ```
 
 
@@ -33,6 +32,7 @@ Example Walkthrough <examples/x43>
 
 Sharp Wedge <examples/wedge>
 NASA X-43A <examples/x43>
+Parameter Sensitivities <examples/sensitivity>
 ```
 
 
@@ -44,6 +44,7 @@ NASA X-43A <examples/x43>
 
 Vehicle class <apiref/vehicle>
 Polygon formation class <apiref/polygon>
+Changelog <apiref/changelog>
 ```
 
 

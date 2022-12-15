@@ -22,4 +22,4 @@ python3 -m pytest tests/
 
 
 ## Example
-See an example of using **hypervehicle** [here](example).
+See an example of using *hypervehicle* [here](examples/x43.md).
