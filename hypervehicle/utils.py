@@ -1174,23 +1174,50 @@ class SensitivityStudy:
         # Return output
         self.sensitivities = sensitivities
 
+        # TODO - option to combine all sensitivities (new method)
+
         return sensitivities
 
     @staticmethod
     def compare_meshes(
         mesh1, mesh2, dP, component: str, parameter_name: str, save_csv: bool = False
-    ):
+    ) -> pd.DataFrame:
+        """Compares two meshes with each other and applies finite differencing
+        to quantify their differences.
+
+        Parameters
+        ----------
+        mesh1 : None
+            The reference mesh.
+        mesh1 : None
+            The perturbed mesh.
+        dP : None
+        component : str
+            The component name.
+        parameter_name : str
+            The name of the parameter.
+        save_csv : bool, optional
+            Write the differences to a CSV file. The default is True.
+
+        Returns
+        --------
+        df : pd.DataFrame
+            A DataFrame of the finite difference results.
+        """
+        # Take the vector difference
         diff = mesh2.vectors - mesh1.vectors
 
-        # Resize difference array
+        # Resize difference array to flatten
         shape = diff.shape
         flat_diff = diff.reshape((shape[0] * shape[2], shape[1]))
+
+        # Also flatten the reference mesh vectors
         vectors = mesh1.vectors.reshape((shape[0] * shape[2], shape[1]))
 
-        # Concatenate all data
+        # Concatenate all data column-wise
         all_data = np.zeros((shape[0] * shape[2], shape[1] * 2))
-        all_data[:, 0:3] = vectors
-        all_data[:, 3:6] = flat_diff
+        all_data[:, 0:3] = vectors  # Reference locations
+        all_data[:, 3:6] = flat_diff  # Location deltas
 
         # Create DataFrame
         df = pd.DataFrame(data=all_data, columns=["x", "y", "z", "dx", "dy", "dz"])
