@@ -1,6 +1,7 @@
 
 # HYPERVEHICLE: Parametric Vehicle Geometry Generation
-A suite of tools to rapidly generate parametric geometry for hypersonic vehicles. Check out the [hypervehicle hangar](docs/hangar.md)
+A suite of tools to rapidly generate parametric geometry for hypersonic vehicles. 
+Check out the [hypervehicle hangar](docs/source/hangar.md)
 for some examples.
 
 [![x43](https://user-images.githubusercontent.com/60687606/168926371-a383434b-3ea5-40ab-989a-93f7a8d7b4ff.png)](docs/hangar.md)
@@ -8,9 +9,11 @@ for some examples.
 ## Getting Started
 
 ### Working in a dedicated environment
-It is *very* recommended that you work in a dedicated environment. This is especially important when running simulations
-on UQ's HPC's, which may not have the latest version of Python. To avoid any conflicts, [Anaconda](https://www.anaconda.com/)
-is recommended, with a Python3.9 environment.
+It is *very* recommended that you work in a dedicated environment. This 
+is especially important when running simulations on UQ's HPC's, which may 
+not have the latest version of Python. To avoid any conflicts, 
+[Anaconda](https://www.anaconda.com/) is recommended, with a Python3.9 
+environment.
 
 
 ### Dependencies
@@ -65,7 +68,8 @@ xdg-open _build/html/index.html
 
 
 ## Example Vehicle Generation
-Please see the [example geometry generation](docs/example.md) to generate a mockup of the X-43A, shown above.
+Please see the [example geometry generation](docs/source/example.md) to generate 
+a mockup of the X-43A, shown above.
 
 
 
