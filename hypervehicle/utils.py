@@ -1,3 +1,6 @@
+import os
+import sys
+import glob
 import numpy as np
 import pandas as pd
 from stl import mesh
@@ -1371,3 +1374,50 @@ class SurfacePerimeter(Path):
             s = 0.0
 
         return self.underlying_surf(r, s)
+
+
+def csv_to_delaunay(filepath: str):
+    """Converts a csv file of points to a Delaunay3D surface.
+
+    Parameters
+    ------------
+    filepath : str
+            The filepath to the CSV file.
+    """
+    # TODO - rename
+    from paraview.simple import CSVReader, TableToPoints, Delaunay3D, SaveData
+
+    root_dir = os.path.dirname(filepath)
+    prefix = filepath.split(os.sep)[-1].split(".csv")[0]
+    savefilename = os.path.join(root_dir, f"{prefix}.vtu")
+
+    # create a new 'CSV Reader'
+    fin_0_L_b_sensitivitycsv = CSVReader(FileName=[filepath])
+
+    # create a new 'Table To Points'
+    tableToPoints1 = TableToPoints(Input=fin_0_L_b_sensitivitycsv)
+
+    # Properties modified on tableToPoints1
+    tableToPoints1.XColumn = "x"
+    tableToPoints1.YColumn = "y"
+    tableToPoints1.ZColumn = "z"
+
+    # create a new 'Delaunay 3D'
+    delaunay3D1 = Delaunay3D(Input=tableToPoints1)
+
+    # save data
+    SaveData(savefilename, proxy=delaunay3D1)
+
+
+def convert_all_csv_to_delaunay(directory: str = ""):
+    # TODO - rename
+    # TODO - docstrings
+    # TODO - specify outdir
+    files = glob.glob(os.path.join(directory, "*.csv"))
+
+    if len(files) == 0:
+        print(f"No CSV files in directory {directory}.")
+        sys.exit()
+
+    for file in files:
+        csv_to_delaunay(file)
