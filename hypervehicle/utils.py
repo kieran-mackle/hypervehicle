@@ -9,6 +9,8 @@ from gdtk.geom.vector3 import Vector3
 from gdtk.geom.path import Line, Path, ArcLengthParameterizedPath
 from gdtk.geom.surface import CoonsPatch, ParametricSurface
 
+import time
+
 
 class SubRangedPath(Path):
     """
@@ -533,63 +535,60 @@ def parametricSurfce2stl(
             "Please define STL resolution, either component-wise, or for "
             + "the entire vehicle."
         )
+
     # create list of vertices
     r_list = np.linspace(0.0, 1.0, triangles_per_edge + 1)
     s_list = np.linspace(0.0, 1.0, triangles_per_edge + 1)
+
+    y_mult = -1 if mirror_y else 1
+    index = (triangles_per_edge + 1) ** 2
+
     # create vertices for corner points of each quad cell
-    vertices = np.zeros(((triangles_per_edge + 1) ** 2 + triangles_per_edge**2, 3))
+    vertices = np.empty(((triangles_per_edge + 1) ** 2 + triangles_per_edge**2, 3))
     for i, r in enumerate(r_list):
         for j, s in enumerate(s_list):
+            p1 = time.time()
             pos = parametric_surface(r, s)
-            if mirror_y == False:
-                vertices[j * (triangles_per_edge + 1) + i] = [pos.x, pos.y, pos.z]
-            else:
-                vertices[j * (triangles_per_edge + 1) + i] = [pos.x, -pos.y, pos.z]
-    # create vertices for centre point of each quad cell, which is used to split
-    # each cell into 4x triangles
-    index = (triangles_per_edge + 1) ** 2
-    for i in range(triangles_per_edge):
-        for j in range(triangles_per_edge):
-            if re_evaluate_centroid is True:
-                r = 0.5 * (r_list[i] + r_list[i + 1])
-                r = 0.5 * (s_list[i] + s_list[i + 1])
-                pos = parametric_surface(r, s)
-                if mirror_y == False:
-                    vertices[index + (j * triangles_per_edge + i)] = [
-                        pos.x,
-                        pos.y,
-                        pos.z,
-                    ]
+
+            vertices[j * (triangles_per_edge + 1) + i] = np.array(
+                [pos.x, y_mult * pos.y, pos.z]
+            )
+
+            # create vertices for centre point of each quad cell,
+            # which is used to split each cell into 4x triangles
+            try:
+                if re_evaluate_centroid is True:
+                    r = 0.5 * (r_list[i] + r_list[i + 1])
+                    r = 0.5 * (s_list[i] + s_list[i + 1])
+                    pos = parametric_surface(r, s)
+                    pos_x = pos.x
+                    pos_y = pos.y
+                    pos_z = pos.z
+
                 else:
-                    vertices[index + (j * triangles_per_edge + i)] = [
-                        pos.x,
-                        -pos.y,
-                        pos.z,
-                    ]
-            else:
-                r0 = r_list[i]
-                r1 = r_list[i + 1]
-                s0 = s_list[j]
-                s1 = s_list[j + 1]
-                pos00 = parametric_surface(r0, s0)
-                pos10 = parametric_surface(r1, s0)
-                pos01 = parametric_surface(r0, s1)
-                pos11 = parametric_surface(r1, s1)
-                pos_x = 0.25 * (pos00.x + pos10.x + pos01.x + pos11.x)
-                pos_y = 0.25 * (pos00.y + pos10.y + pos01.y + pos11.y)
-                pos_z = 0.25 * (pos00.z + pos10.z + pos01.z + pos11.z)
-                if mirror_y == False:
-                    vertices[index + (j * triangles_per_edge + i)] = [
+                    r0 = r_list[i]
+                    r1 = r_list[i + 1]
+                    s0 = s_list[j]
+                    s1 = s_list[j + 1]
+
+                    pos00 = parametric_surface(r0, s0)
+                    pos10 = parametric_surface(r1, s0)
+                    pos01 = parametric_surface(r0, s1)
+                    pos11 = parametric_surface(r1, s1)
+
+                    pos_x = 0.25 * (pos00.x + pos10.x + pos01.x + pos11.x)
+                    pos_y = 0.25 * (pos00.y + pos10.y + pos01.y + pos11.y)
+                    pos_z = 0.25 * (pos00.z + pos10.z + pos01.z + pos11.z)
+
+                vertices[index + (j * triangles_per_edge + i)] = np.array(
+                    [
                         pos_x,
-                        pos_y,
+                        y_mult * pos_y,
                         pos_z,
                     ]
-                else:
-                    vertices[index + (j * triangles_per_edge + i)] = [
-                        pos_x,
-                        -pos_y,
-                        pos_z,
-                    ]
+                )
+            except:
+                pass
 
     # Create list of faces
     faces = []  # np.zeros((triangles_per_edge**2*4, 3))
@@ -613,11 +612,13 @@ def parametricSurfce2stl(
                 faces.append([p01, p00, pzz])
 
     faces = np.array(faces)
+
     # create the mesh object
     stl_mesh = mesh.Mesh(np.zeros(faces.shape[0], dtype=mesh.Mesh.dtype))
     for i, f in enumerate(faces):
         for j in range(3):
             stl_mesh.vectors[i][j] = vertices[f[j], :]
+
     return stl_mesh
 
 
@@ -753,15 +754,16 @@ class SweptPatch(ParametricSurface):
                 "There is no axial variation in the cross " + "sections provided!"
             )
 
+        self.perimeters = [SurfacePerimeter(s) for s in cross_sections]
+        self.min_origin = min(self.section_origins)
+        self.origin_dist = max(self.section_origins) - self.min_origin
+
     def __repr__(self):
         return "Swept Patch"
 
     def __call__(self, r, s) -> Vector3:
-
         # Calculate physical axial distance
-        dist = min(self.section_origins) + r * (
-            max(self.section_origins) - min(self.section_origins)
-        )
+        dist = self.min_origin + r * self.origin_dist
 
         # Find index of bounding cross sections
         for i, lv in enumerate(self.section_origins):
@@ -770,25 +772,24 @@ class SweptPatch(ParametricSurface):
                 break
             elif lv <= dist < self.section_origins[i + 1]:
                 break
-        lsi = i
-        usi = i + 1
 
-        # Create perimeter paths
-        up = SurfacePerimeter(self.cross_sections[usi])
-        lp = SurfacePerimeter(self.cross_sections[lsi])
+        # Get upper and lower perimeter
+        lps = self.perimeters[i](s)
+        ups = self.perimeters[i + 1](s)
+
+        # Get upper and lower bounding sections
+        ls = self.section_origins[i]
+        us = self.section_origins[i + 1]
 
         # Linearly interpolate between cross-sectional perimeters
-        sweep_ax = {self._sweep_axis: dist}
-        other_ax = {
-            a: getattr(lp(s), a)
-            + (dist - self.section_origins[lsi])
-            * (getattr(up(s), a) - getattr(lp(s), a))
-            / (self.section_origins[usi] - self.section_origins[lsi])
+        args = {
+            a: getattr(lps, a)
+            + (dist - ls) * (getattr(ups, a) - getattr(lps, a)) / (us - ls)
             for a in self._other_axes
         }
-        v3_args = sweep_ax | other_ax
+        args[self._sweep_axis] = dist
 
-        return Vector3(**v3_args)
+        return Vector3(**args)
 
 
 class RotatedPatch(ParametricSurface):
