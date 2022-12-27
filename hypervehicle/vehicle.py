@@ -19,15 +19,26 @@ class Vehicle:
         self.vehicle_angle_offset: float = 0
         self.transformations = []
         self._generated = False
+        self.verbosity = 1
 
         # TODO - call self.configure with kwargs
 
     def __repr__(self):
-        return f"Parameterised {self.name}"
+        # TODO - count how many hypervehicle.components.constants
+        return self.__str__()
 
-    def configure(self):
+    def __str__(self) -> str:
+        vstr = f"Parameterised {self.name}"
+        if len(self.components) > 0:
+            vstr += f" with {len(self.components)} components"
+        return vstr
+
+    def configure(self, name: str = None, verbosity: int = 1):
         """Configure the Vehicle instance."""
-        pass
+        if name is not None:
+            self.name = name
+
+        self.verbosity = verbosity
 
     def add_component(self, component: Component) -> None:
         self.components.append(component)

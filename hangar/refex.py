@@ -1,17 +1,18 @@
 import numpy as np
-from hypervehicle import Vehicle, geometry
-from gdtk.geom.vector3 import Vector3
-from gdtk.geom.path import Bezier, Line, Polyline, Arc
+from hypervehicle import Vehicle
+from hypervehicle.geometry import Vector3, Bezier, Line, Polyline, Arc
+
+from hypervehicle.components import Wing, Fuselage, Fin
 
 
 refex = Vehicle()
 refex.configure(
     name="DLR ReFEX",
     verbosity=1,
-    write_stl=True,
-    stl_filename="refex",
-    mirror_fins=False,
-    cart3d=True,
+    # write_stl=True,
+    # stl_filename="refex",
+    # mirror_fins=False,
+    # cart3d=True,
 )
 
 # Inputs
@@ -52,7 +53,9 @@ fb_line = Line(fb0, fb1)
 
 # Nose component
 fairing = Polyline([nose_arc, ogive_arc, fairing_line, fb_line])
-refex.add_fuselage(revolve_line=fairing, stl_resolution=50)
+fairing_fuse = Fuselage.legacy(revolve_line=fairing, stl_resolution=50)
+refex.add_component(fairing_fuse)
+# refex.add_fuselage(revolve_line=fairing, stl_resolution=50)
 
 # Vehicle body
 b00 = Vector3(0, 0)
@@ -65,7 +68,9 @@ bb1 = Vector3(bb0.x, 0)  # Body base axis point
 base_line = Line(bb0, bb1)
 
 body_line = Polyline([body_cap_line, body_top_line, base_line])
-refex.add_fuselage(revolve_line=body_line, stl_resolution=50)
+body_fuse = Fuselage.legacy(revolve_line=body_line, stl_resolution=50)
+refex.add_component(body_fuse)
+# refex.add_fuselage(revolve_line=body_line, stl_resolution=50)
 
 # Cannards
 #   p1-----p2
@@ -105,7 +110,7 @@ def leading_edge_width_function(r):
 # Add canards
 for i in range(2):
     angle = np.deg2rad((i / 2) * 360)
-    refex.add_fin(
+    fin = Fin.legacy(
         p0=p0,
         p1=p1,
         p2=p2,
@@ -114,13 +119,14 @@ for i in range(2):
         fin_angle=angle,
         top_thickness_function=fin_thickness_function_top,
         bot_thickness_function=fin_thickness_function_bot,
-        leading_edge_width_function=leading_edge_width_function,
+        LE_func=leading_edge_width_function,
         pivot_angle=np.deg2rad(canard_angle),
         pivot_point=pivot_point,
         rudder_type="sharp",
         rudder_length=fin_thickness,
-        stl_resolution=5,
+        stl_resolution=3,
     )
+    refex.add_component(fin)
 
 # Wings
 wing_thickness = 2 * fin_thickness
@@ -148,8 +154,7 @@ def wing2_tf_top(x, y, z=0):
 def wing2_tf_bot(x, y, z=0):
     return Vector3(x=0, y=0, z=h)
 
-
-refex.add_wing(
+wing = Wing.legacy(
     A0=A0,
     A1=A1,
     TT=TT,
@@ -159,8 +164,10 @@ refex.add_wing(
     bot_tf=wing2_tf_bot,
     LE_wf=leading_edge_width_function,
     flap_length=flap_length,
-    stl_resolution=5,
+    stl_resolution=3,
 )
+# add wing
+refex.add_component(wing)
 
 # Tail rudder/fin
 tail_height = 4
@@ -184,7 +191,7 @@ def tail_thickness_function_bot(x, y, z=0):
 
 
 # Add tail fin
-refex.add_fin(
+tail = Fin.legacy(
     p0=t0,
     p1=t1,
     p2=t2,
@@ -193,11 +200,17 @@ refex.add_fin(
     fin_angle=np.deg2rad(-90),
     top_thickness_function=tail_thickness_function_top,
     bot_thickness_function=tail_thickness_function_bot,
-    leading_edge_width_function=leading_edge_width_function,
+    LE_func=leading_edge_width_function,
     rudder_type="sharp",
     rudder_length=rudder_length,
     stl_resolution=3,
 )
+refex.add_component(tail)
 
-# Generate STLs
+
+# Generate Vehicle
 refex.generate()
+
+for i, component in enumerate(refex.components):
+    # Need to specify stl res for each component
+    component.to_stl(outfile=f"{i}.stl")

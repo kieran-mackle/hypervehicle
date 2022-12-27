@@ -96,6 +96,12 @@ class Component(AbstractComponent):
         self.stl_resolution = 3
         self.stl_filename = "test"
 
+        # TODO - tidy the below
+        self.x_curv_func = None
+        self.x_curv_func_dash = None
+        self.y_curv_func = None
+        self.y_curv_func_dash = None
+
     def __repr__(self):
         return f"{self.componenttype} component"
 
@@ -103,38 +109,30 @@ class Component(AbstractComponent):
         return f"{self.componenttype} component"
 
     def curve(self):
+
+        # TODO - generalise curvature, similar to transformations,
+        # with stacked functions and axes
+
         # Curvature about the x-axis
-        if (
-            self.params["FUNC_CURV_X"] is None
-            and self.params["FUNC_CURV_X_DASH"] is None
-        ):
-            if self.verbosity > 0:
-                print("    Skipping wing X-curvature.")
-        else:
-            # (a) Longitudal Curvature
-            for key in self.patches:
+        if self.x_curv_func is not None:
+            # Longitudal Curvature
+            for key, patch in self.patches.items():
                 self.patches[key] = CurvedPatch(
-                    underlying_surf=self.patches[key],
+                    underlying_surf=patch,
                     direction="x",
-                    fun=self.params["FUNC_CURV_X"],
-                    fun_dash=self.params["FUNC_CURV_X_DASH"],
+                    fun=self.x_curv_func,
+                    fun_dash=self.x_curv_func_dash,
                 )
 
         # Curvature about the y-axis
-        if (
-            self.params["FUNC_CURV_Y"] is None
-            and self.params["FUNC_CURV_Y_DASH"] is None
-        ):
-            if self.verbosity > 0:
-                print("    Skipping wing Y-curvature.")
-        else:
-            # (b) Spanwise Curvature
-            for key in self.patches:
+        if self.y_curv_func is not None:
+            # Spanwise Curvature
+            for key, patch in self.patches.items():
                 self.patches[key] = CurvedPatch(
-                    underlying_surf=self.patches[key],
+                    underlying_surf=patch,
                     direction="y",
-                    fun=self.params["FUNC_CURV_Y"],
-                    fun_dash=self.params["FUNC_CURV_Y_DASH"],
+                    fun=self.y_curv_func,
+                    fun_dash=self.y_curv_func_dash,
                 )
 
     def rotate(self, angle: float = 0, axis: str = "y"):
