@@ -4,8 +4,8 @@ from gdtk.geom.path import Line, Path, ArcLengthParameterizedPath
 from gdtk.geom.surface import CoonsPatch, ParametricSurface
 
 # Import gdtk geometry objects to namespace
-from gdtk.geom.path import Bezier, Line, Polyline
 from gdtk.geom.vector3 import Vector3
+from gdtk.geom.path import Bezier, Line, Polyline, Arc
 
 
 class SubRangedPath(Path):
