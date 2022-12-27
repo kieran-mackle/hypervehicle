@@ -5,7 +5,7 @@ from scipy.optimize import bisect
 from gdtk.geom.vector3 import Vector3
 from gdtk.geom.surface import CoonsPatch
 
-from hypervehicle.utils import (
+from hypervehicle.geometry import (
     OffsetPatchFunction,
     SubRangedPath,
     ElipsePath,

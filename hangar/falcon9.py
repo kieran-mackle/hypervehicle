@@ -1,5 +1,5 @@
 import numpy as np
-from hypervehicle import Vehicle, utils
+from hypervehicle import Vehicle, geometry
 from gdtk.geom.vector3 import Vector3
 from gdtk.geom.path import Bezier, Line, Polyline, Arc
 

@@ -13,7 +13,7 @@ from gdtk.geom.path import Polyline
 from gdtk.geom.vector3 import Vector3
 from gdtk.geom.sgrid import StructuredGrid
 from hypervehicle.components import poly_gen_main
-from hypervehicle.utils import (
+from hypervehicle.geometry import (
     parametricSurfce2stl,
     CurvedPatch,
     RotatedPatch,

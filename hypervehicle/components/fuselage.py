@@ -3,7 +3,7 @@ import numpy as np
 from gdtk.geom.vector3 import Vector3
 from gdtk.geom.path import Arc, Line
 from gdtk.geom.surface import CoonsPatch
-from hypervehicle.utils import (
+from hypervehicle.geometry import (
     ConePatch,
     RotatedPatch,
     OffsetPatchFunction,

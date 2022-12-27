@@ -2,7 +2,7 @@ import os
 import numpy as np
 from stl import Mesh
 from gdtk.geom.surface import CoonsPatch, Vector3
-from hypervehicle.utils import SweptPatch, parametricSurfce2stl
+from hypervehicle.geometry import SweptPatch, parametricSurfce2stl
 
 
 def test_sweep():
