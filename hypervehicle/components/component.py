@@ -72,6 +72,9 @@ class AbstractComponent(ABC):
         pass
 
 
+# TODO - add general attributes, such as curvature functions, etc
+
+
 class Component(AbstractComponent):
     def __init__(self, params: dict, verbosity: int = 1) -> None:
         # Set verbosity
@@ -132,10 +135,8 @@ class Component(AbstractComponent):
                 )
 
     def rotate(self, angle: float = 0, axis: str = "y"):
-        for key in self.patches:
-            self.patches[key] = RotatedPatch(
-                self.patches[key], np.deg2rad(angle), axis=axis
-            )
+        for key, patch in self.patches.items():
+            self.patches[key] = RotatedPatch(patch, np.deg2rad(angle), axis=axis)
 
     def reflect(self, axis: str = "y", append: bool = False):
 
