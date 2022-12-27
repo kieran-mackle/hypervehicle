@@ -1,10 +1,11 @@
 import numpy as np
 from scipy.optimize import bisect
 from gdtk.geom.vector3 import Vector3
-from gdtk.geom.path import Line, Polyline
 from gdtk.geom.surface import CoonsPatch
+from gdtk.geom.path import Line, Polyline, Bezier
 from hypervehicle.components.component import Component
 from hypervehicle.components.constants import FIN_COMPONENT
+from hypervehicle.components.common import leading_edge_width_function
 from hypervehicle.geometry import (
     OffsetPatchFunction,
     SubRangedPath,
@@ -358,3 +359,64 @@ class Fin(Component):
                 fin_patch_dict[patch] = OffsetPatchFunction(
                     fin_patch_dict[patch], self.params["offset_function"]
                 )
+
+    @classmethod
+    def legacy(
+        cls,
+        p0: Vector3,
+        p1: Vector3,
+        p2: Vector3,
+        p3: Vector3,
+        fin_thickness: float,
+        fin_angle: float,
+        top_thickness_function,
+        bot_thickness_function,
+        LE_func=None,
+        mirror: bool = False,
+        rudder_type: str = "flat",
+        rudder_length: float = 0,
+        rudder_angle: float = 0,
+        pivot_angle: float = 0,
+        pivot_point: Vector3 = Vector3(x=0, y=0),
+        offset_func=None,
+        stl_resolution: int = None,
+    ) -> None:
+        """Creates and appends a new fin to the vehicle.
+
+        Parameters
+        ----------
+        p0 : Vector3
+            Point p0 of the fin geometry.
+        p1 : Vector3
+            Point p1 of the fin geometry.
+        p2 : Vector3
+            Point p2 of the fin geometry.
+        p3 : Vector3
+            Point p3 of the fin geometry.
+        stl_resolution : int, optional
+            The stl resolution to use when creating the mesh for this
+            component. The default is None.
+        """
+        if LE_func is None:
+            # Use default LE function
+            LE_func = leading_edge_width_function
+
+        params = {
+            "p0": p0,
+            "p1": p1,
+            "p2": p2,
+            "p3": p3,
+            "FIN_THICKNESS": fin_thickness,
+            "FIN_ANGLE": fin_angle,
+            "FIN_TOP_THICKNESS_FUNC": top_thickness_function,
+            "FIN_BOTTOM_THICKNESS_FUNC": bot_thickness_function,
+            "FIN_LEADING_EDGE_FUNC": LE_func,
+            "MIRROR_NEW_COMPONENT": mirror,
+            "rudder_type": rudder_type,
+            "rudder_length": rudder_length,
+            "rudder_angle": rudder_angle,
+            "pivot_angle": pivot_angle,
+            "pivot_point": pivot_point,
+            "offset_function": offset_func,
+        }
+        return cls(params=params)

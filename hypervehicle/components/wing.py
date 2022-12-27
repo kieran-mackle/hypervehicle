@@ -1,10 +1,12 @@
 import numpy as np
-from gdtk.geom.path import Line
+from typing import Callable
 from scipy.optimize import bisect
 from gdtk.geom.vector3 import Vector3
 from gdtk.geom.surface import CoonsPatch
+from gdtk.geom.path import Line, Bezier, Polyline
 from hypervehicle.components.component import Component
 from hypervehicle.components.constants import WING_COMPONENT
+from hypervehicle.components.common import leading_edge_width_function
 from hypervehicle.geometry import (
     OffsetPatchFunction,
     SubRangedPath,
@@ -431,3 +433,63 @@ class Wing(Component):
         )
 
         self.patches["interior_flap_patch"] = interior_flap_patch
+
+    @classmethod
+    def legacy(
+        cls,
+        A0: Vector3 = Vector3(0, 0, 0),
+        A1: Vector3 = Vector3(0, 0, 0),
+        TT: Vector3 = Vector3(0, 0, 0),
+        B0: Vector3 = Vector3(0, 0, 0),
+        Line_B0TT: Polyline = None,
+        Line_B0TT_TYPE: str = "Bezier",
+        t_B1: float = None,
+        t_B2: float = None,
+        top_tf: Callable[[float, float, float], Vector3] = None,
+        bot_tf: Callable[[float, float, float], Vector3] = None,
+        LE_wf: Callable[[float], Vector3] = None,
+        LE_type: str = "custom",
+        tail_option: str = "FLAP",
+        flap_length: float = 0,
+        flap_angle: float = 0,
+        curve_x: Callable[[float, float, float], Vector3] = None,
+        curve_dx: Callable[[float, float, float], Vector3] = None,
+        curve_y: Callable[[float, float, float], Vector3] = None,
+        curve_dy: Callable[[float, float, float], Vector3] = None,
+        mirror: bool = True,
+        mirror_new_component: bool = False,
+        close_wing: bool = False,
+        stl_resolution: int = None,
+    ) -> None:
+        """Legacy method to replace Vehicle.add_wing."""
+        # Check if a LE function was provided
+        if LE_wf is None and LE_type == "custom":
+            # Assign
+            LE_wf = leading_edge_width_function
+
+        new_wing_params = {
+            "A0": A0,
+            "A1": A1,
+            "TT": TT,
+            "B0": B0,
+            "Line_B0TT": Line_B0TT,
+            "Line_B0TT_TYPE": Line_B0TT_TYPE,
+            "t_B1": t_B1,
+            "t_B2": t_B2,
+            "FUNC_TOP_THICKNESS": top_tf,
+            "FUNC_BOT_THICKNESS": bot_tf,
+            "FUNC_LEADING_EDGE_WIDTH": LE_wf,
+            "LE_TYPE": LE_type.upper(),
+            "TAIL_OPTION": tail_option,
+            "FLAP_LENGTH": flap_length,
+            "FLAP_ANGLE": flap_angle,
+            "WING_FUNC_CURV_X": curve_x,
+            "WING_FUNC_CURV_X_DASH": curve_dx,
+            "WING_FUNC_CURV_Y": curve_y,
+            "WING_FUNC_CURV_Y_DASH": curve_dy,
+            "MIRROR": mirror,
+            "MIRROR_NEW_COMPONENT": mirror_new_component,
+            "CLOSE_WING": close_wing,
+        }
+
+        return cls(params=new_wing_params)

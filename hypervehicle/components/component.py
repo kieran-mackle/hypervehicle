@@ -74,6 +74,9 @@ class AbstractComponent(ABC):
 
 # TODO - add general attributes, such as curvature functions, etc
 
+# TODO - need to document adding specs (curve, rotate, etc) to
+# individual components, handle implied stuff in Vehicle class
+
 
 class Component(AbstractComponent):
     def __init__(self, params: dict, verbosity: int = 1) -> None:
