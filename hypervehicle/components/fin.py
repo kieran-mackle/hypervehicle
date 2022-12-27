@@ -1,4 +1,3 @@
-#!/usr/bin/python3.8
 import numpy as np
 from scipy.optimize import bisect
 from gdtk.geom.vector3 import Vector3

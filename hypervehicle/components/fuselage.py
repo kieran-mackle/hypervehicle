@@ -1,4 +1,3 @@
-#!/usr/bin/python3.8
 import numpy as np
 from gdtk.geom.vector3 import Vector3
 from gdtk.geom.path import Arc, Line

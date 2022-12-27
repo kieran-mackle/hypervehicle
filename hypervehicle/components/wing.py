@@ -1,4 +1,3 @@
-#!/usr/bin/python3.8
 import numpy as np
 from gdtk.geom.path import Line
 from scipy.optimize import bisect
