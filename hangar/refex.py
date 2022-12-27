@@ -208,9 +208,9 @@ tail.stl_resolution = 3
 refex.add_component(tail)
 
 
-# Generate Vehicle
-refex.generate()
+# # Generate Vehicle
+# refex.generate()
 
-for i, component in enumerate(refex.components):
-    # Need to specify stl res for each component
-    component.to_stl(outfile=f"{i}.stl")
+# for i, component in enumerate(refex.components):
+#     # Need to specify stl res for each component
+#     component.to_stl(outfile=f"{i}.stl")

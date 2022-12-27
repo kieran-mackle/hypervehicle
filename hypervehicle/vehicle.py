@@ -1,5 +1,10 @@
 from typing import List, Tuple
 from hypervehicle.components.component import Component
+from hypervehicle.components.constants import (
+    FIN_COMPONENT,
+    WING_COMPONENT,
+    FUSELAGE_COMPONENT,
+)
 
 
 # TODO - what if the vehicle inherited from Component? That
@@ -10,6 +15,7 @@ from hypervehicle.components.component import Component
 
 class Vehicle:
     name = "vehicle"
+    ALLOWABLE_COMPONENTS = [FIN_COMPONENT, WING_COMPONENT, FUSELAGE_COMPONENT]
 
     def __init__(self, **kwargs) -> None:
         # Vehicle components
@@ -20,12 +26,14 @@ class Vehicle:
         self.transformations = []
         self._generated = False
         self.verbosity = 1
+        self._component_counts = {}
 
         # TODO - call self.configure with kwargs
 
     def __repr__(self):
-        # TODO - count how many hypervehicle.components.constants
-        return self.__str__()
+        basestr = self.__str__()
+        compstr = ", ".join([f"{e[1]} {e[0]}" for e in self._component_counts.items()])
+        return f"{basestr} ({compstr})"
 
     def __str__(self) -> str:
         vstr = f"Parameterised {self.name}"
@@ -41,7 +49,18 @@ class Vehicle:
         self.verbosity = verbosity
 
     def add_component(self, component: Component) -> None:
-        self.components.append(component)
+
+        if component.componenttype in Vehicle.ALLOWABLE_COMPONENTS:
+            # Add component
+            self.components.append(component)
+
+            # Add component count
+            self._component_counts[component.componenttype] = (
+                self._component_counts.get(component.componenttype, 0) + 1
+            )
+
+        else:
+            raise Exception(f"Unrecognised component type: {component.componenttype}")
 
     def generate(self):
         """Generate all components of the vehicle."""
