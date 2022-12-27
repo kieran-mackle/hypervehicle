@@ -1,3 +1,4 @@
+from __future__ import annotations
 import numpy as np
 from scipy.optimize import bisect
 from gdtk.geom.vector3 import Vector3
@@ -360,6 +361,9 @@ class Fin(Component):
                     fin_patch_dict[patch], self.params["offset_function"]
                 )
 
+        # Save patches
+        self.patches = fin_patch_dict
+
     @classmethod
     def legacy(
         cls,
@@ -380,7 +384,7 @@ class Fin(Component):
         pivot_point: Vector3 = Vector3(x=0, y=0),
         offset_func=None,
         stl_resolution: int = None,
-    ) -> None:
+    ) -> Fin:
         """Creates and appends a new fin to the vehicle.
 
         Parameters

@@ -53,9 +53,9 @@ fb_line = Line(fb0, fb1)
 
 # Nose component
 fairing = Polyline([nose_arc, ogive_arc, fairing_line, fb_line])
-fairing_fuse = Fuselage.legacy(revolve_line=fairing, stl_resolution=50)
+fairing_fuse = Fuselage.legacy(revolve_line=fairing)
+fairing_fuse.stl_resolution = 50
 refex.add_component(fairing_fuse)
-# refex.add_fuselage(revolve_line=fairing, stl_resolution=50)
 
 # Vehicle body
 b00 = Vector3(0, 0)
@@ -68,9 +68,9 @@ bb1 = Vector3(bb0.x, 0)  # Body base axis point
 base_line = Line(bb0, bb1)
 
 body_line = Polyline([body_cap_line, body_top_line, base_line])
-body_fuse = Fuselage.legacy(revolve_line=body_line, stl_resolution=50)
+body_fuse = Fuselage.legacy(revolve_line=body_line)
+body_fuse.stl_resolution = 50
 refex.add_component(body_fuse)
-# refex.add_fuselage(revolve_line=body_line, stl_resolution=50)
 
 # Cannards
 #   p1-----p2
@@ -124,8 +124,8 @@ for i in range(2):
         pivot_point=pivot_point,
         rudder_type="sharp",
         rudder_length=fin_thickness,
-        stl_resolution=3,
     )
+    fin.stl_resolution = 3
     refex.add_component(fin)
 
 # Wings
@@ -154,6 +154,7 @@ def wing2_tf_top(x, y, z=0):
 def wing2_tf_bot(x, y, z=0):
     return Vector3(x=0, y=0, z=h)
 
+
 wing = Wing.legacy(
     A0=A0,
     A1=A1,
@@ -164,9 +165,8 @@ wing = Wing.legacy(
     bot_tf=wing2_tf_bot,
     LE_wf=leading_edge_width_function,
     flap_length=flap_length,
-    stl_resolution=3,
 )
-# add wing
+wing.stl_resolution = 3
 refex.add_component(wing)
 
 # Tail rudder/fin
@@ -203,8 +203,8 @@ tail = Fin.legacy(
     LE_func=leading_edge_width_function,
     rudder_type="sharp",
     rudder_length=rudder_length,
-    stl_resolution=3,
 )
+tail.stl_resolution = 3
 refex.add_component(tail)
 
 

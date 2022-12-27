@@ -1,3 +1,4 @@
+from __future__ import annotations
 import numpy as np
 from typing import Callable
 from scipy.optimize import bisect
@@ -460,7 +461,7 @@ class Wing(Component):
         mirror_new_component: bool = False,
         close_wing: bool = False,
         stl_resolution: int = None,
-    ) -> None:
+    ) -> Wing:
         """Legacy method to replace Vehicle.add_wing."""
         # Check if a LE function was provided
         if LE_wf is None and LE_type == "custom":

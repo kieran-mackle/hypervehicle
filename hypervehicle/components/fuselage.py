@@ -1,3 +1,4 @@
+from __future__ import annotations
 import numpy as np
 from gdtk.geom.path import Arc, Line
 from gdtk.geom.vector3 import Vector3
@@ -232,7 +233,7 @@ class Fuselage(Component):
         y_dash_func=None,
         offset=None,
         stl_resolution: int = None,
-    ) -> None:
+    ) -> Fuselage:
         """Adds the fuselage to the vehicle.
 
         Parameters

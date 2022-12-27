@@ -94,7 +94,6 @@ class Component(AbstractComponent):
         self.surfaces = None  # STL surfaces
         self.mesh = None  # STL mesh
         self.stl_resolution = 3
-        self.stl_filename = "test"
 
         # TODO - tidy the below
         self.x_curv_func = None
