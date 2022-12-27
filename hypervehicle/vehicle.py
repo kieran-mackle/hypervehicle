@@ -14,7 +14,6 @@ from hypervehicle.components.constants import (
 
 
 class Vehicle:
-    name = "vehicle"
     ALLOWABLE_COMPONENTS = [FIN_COMPONENT, WING_COMPONENT, FUSELAGE_COMPONENT]
 
     def __init__(self, **kwargs) -> None:
@@ -22,6 +21,7 @@ class Vehicle:
         self.components: List[Component] = []
 
         # TODO - tidy below
+        self.name = "vehicle"
         self.vehicle_angle_offset: float = 0
         self.transformations = []
         self._generated = False
@@ -81,6 +81,7 @@ class Vehicle:
         self._generated = True
 
     def transform(self, transformations: List[Tuple[int, str]]):
+
         if not self._generated:
             raise Exception("Vehicle has not been generated yet.")
 
@@ -89,10 +90,21 @@ class Vehicle:
             for transform in self.transformations:
                 component.rotate(angle=transform[0], axis=transform[1])
 
+            # TODO - reset all generated meshes etc
+
     def to_stl(self, prefix: str = None):
         """Writes the vehicle components to STL file."""
-        # TODO - check if generate() has been run yet.
-        raise NotImplementedError("This method has not been implemented yet.")
+        prefix = self.name if prefix is None else prefix
+        types_generated = {}
+        for component in self.components:
+            # Get component count
+            no = types_generated.get(component.componenttype, 0)
+
+            # Write component to stl
+            component.to_stl(f"{prefix}-{component.componenttype}-{no}.stl")
+
+            # Update component count
+            types_generated[component.componenttype] = no + 1
 
     def show(self):
         """Plots the vehicle"""

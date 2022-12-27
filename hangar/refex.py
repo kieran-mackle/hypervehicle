@@ -1,8 +1,8 @@
 import numpy as np
 from hypervehicle import Vehicle
-from hypervehicle.geometry import Vector3, Bezier, Line, Polyline, Arc
-
+from hypervehicle.transformations import CART3D
 from hypervehicle.components import Wing, Fuselage, Fin
+from hypervehicle.geometry import Vector3, Bezier, Line, Polyline, Arc
 
 
 refex = Vehicle()
@@ -208,9 +208,8 @@ tail.stl_resolution = 3
 refex.add_component(tail)
 
 
-# # Generate Vehicle
-# refex.generate()
+# Generate Vehicle
+refex.generate()
+refex.transform(transformations=CART3D)
 
-# for i, component in enumerate(refex.components):
-#     # Need to specify stl res for each component
-#     component.to_stl(outfile=f"{i}.stl")
+refex.to_stl(prefix="refex")
