@@ -81,6 +81,9 @@ class Vehicle:
 
         self.cart3d = False
 
+        # New attributes
+        self.components = []
+
     def __repr__(self):
         return f"Parameterised {self.vehicle_name}"
 
@@ -191,6 +194,7 @@ class Vehicle:
         component_dict : dict
             The geometry definition dictionary for the component.
         """
+        # TODO - can compare component types to COMPONENT constants
 
         if component_type.lower() == "wing":
             self.wings.append(component_dict)

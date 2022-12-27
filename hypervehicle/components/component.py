@@ -1,4 +1,13 @@
+import numpy as np
+from stl import mesh
 from abc import ABC, abstractmethod
+from gdtk.geom.sgrid import StructuredGrid
+from hypervehicle.geometry import (
+    CurvedPatch,
+    RotatedPatch,
+    MirroredPatch,
+)
+from hypervehicle.utilities import parametricSurfce2stl
 
 
 class AbstractComponent(ABC):
@@ -24,9 +33,44 @@ class AbstractComponent(ABC):
 
     @abstractmethod
     def generate_patches(self):
+        """Generates the parametric patches from the parameter dictionary."""
         pass
 
-    # TODO - add all the STL methods from Vehicle here
+    @abstractmethod
+    def curve(self):
+        """Applies a curvature function to the parametric patches."""
+        pass
+
+    @abstractmethod
+    def rotate(self, angle: float = 0, axis: str = "y"):
+        """Rotates the parametric patches."""
+        pass
+
+    @abstractmethod
+    def mirror(self):
+        # TODO - rename to reflect
+        """Reflects the parametric patches."""
+        pass
+
+    @abstractmethod
+    def grid(self):
+        """Creates a discrete grid from the parametric patches."""
+        pass
+
+    @abstractmethod
+    def surface(self):
+        """Creates a surface from the parametric patches."""
+        pass
+
+    @abstractmethod
+    def to_vtk(self):
+        """Writes the component to VTK file format."""
+        pass
+
+    @abstractmethod
+    def to_stl(self):
+        """Writes the component to STL file format."""
+        pass
 
 
 class Component(AbstractComponent):
@@ -41,7 +85,6 @@ class Component(AbstractComponent):
         self.patches = {}  # Parametric patches
         self.grids = {}  # Structured grids
         self.surfaces = {}  # STL surfaces
-        self.stl_data = {}  # STL data
         self.meshes = {}  # STL meshes
 
     def __repr__(self):
@@ -50,4 +93,76 @@ class Component(AbstractComponent):
     def __str__(self):
         return f"{self.componenttype} component"
 
-    # TODO - implement all the STL methods from Vehicle here
+    def curve(self):
+        # Curvature about the x-axis
+        if (
+            self.params["FUNC_CURV_X"] is None
+            and self.params["FUNC_CURV_X_DASH"] is None
+        ):
+            if self.verbosity > 0:
+                print("    Skipping wing X-curvature.")
+        else:
+            # (a) Longitudal Curvature
+            for key in self.patches:
+                self.patches[key] = CurvedPatch(
+                    underlying_surf=self.patches[key],
+                    direction="x",
+                    fun=self.params["FUNC_CURV_X"],
+                    fun_dash=self.params["FUNC_CURV_X_DASH"],
+                )
+
+        # Curvature about the y-axis
+        if (
+            self.params["FUNC_CURV_Y"] is None
+            and self.params["FUNC_CURV_Y_DASH"] is None
+        ):
+            if self.verbosity > 0:
+                print("    Skipping wing Y-curvature.")
+        else:
+            # (b) Spanwise Curvature
+            for key in self.patches:
+                self.patches[key] = CurvedPatch(
+                    underlying_surf=self.patches[key],
+                    direction="y",
+                    fun=self.params["FUNC_CURV_Y"],
+                    fun_dash=self.params["FUNC_CURV_Y_DASH"],
+                )
+
+    def rotate(self, angle: float = 0, axis: str = "y"):
+        for key in self.patches:
+            self.patches[key] = RotatedPatch(
+                self.patches[key], np.deg2rad(angle), axis=axis
+            )
+
+    def mirror(self):
+        # TODO - rename to reflect
+        pass
+
+    def grid(self):
+        for key in self.patches:
+            self.grids[key] = StructuredGrid(
+                psurf=self.patches[key],
+                niv=self.vtk_resolution,
+                njv=self.vtk_resolution,
+            )
+
+    def surface(self):
+        for key, patch in self.patches.items():
+            flip = True if key.split("_")[-1] == "mirrored" else False
+            self.surfaces[key] = parametricSurfce2stl(
+                patch, self.stl_resolution, flip_faces=flip
+            )
+
+    def to_vtk(self):
+        for key, grid in self.grids.items():
+            grid.write_to_vtk_file(f"{self.vtk_filename}-wing_{key}.vtk")
+
+    def to_stl(self):
+        # Create STL mesh objects
+        for key, surface in self.surfaces.items():
+            self.meshes[key] = mesh.Mesh(np.concatenate(surface.data))
+
+        # Write STL mesh to file
+        for wing_no, wing_mesh in enumerate(self.meshes["wing"]):
+            wing_filename = f"{self.stl_filename}-wing{wing_no+1}.stl"
+            wing_mesh.save(wing_filename)
