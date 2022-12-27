@@ -3,6 +3,10 @@ from gdtk.geom.vector3 import Vector3
 from gdtk.geom.path import Line, Path, ArcLengthParameterizedPath
 from gdtk.geom.surface import CoonsPatch, ParametricSurface
 
+# Import gdtk geometry objects to namespace
+from gdtk.geom.path import Bezier, Line, Polyline
+from gdtk.geom.vector3 import Vector3
+
 
 class SubRangedPath(Path):
     """
@@ -21,10 +25,13 @@ class SubRangedPath(Path):
             raise NotImplementedError("underlying_path should be a type of Path")
         return
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return "ArcLengthParameterizedPath(underlying_path={}, t0={}, t1={})".format(
             self.underlying_path, self.t0, self.t1
         )
+
+    def __str__(self) -> str:
+        return "ArcLengthParameterizedPath"
 
     def __call__(self, t):
         t_dash = self.t0 + t * (self.t1 - self.t0)

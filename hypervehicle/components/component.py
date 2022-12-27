@@ -180,7 +180,7 @@ class Component(AbstractComponent):
         for key, grid in self.grids.items():
             grid.write_to_vtk_file(f"{self.vtk_filename}-wing_{key}.vtk")
 
-    def to_stl(self, outfile: str = "test"):
+    def to_stl(self, outfile: str = "test.stl"):
         # Check for processed surfaces
         if self.surfaces is None:
             if self.verbosity > 1:
