@@ -47,8 +47,7 @@ class AbstractComponent(ABC):
         pass
 
     @abstractmethod
-    def mirror(self):
-        # TODO - rename to reflect
+    def reflect(self):
         """Reflects the parametric patches."""
         pass
 
@@ -83,9 +82,13 @@ class Component(AbstractComponent):
 
         # Processed objects
         self.patches = {}  # Parametric patches
-        self.grids = {}  # Structured grids
-        self.surfaces = {}  # STL surfaces
-        self.meshes = {}  # STL meshes
+        self.grids = None  # Structured grids
+
+        # STL Attributes
+        self.surfaces = None  # STL surfaces
+        self.mesh = None  # STL mesh
+        self.stl_resolution = 3
+        self.stl_filename = "test"
 
     def __repr__(self):
         return f"{self.componenttype} component"
@@ -134,9 +137,25 @@ class Component(AbstractComponent):
                 self.patches[key], np.deg2rad(angle), axis=axis
             )
 
-    def mirror(self):
-        # TODO - rename to reflect
-        pass
+    def reflect(self, axis: str = "y", append: bool = False):
+
+        # Append will add to the existing patches, if False,
+        # original patches will be overwritten
+
+        # Reflect the current component patches
+
+        # Create mirrored patches
+        mirrored_patches = {}
+        for key, patch in self.patches.items():
+            mirrored_patches[f"{key}_mirrored"] = MirroredPatch(patch, axis=axis)
+
+        if append:
+            # Append mirrored patches to original patches
+            for key, patch in mirrored_patches.items():
+                self.patches[key] = patch
+        else:
+            # Overwrite existing patches
+            self.patches = mirrored_patches
 
     def grid(self):
         for key in self.patches:
@@ -147,6 +166,10 @@ class Component(AbstractComponent):
             )
 
     def surface(self):
+        # Initialise surfaces
+        self.surfaces = {}
+
+        # Generate surfaces
         for key, patch in self.patches.items():
             flip = True if key.split("_")[-1] == "mirrored" else False
             self.surfaces[key] = parametricSurfce2stl(
@@ -157,12 +180,23 @@ class Component(AbstractComponent):
         for key, grid in self.grids.items():
             grid.write_to_vtk_file(f"{self.vtk_filename}-wing_{key}.vtk")
 
-    def to_stl(self):
-        # Create STL mesh objects
-        for key, surface in self.surfaces.items():
-            self.meshes[key] = mesh.Mesh(np.concatenate(surface.data))
+    def to_stl(self, outfile: str = "test"):
+        # Check for processed surfaces
+        if self.surfaces is None:
+            if self.verbosity > 1:
+                print("Generating surfaces.")
 
-        # Write STL mesh to file
-        for wing_no, wing_mesh in enumerate(self.meshes["wing"]):
-            wing_filename = f"{self.stl_filename}-wing{wing_no+1}.stl"
-            wing_mesh.save(wing_filename)
+            # Generate surfaces
+            self.surface()
+
+        # Combine all surface data
+        surface_data = np.concatenate([s[1].data for s in self.surfaces.items()])
+
+        # Create STL mesh
+        stl_mesh = mesh.Mesh(surface_data)
+
+        # Save mesh
+        self.mesh = stl_mesh
+
+        # Write STL to file
+        stl_mesh.save(outfile)
