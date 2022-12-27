@@ -5,7 +5,7 @@ class AbstractComponent(ABC):
     componenttype = None
 
     @abstractmethod
-    def __init__(self) -> None:
+    def __init__(self, params: dict, verbosity: int = 1) -> None:
         pass
 
     @abstractmethod
@@ -26,6 +26,8 @@ class AbstractComponent(ABC):
     def generate_patches(self):
         pass
 
+    # TODO - add all the STL methods from Vehicle here
+
 
 class Component(AbstractComponent):
     def __repr__(self):
@@ -33,3 +35,5 @@ class Component(AbstractComponent):
 
     def __str__(self):
         return f"{self.componenttype} component"
+
+    # TODO - implement all the STL methods from Vehicle here
