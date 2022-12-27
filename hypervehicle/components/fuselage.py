@@ -3,6 +3,7 @@ from gdtk.geom.path import Arc, Line
 from gdtk.geom.vector3 import Vector3
 from gdtk.geom.surface import CoonsPatch
 from hypervehicle.components.component import Component
+from hypervehicle.components.constants import FUSELAGE_COMPONENT
 from hypervehicle.geometry import (
     ConePatch,
     RotatedPatch,
@@ -13,7 +14,7 @@ from hypervehicle.geometry import (
 
 
 class Fuselage(Component):
-    componenttype = "fuselage"
+    componenttype = FUSELAGE_COMPONENT
 
     def __init__(self, params: dict, verbosity: int = 1) -> None:
         super().__init__(params, verbosity)

@@ -4,6 +4,7 @@ from gdtk.geom.vector3 import Vector3
 from gdtk.geom.path import Line, Polyline
 from gdtk.geom.surface import CoonsPatch
 from hypervehicle.components.component import Component
+from hypervehicle.components.constants import FIN_COMPONENT
 from hypervehicle.geometry import (
     OffsetPatchFunction,
     SubRangedPath,
@@ -19,7 +20,7 @@ from hypervehicle.geometry import (
 
 
 class Fin(Component):
-    componenttype = "fin"
+    componenttype = FIN_COMPONENT
 
     def __init__(self, params: dict, verbosity: int = 1) -> None:
         super().__init__(params, verbosity)

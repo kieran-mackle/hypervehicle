@@ -4,6 +4,7 @@ from scipy.optimize import bisect
 from gdtk.geom.vector3 import Vector3
 from gdtk.geom.surface import CoonsPatch
 from hypervehicle.components.component import Component
+from hypervehicle.components.constants import WING_COMPONENT
 from hypervehicle.geometry import (
     OffsetPatchFunction,
     SubRangedPath,
@@ -20,7 +21,7 @@ from hypervehicle.geometry import (
 
 
 class Wing(Component):
-    componenttype = "wing"
+    componenttype = WING_COMPONENT
 
     def __init__(self, params: dict, verbosity: int = 1) -> None:
         super().__init__(params, verbosity)

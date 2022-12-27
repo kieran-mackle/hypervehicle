@@ -34,11 +34,15 @@ class Component(AbstractComponent):
         # Set verbosity
         self.verbosity = verbosity
 
-        # Patch dictionary
-        self.patches: dict = None
-
         # Save parameters
         self.params = params
+
+        # Processed objects
+        self.patches = {}  # Parametric patches
+        self.grids = {}  # Structured grids
+        self.surfaces = {}  # STL surfaces
+        self.stl_data = {}  # STL data
+        self.meshes = {}  # STL meshes
 
     def __repr__(self):
         return f"{self.componenttype} component"
