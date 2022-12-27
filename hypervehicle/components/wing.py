@@ -23,7 +23,7 @@ class Wing(Component):
     componenttype = "wing"
 
     def __init__(self, params: dict, verbosity: int = 1) -> None:
-        self.verbosity = verbosity
+        super().__init__(params, verbosity)
 
         # Extract construction points for planform
         # TODO - avoid pre-defined params dict structure for flexibility
@@ -45,16 +45,10 @@ class Wing(Component):
         else:
             self.t_B2 = self.params["t_B1"]
 
-        # Save parameters dict
-        self.params = params
-
         # Save other params
         self.TE_top = None
         self.TE_bot = None
         self.TE_mean_line = None
-
-        # Patch dict
-        self.patches: dict = None
 
     def generate_patches(self):
 

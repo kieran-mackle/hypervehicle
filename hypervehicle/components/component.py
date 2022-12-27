@@ -30,6 +30,16 @@ class AbstractComponent(ABC):
 
 
 class Component(AbstractComponent):
+    def __init__(self, params: dict, verbosity: int = 1) -> None:
+        # Set verbosity
+        self.verbosity = verbosity
+
+        # Patch dictionary
+        self.patches: dict = None
+
+        # Save parameters
+        self.params = params
+
     def __repr__(self):
         return f"{self.componenttype} component"
 
