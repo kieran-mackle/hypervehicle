@@ -205,7 +205,7 @@ tail.stl_resolution = 3
 refex.add_component(tail)
 
 
-# TODO - need to reflect the wing and create new component of it
+# TODO - need to fix issue with canard trailing edge
 
 
 # Generate Vehicle
