@@ -49,7 +49,6 @@ class Vehicle:
         self.verbosity = verbosity
 
     def add_component(self, component: Component) -> None:
-
         if component.componenttype in Vehicle.ALLOWABLE_COMPONENTS:
             # Add component
             self.components.append(component)

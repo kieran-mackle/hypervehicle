@@ -9,10 +9,6 @@ refex = Vehicle()
 refex.configure(
     name="DLR ReFEX",
     verbosity=1,
-    # write_stl=True,
-    # stl_filename="refex",
-    # mirror_fins=False,
-    # cart3d=True,
 )
 
 # Inputs
@@ -167,6 +163,7 @@ wing = Wing.legacy(
     flap_length=flap_length,
 )
 wing.stl_resolution = 3
+wing._reflect = True
 refex.add_component(wing)
 
 # Tail rudder/fin
@@ -208,8 +205,10 @@ tail.stl_resolution = 3
 refex.add_component(tail)
 
 
+# TODO - need to reflect the wing and create new component of it
+
+
 # Generate Vehicle
 refex.generate()
 refex.transform(transformations=CART3D)
-
 refex.to_stl(prefix="refex")

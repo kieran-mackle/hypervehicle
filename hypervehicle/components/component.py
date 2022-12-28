@@ -101,6 +101,10 @@ class Component(AbstractComponent):
         self.y_curv_func = None
         self.y_curv_func_dash = None
 
+        # TODO - nice way to handle component transformations
+        self._reflect = False
+        self._append_reflection = True
+
     def __repr__(self):
         return f"{self.componenttype} component"
 
@@ -138,25 +142,20 @@ class Component(AbstractComponent):
         for key, patch in self.patches.items():
             self.patches[key] = RotatedPatch(patch, np.deg2rad(angle), axis=axis)
 
-    def reflect(self, axis: str = "y", append: bool = False):
+    def reflect(self, axis: str = "y"):
+        if self._reflect:
+            # Create mirrored patches
+            mirrored_patches = {}
+            for key, patch in self.patches.items():
+                mirrored_patches[f"{key}_mirrored"] = MirroredPatch(patch, axis=axis)
 
-        # Append will add to the existing patches, if False,
-        # original patches will be overwritten
-
-        # Reflect the current component patches
-
-        # Create mirrored patches
-        mirrored_patches = {}
-        for key, patch in self.patches.items():
-            mirrored_patches[f"{key}_mirrored"] = MirroredPatch(patch, axis=axis)
-
-        if append:
-            # Append mirrored patches to original patches
-            for key, patch in mirrored_patches.items():
-                self.patches[key] = patch
-        else:
-            # Overwrite existing patches
-            self.patches = mirrored_patches
+            if self._append_reflection:
+                # Append mirrored patches to original patches
+                for key, patch in mirrored_patches.items():
+                    self.patches[key] = patch
+            else:
+                # Overwrite existing patches
+                self.patches = mirrored_patches
 
     def grid(self):
         for key in self.patches:
