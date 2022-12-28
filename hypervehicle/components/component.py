@@ -165,7 +165,16 @@ class Component(AbstractComponent):
                 njv=self.vtk_resolution,
             )
 
-    def surface(self):
+    def surface(self, resolution: int = None):
+
+        resolution = self.stl_resolution if resolution is None else resolution
+
+        # Check for patches
+        if len(self.patches) == 0:
+            raise Exception(
+                "No patches have been generated. " + "Please call .generate_patches()."
+            )
+
         # Initialise surfaces
         self.surfaces = {}
 
@@ -173,21 +182,21 @@ class Component(AbstractComponent):
         for key, patch in self.patches.items():
             flip = True if key.split("_")[-1] == "mirrored" else False
             self.surfaces[key] = parametricSurfce2stl(
-                patch, self.stl_resolution, flip_faces=flip
+                patch, resolution, flip_faces=flip
             )
 
     def to_vtk(self):
         for key, grid in self.grids.items():
             grid.write_to_vtk_file(f"{self.vtk_filename}-wing_{key}.vtk")
 
-    def to_stl(self, outfile: str = "test.stl"):
+    def to_stl(self, outfile: str = "test.stl", stl_resolution: int = None):
         # Check for processed surfaces
-        if self.surfaces is None:
+        if self.surfaces is None or stl_resolution is not None:
             if self.verbosity > 1:
                 print("Generating surfaces.")
 
             # Generate surfaces
-            self.surface()
+            self.surface(resolution=stl_resolution)
 
         # Combine all surface data
         surface_data = np.concatenate([s[1].data for s in self.surfaces.items()])
