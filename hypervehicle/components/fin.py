@@ -401,6 +401,7 @@ class Fin(Component):
             The stl resolution to use when creating the mesh for this
             component. The default is None.
         """
+        # TODO - merge this method into the init somehow
         if LE_func is None:
             # Use default LE function
             LE_func = leading_edge_width_function

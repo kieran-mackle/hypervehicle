@@ -463,6 +463,7 @@ class Wing(Component):
         stl_resolution: int = None,
     ) -> Wing:
         """Legacy method to replace Vehicle.add_wing."""
+        # TODO - merge this method into the init somehow
         # Check if a LE function was provided
         if LE_wf is None and LE_type == "custom":
             # Assign

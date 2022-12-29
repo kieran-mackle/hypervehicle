@@ -278,6 +278,7 @@ class Fuselage(Component):
             The stl resolution to use when creating the mesh for this
             component. The default is None.
         """
+        # TODO - merge this method into the init somehow
         params = {
             "FUSELAGE_NOSE_OPTION": nose_type,
             "FUSELAGE_TAIL_OPTION": tail_type,

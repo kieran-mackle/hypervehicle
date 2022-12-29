@@ -51,7 +51,7 @@ fb_line = Line(fb0, fb1)
 fairing = Polyline([nose_arc, ogive_arc, fairing_line, fb_line])
 fairing_fuse = Fuselage.legacy(revolve_line=fairing)
 fairing_fuse.stl_resolution = 50
-refex.add_component(fairing_fuse)
+# refex.add_component(fairing_fuse)
 
 # Vehicle body
 b00 = Vector3(0, 0)
@@ -66,7 +66,7 @@ base_line = Line(bb0, bb1)
 body_line = Polyline([body_cap_line, body_top_line, base_line])
 body_fuse = Fuselage.legacy(revolve_line=body_line)
 body_fuse.stl_resolution = 50
-refex.add_component(body_fuse)
+# refex.add_component(body_fuse)
 
 # Cannards
 #   p1-----p2
@@ -164,7 +164,7 @@ wing = Wing.legacy(
 )
 wing.stl_resolution = 3
 wing._reflect = True
-refex.add_component(wing)
+# refex.add_component(wing)
 
 # Tail rudder/fin
 tail_height = 4
@@ -179,6 +179,7 @@ t2 = t1 + Vector3(x=0.4 * tail_length, y=0) + shift_in
 t3 = t0 + Vector3(x=tail_length, y=0) + shift_in
 
 # Thickness functions
+# TODO - make standard thickness function
 def tail_thickness_function_top(x, y, z=0):
     return Vector3(x=0.0, y=0.0, z=-tail_thickness / 2)
 
@@ -202,10 +203,11 @@ tail = Fin.legacy(
     rudder_length=rudder_length,
 )
 tail.stl_resolution = 3
-refex.add_component(tail)
+# refex.add_component(tail)
 
 
-# TODO - need to fix issue with canard trailing edge
+# TODO - need to fix issue with canard trailing edge...
+# need to check against other working files.
 
 
 # Generate Vehicle
