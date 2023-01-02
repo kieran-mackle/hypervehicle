@@ -695,7 +695,7 @@ class RotatedPatch(ParametricSurface):
         self.point = point
 
     def __repr__(self):
-        str = "+ Rotation by {} deg".format(np.rad2deg(self.angle))
+        str = f" (rotated by {np.rad2deg(self.angle)} degrees)"
         return self.underlying_surf.__repr__() + str
 
     def __call__(self, r, s):
