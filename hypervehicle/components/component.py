@@ -87,13 +87,15 @@ class Component(AbstractComponent):
         self.params = params
 
         # Processed objects
-        self.patches = {}  # Parametric patches
+        self.patches = {}  # Parametric patches (continuous)
+
+        # VTK Attributes
         self.grids = None  # Structured grids
 
         # STL Attributes
-        self.surfaces = None  # STL surfaces
-        self.mesh = None  # STL mesh
-        self.stl_resolution = 3
+        self.surfaces = None  # STL surfaces for each patch
+        self.mesh = None  # STL mesh for entire component
+        self.stl_resolution = 3  # STL cells per edge
 
         # TODO - tidy the below
         self.x_curv_func = None
@@ -186,6 +188,7 @@ class Component(AbstractComponent):
             )
 
     def to_vtk(self):
+        # TODO - check for processed grids
         for key, grid in self.grids.items():
             grid.write_to_vtk_file(f"{self.vtk_filename}-wing_{key}.vtk")
 

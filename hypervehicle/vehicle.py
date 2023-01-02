@@ -23,7 +23,7 @@ class Vehicle:
         # TODO - tidy below
         self.name = "vehicle"
         self.vehicle_angle_offset: float = 0
-        self.transformations = []
+        # self.transformations = []
         self._generated = False
         self.verbosity = 1
         self._component_counts = {}
@@ -80,16 +80,18 @@ class Vehicle:
         self._generated = True
 
     def transform(self, transformations: List[Tuple[int, str]]):
-
+        # TODO - specify transform type (eg. rotate) in the Tuple
         if not self._generated:
             raise Exception("Vehicle has not been generated yet.")
 
         # Rotate to frame
         for component in self.components:
-            for transform in self.transformations:
+            for transform in transformations:
                 component.rotate(angle=transform[0], axis=transform[1])
 
-            # TODO - reset all generated meshes etc
+            # Reset any meshes generated from un-transformed patches
+            component.surfaces = None
+            component.mesh = None
 
     def to_stl(self, prefix: str = None):
         """Writes the vehicle components to STL file."""
