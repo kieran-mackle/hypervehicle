@@ -79,7 +79,7 @@ class Fin(Component):
 
         # Find Locations
         fun_B1 = lambda t: p1p3(t).x - p2.x
-        t_B1 = bisect(fun_B1, 0.0, 1.0)
+        t_B1 = round(bisect(fun_B1, 0.0, 1.0), 6)
         t_B2 = 1
 
         LE_top_patch = [np.nan, np.nan, np.nan]
