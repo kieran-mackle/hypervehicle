@@ -79,7 +79,9 @@ class AbstractComponent(ABC):
 
 
 class Component(AbstractComponent):
-    def __init__(self, params: dict, verbosity: int = 1) -> None:
+    def __init__(
+        self, params: dict, stl_resolution: int = 2, verbosity: int = 1
+    ) -> None:
         # Set verbosity
         self.verbosity = verbosity
 
@@ -95,7 +97,7 @@ class Component(AbstractComponent):
         # STL Attributes
         self.surfaces = None  # STL surfaces for each patch
         self.mesh = None  # STL mesh for entire component
-        self.stl_resolution = 3  # STL cells per edge
+        self.stl_resolution = stl_resolution  # STL cells per edge
 
         # TODO - tidy the below
         self.x_curv_func = None

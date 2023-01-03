@@ -41,7 +41,7 @@ class Fin(Component):
         pivot_angle: float = 0,
         pivot_point: Vector3 = Vector3(x=0, y=0),
         offset_func=None,
-        stl_resolution: int = None,
+        stl_resolution: int = 2,
         verbosity: int = 1,
     ) -> None:
         """Creates a new fin component.
@@ -86,7 +86,7 @@ class Fin(Component):
             "offset_function": offset_func,
         }
 
-        super().__init__(params, verbosity)
+        super().__init__(params, stl_resolution, verbosity)
 
     def generate_patches(self):
         # Initialise

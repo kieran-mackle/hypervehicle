@@ -27,7 +27,15 @@ def uniform_thickness_function(thickness: float, side: str):
 
 
 class OgiveNose(Fuselage):
-    def __init__(self, h: float, r_n: float, r_o: float, L_o: float, **kwargs) -> None:
+    def __init__(
+        self,
+        h: float,
+        r_n: float,
+        r_o: float,
+        L_o: float,
+        stl_resolution: int = 3,
+        **kwargs
+    ) -> None:
         """A Fuselage wrapper to create an Ogive nose component.
         Parameters
         ----------
@@ -77,7 +85,7 @@ class OgiveNose(Fuselage):
 
         fairing = Polyline([nose_arc, ogive_arc, fairing_line, fb_line])
 
-        super().__init__(revolve_line=fairing, **kwargs)
+        super().__init__(revolve_line=fairing, stl_resolution=stl_resolution, **kwargs)
 
     def __repr__(self):
         return "Ogive nose component"

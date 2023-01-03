@@ -37,7 +37,7 @@ class Fuselage(Component):
         y_curve_func=None,
         y_dash_func=None,
         offset=None,
-        stl_resolution: int = None,
+        stl_resolution: int = 2,
         verbosity: int = 1,
     ) -> None:
         """Adds the fuselage to the vehicle.
@@ -82,7 +82,7 @@ class Fuselage(Component):
             The y-curvature derivative function. The default is None.
         stl_resolution : int, optional
             The stl resolution to use when creating the mesh for this
-            component. The default is None.
+            component. The default is 2.
         """
 
         params = {
@@ -106,7 +106,7 @@ class Fuselage(Component):
             "OFFSET": offset,
         }
 
-        super().__init__(params, verbosity)
+        super().__init__(params, stl_resolution, verbosity)
 
     def generate_patches(self):
         offset = self.params["OFFSET"] if "OFFSET" in self.params else None

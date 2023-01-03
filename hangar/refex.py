@@ -25,8 +25,7 @@ L_b = 22  # Body length
 canard_angle = 0  # degrees
 
 # Ogive nose
-nose = OgiveNose(h=h, r_n=r_n, r_o=r_o, L_o=L_o)
-nose.stl_resolution = 50
+nose = OgiveNose(h=h, r_n=r_n, r_o=r_o, L_o=L_o, stl_resolution=50)
 refex.add_component(nose)
 
 # Vehicle body
@@ -42,8 +41,7 @@ bb1 = Vector3(bb0.x, 0)  # Body base axis point
 base_line = Line(bb0, bb1)
 
 body_line = Polyline([body_cap_line, body_top_line, base_line])
-body_fuse = Fuselage(revolve_line=body_line)
-body_fuse.stl_resolution = 50
+body_fuse = Fuselage(revolve_line=body_line, stl_resolution=50)
 refex.add_component(body_fuse)
 
 # Cannards
@@ -81,8 +79,8 @@ for i in range(2):
         pivot_point=pivot_point,
         rudder_type="sharp",
         rudder_length=fin_thickness,
+        stl_resolution=3,
     )
-    fin.stl_resolution = 3
     refex.add_component(fin)
 
 # Wings
@@ -122,8 +120,8 @@ wing = Wing(
     bot_tf=wing2_tf_bot,
     LE_wf=leading_edge_width_function,
     flap_length=flap_length,
+    stl_resolution=3,
 )
-wing.stl_resolution = 3
 wing._reflect = True
 # refex.add_component(wing)
 
@@ -152,8 +150,8 @@ tail = Fin(
     LE_func=leading_edge_width_function,
     rudder_type="sharp",
     rudder_length=rudder_length,
+    stl_resolution=3,
 )
-tail.stl_resolution = 3
 # refex.add_component(tail)
 
 # Generate Vehicle

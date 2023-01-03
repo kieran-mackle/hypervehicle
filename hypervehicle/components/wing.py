@@ -49,7 +49,7 @@ class Wing(Component):
         mirror: bool = True,
         mirror_new_component: bool = False,
         close_wing: bool = False,
-        stl_resolution: int = None,
+        stl_resolution: int = 2,
         verbosity: int = 1,
     ) -> None:
 
@@ -85,7 +85,7 @@ class Wing(Component):
             "CLOSE_WING": close_wing,
         }
 
-        super().__init__(params, verbosity)
+        super().__init__(params, stl_resolution, verbosity)
 
         # Extract construction points for planform
         # TODO - avoid pre-defined params dict structure for flexibility
