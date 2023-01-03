@@ -78,3 +78,6 @@ class OgiveNose(Fuselage):
         fairing = Polyline([nose_arc, ogive_arc, fairing_line, fb_line])
 
         super().__init__(revolve_line=fairing, **kwargs)
+
+    def __repr__(self):
+        return "Ogive nose component"
