@@ -2,7 +2,8 @@ import numpy as np
 from hypervehicle import Vehicle
 from scipy.optimize import bisect
 from gdtk.geom.vector3 import Vector3
-from gdtk.geom.path import Bezier, Line, Polyline, Arc
+from hypervehicle.components import Wing, Fuselage, Fin
+from hypervehicle.geometry import Vector3, Bezier, Line, Polyline
 
 
 params = {
@@ -19,11 +20,8 @@ te_fin_stl_res = 3
 # Initialise
 d21 = Vehicle()
 d21.configure(
-    name="Lockhead D-21",
+    name="Lockhead Martin D-21",
     verbosity=1,
-    write_stl=True,
-    stl_filename="D21",
-    mirror_fins=False,
 )
 
 # Construct fuselage
@@ -37,27 +35,22 @@ bL1 = Line(b0, b1)
 bL2 = Line(b1, b2)
 
 fuseline = Polyline([bL0, bL1, bL2])
-d21.add_fuselage(revolve_line=fuseline, stl_resolution=20)
+fuselage = Fuselage(revolve_line=fuseline, stl_resolution=20)
+# d21.add_component(fuselage)
 
-# Construct nose
+# Construct Aerospike nose
 # --------------------------
-nose_type = 1
-if nose_type == 1:
-    # Aerospike nose
-    shift = Vector3(x=-0.1, y=0.0)
-    tip = Vector3(x=0.15 * params["L_b"], y=0) + shift
-    top = Vector3(x=0.0, y=1 * params["R_b"]) + shift
-    mid_cp = Vector3(x=0.0, y=0.3 * params["R_b"]) + shift
+shift = Vector3(x=-0.1, y=0.0)
+tip = Vector3(x=0.15 * params["L_b"], y=0) + shift
+top = Vector3(x=0.0, y=1 * params["R_b"]) + shift
+mid_cp = Vector3(x=0.0, y=0.3 * params["R_b"]) + shift
 
-    front_bz = Bezier([tip, mid_cp, top])
-    back_cap = Line(p0=top, p1=Vector3(x=-0.5, y=0.0) + shift)
+front_bz = Bezier([tip, mid_cp, top])
+back_cap = Line(p0=top, p1=Vector3(x=-0.5, y=0.0) + shift)
 
-    noseline = Polyline([front_bz, back_cap])
-    d21.add_fuselage(revolve_line=noseline, stl_resolution=20)
-
-else:
-    # Other
-    pass
+noseline = Polyline([front_bz, back_cap])
+nose = Fuselage(revolve_line=noseline, stl_resolution=20)
+# d21.add_component(nose)
 
 
 # Construct wings
@@ -108,6 +101,7 @@ def local_ws(x):
 
 
 def wing_tf_top(x, y, z=0):
+    # TODO - there are nan's appearing below
     thickener = 0.5 * (1 - y / local_ws(x))
     return Vector3(x=0, y=0, z=-wing_thickness / 2 - thickener)
 
@@ -116,7 +110,7 @@ def wing_tf_bot(x, y, z=0):
     return Vector3(x=0, y=0, z=wing_thickness / 2)
 
 
-d21.add_wing(
+wing = Wing(
     A0=A0,
     A1=A1,
     TT=TT,
@@ -128,6 +122,7 @@ d21.add_wing(
     flap_angle=np.deg2rad(params["flap_angle"]),
     stl_resolution=wing_stl_res,
 )
+d21.add_component(wing, reflection_axis="y")
 
 
 # Construct tail
@@ -157,34 +152,35 @@ def fin_thickness_function_bot(x, y, z=0):
 
 
 offset_func = lambda x, y, z: Vector3(x=0, y=0, z=-0.95 * params["R_b"])
-# d21.add_fin(
-#     p0=p0,
-#     p1=p1,
-#     p2=p2,
-#     p3=p3,
-#     offset_func=offset_func,
-#     fin_thickness=fin_thickness,
-#     fin_angle=np.deg2rad(-90),
-#     top_thickness_function=fin_thickness_function_top,
-#     bot_thickness_function=fin_thickness_function_bot,
-#     stl_resolution=te_fin_stl_res,
-# )
+tail = Fin(
+    p0=p0,
+    p1=p1,
+    p2=p2,
+    p3=p3,
+    offset_func=offset_func,
+    fin_thickness=fin_thickness,
+    fin_angle=np.deg2rad(-90),
+    top_thickness_function=fin_thickness_function_top,
+    bot_thickness_function=fin_thickness_function_bot,
+    stl_resolution=te_fin_stl_res,
+)
+# d21.add_component(tail)
 
-# Construct trailing wings
-# ------------------------
-# Straight wings at base of vehicle
-# Construct as rectangle fins
-fin_height = 0.15 * params["W_w"]
-fin_thickness = wing_thickness
-fin_length = params["L_b"] - params["L_w"]
+# # Construct trailing wings
+# # ------------------------
+# # Straight wings at base of vehicle
+# # Construct as rectangle fins
+# fin_height = 0.15 * params["W_w"]
+# fin_thickness = wing_thickness
+# fin_length = params["L_b"] - params["L_w"]
 
-te_wing_o = b2
-p0 = te_wing_o
-p1 = p0 + Vector3(x=0, y=fin_height)
-p2 = p1 + Vector3(x=fin_length, y=0)
-p3 = p0 + Vector3(x=fin_length, y=0)
+# te_wing_o = b2
+# p0 = te_wing_o
+# p1 = p0 + Vector3(x=0, y=fin_height)
+# p2 = p1 + Vector3(x=fin_length, y=0)
+# p3 = p0 + Vector3(x=fin_length, y=0)
 
-# d21.add_fin(
+# tew1 = Fin(
 #     p0=p0,
 #     p1=p1,
 #     p2=p2,
@@ -195,8 +191,9 @@ p3 = p0 + Vector3(x=fin_length, y=0)
 #     bot_thickness_function=fin_thickness_function_bot,
 #     stl_resolution=te_fin_stl_res,
 # )
+# d21.add_component(tew1)
 
-# d21.add_fin(
+# tew2 = Fin(
 #     p0=p0,
 #     p1=p1,
 #     p2=p2,
@@ -207,8 +204,10 @@ p3 = p0 + Vector3(x=fin_length, y=0)
 #     bot_thickness_function=fin_thickness_function_bot,
 #     stl_resolution=te_fin_stl_res,
 # )
+# d21.add_component(tew2)
 
 
-# Generate STL's
+# Generate
 # ------------------------
 d21.generate()
+d21.to_stl(prefix="d21")
