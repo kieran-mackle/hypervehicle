@@ -110,8 +110,8 @@ class Component(AbstractComponent):
         self.y_curv_func = None
         self.y_curv_func_dash = None
 
-        # TODO - nice way to handle component transformations
-        self._reflect = False
+        # Component reflection
+        self._reflection_axis = None
         self._append_reflection = True
 
     def __repr__(self):
@@ -151,8 +151,9 @@ class Component(AbstractComponent):
         for key, patch in self.patches.items():
             self.patches[key] = RotatedPatch(patch, np.deg2rad(angle), axis=axis)
 
-    def reflect(self, axis: str = "y"):
-        if self._reflect:
+    def reflect(self, axis: str = None):
+        axis = self._reflection_axis if self._reflection_axis is not None else axis
+        if axis is not None:
             # Create mirrored patches
             mirrored_patches = {}
             for key, patch in self.patches.items():

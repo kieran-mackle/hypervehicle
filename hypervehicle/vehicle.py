@@ -43,7 +43,23 @@ class Vehicle:
 
         self.verbosity = verbosity
 
-    def add_component(self, component: Component) -> None:
+    def add_component(
+        self,
+        component: Component,
+        reflection_axis: str = None,
+        append_reflection: bool = True,
+    ) -> None:
+        """Adds a new component to the vehicle.
+
+        Parameters
+        ----------
+        reflection_axis : str, optional
+            Include a reflection of the component about the axis specified
+            (eg. 'x', 'y' or 'z'). The default is None.
+        append_reflection : bool, optional
+            When reflecting a new component, add the reflection to the existing
+            component, rather than making it a new component. The default is True.
+        """
         if component.componenttype in Vehicle.ALLOWABLE_COMPONENTS:
             # Overload component verbosity
             if self.verbosity == 0:
@@ -52,6 +68,11 @@ class Vehicle:
             else:
                 # Use max of vehicle and component verbosity
                 component.verbosity = max(component.verbosity, self.verbosity)
+
+            # Add component reflections
+            if reflection_axis is not None:
+                component._reflection_axis = reflection_axis
+                component._append_reflection = append_reflection
 
             # Add component
             self.components.append(component)
