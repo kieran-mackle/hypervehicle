@@ -7,7 +7,6 @@ from gdtk.geom.surface import CoonsPatch
 from gdtk.geom.path import Line, Bezier, Polyline
 from hypervehicle.components.component import Component
 from hypervehicle.components.constants import WING_COMPONENT
-from hypervehicle.components.common import leading_edge_width_function
 from hypervehicle.geometry import (
     OffsetPatchFunction,
     SubRangedPath,
@@ -56,7 +55,9 @@ class Wing(Component):
 
         # Check if a LE function was provided
         if LE_wf is None and LE_type == "custom":
-            # Assign
+            # Assign default LE function
+            from hypervehicle.components.common import leading_edge_width_function
+
             LE_wf = leading_edge_width_function
 
         params = {

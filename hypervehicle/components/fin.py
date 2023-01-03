@@ -6,7 +6,6 @@ from gdtk.geom.surface import CoonsPatch
 from gdtk.geom.path import Line, Polyline, Bezier
 from hypervehicle.components.component import Component
 from hypervehicle.components.constants import FIN_COMPONENT
-from hypervehicle.components.common import leading_edge_width_function
 from hypervehicle.geometry import (
     OffsetPatchFunction,
     SubRangedPath,
@@ -64,6 +63,8 @@ class Fin(Component):
 
         if LE_func is None:
             # Use default LE function
+            from hypervehicle.components.common import leading_edge_width_function
+
             LE_func = leading_edge_width_function
 
         params = {
