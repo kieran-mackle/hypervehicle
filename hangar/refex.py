@@ -11,10 +11,7 @@ from hypervehicle.components.common import (
 
 
 refex = Vehicle()
-refex.configure(
-    name="DLR ReFEX",
-    verbosity=1,
-)
+refex.configure(name="DLR ReFEX", verbosity=1)
 
 # Inputs
 h = 2.5  # Ogive height ??
