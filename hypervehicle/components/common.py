@@ -18,6 +18,6 @@ def uniform_thickness_function(thickness: float, side: str):
     m = -1 if side == "top" else 1
 
     def tf(x: float, y: float, z: float = 0):
-        return Vector3(x=x, y=y, z=m * thickness / 2)
+        return Vector3(x=0.0, y=0.0, z=m * thickness / 2)
 
     return tf
