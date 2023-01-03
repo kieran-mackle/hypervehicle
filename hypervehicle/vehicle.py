@@ -7,12 +7,6 @@ from hypervehicle.components.constants import (
 )
 
 
-# TODO - what if the vehicle inherited from Component? That
-# way, I could 'rotate' and 'curve' the entire vehicle?
-
-# TODO - add verbosity
-
-
 class Vehicle:
     ALLOWABLE_COMPONENTS = [FIN_COMPONENT, WING_COMPONENT, FUSELAGE_COMPONENT]
 
@@ -23,9 +17,10 @@ class Vehicle:
         # TODO - tidy below
         self.name = "vehicle"
         self.vehicle_angle_offset: float = 0
-        # self.transformations = []
-        self._generated = False
         self.verbosity = 1
+
+        # Internal attributes
+        self._generated = False
         self._component_counts = {}
 
         # TODO - call self.configure with kwargs
@@ -50,6 +45,14 @@ class Vehicle:
 
     def add_component(self, component: Component) -> None:
         if component.componenttype in Vehicle.ALLOWABLE_COMPONENTS:
+            # Overload component verbosity
+            if self.verbosity == 0:
+                # Zero verbosity
+                component.verbosity = 0
+            else:
+                # Use max of vehicle and component verbosity
+                component.verbosity = max(component.verbosity, self.verbosity)
+
             # Add component
             self.components.append(component)
 
@@ -58,12 +61,21 @@ class Vehicle:
                 self._component_counts.get(component.componenttype, 0) + 1
             )
 
+            if self.verbosity > 1:
+                print(f"Added new {component.componenttype} component.")
+
         else:
             raise Exception(f"Unrecognised component type: {component.componenttype}")
 
     def generate(self):
         """Generate all components of the vehicle."""
+        if self.verbosity > 0:
+            print("Generating component patches.")
+
         for component in self.components:
+            if self.verbosity > 1:
+                print(f"  Generating patches for {component.componenttype} component.")
+
             # Generate component patches
             component.generate_patches()
 
@@ -75,6 +87,9 @@ class Vehicle:
 
             # Reflect
             component.reflect()
+
+        if self.verbosity > 0:
+            print("All component patches generated.")
 
         # Set generated boolean to True
         self._generated = True
@@ -96,6 +111,10 @@ class Vehicle:
     def to_stl(self, prefix: str = None):
         """Writes the vehicle components to STL file."""
         prefix = self.name if prefix is None else prefix
+
+        if self.verbosity > 0:
+            print(f"Writing vehicle components to STL, with prefix {prefix}.")
+
         types_generated = {}
         for component in self.components:
             # Get component count
@@ -106,6 +125,9 @@ class Vehicle:
 
             # Update component count
             types_generated[component.componenttype] = no + 1
+
+        if self.verbosity > 0:
+            print("All components written to STL file format.")
 
     def show(self):
         """Plots the vehicle"""

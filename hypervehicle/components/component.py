@@ -193,10 +193,13 @@ class Component(AbstractComponent):
             grid.write_to_vtk_file(f"{self.vtk_filename}-wing_{key}.vtk")
 
     def to_stl(self, outfile: str = "test.stl", stl_resolution: int = None):
+        if self.verbosity > 1:
+            print(f"Writing {outfile}.")
+
         # Check for processed surfaces
         if self.surfaces is None or stl_resolution is not None:
             if self.verbosity > 1:
-                print("Generating surfaces.")
+                print(" Generating surfaces for component.")
 
             # Generate surfaces
             self.surface(resolution=stl_resolution)
