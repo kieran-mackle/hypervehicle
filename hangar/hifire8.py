@@ -1,7 +1,7 @@
 import numpy as np
 from hypervehicle import Vehicle
-from gdtk.geom.vector3 import Vector3
-from gdtk.geom.path import Bezier, Line, Polyline
+from hypervehicle.components import Wing, Fin, Fuselage, common
+from hypervehicle.geometry import Vector3, Bezier, Line, Polyline
 
 
 # Instantiate hypervehicle and add all components
@@ -9,12 +9,7 @@ hifire8 = Vehicle()
 hifire8.configure(
     name="HIFiRE-8",
     verbosity=1,
-    write_stl=True,
-    stl_resolution=5,
-    stl_filename="hifire8",
-    mirror_fins=False,
 )
-
 
 L = 1.2
 
@@ -36,7 +31,7 @@ R1 = R_base - X1 * np.tan(fuse_slope)
 R2 = R_base - X2 * np.tan(fuse_slope)
 R3 = R2  # R_base - X3*np.tan(fuse_slope)
 
-hifire8.add_fuselage(Xn=Xn, X1=X1, X2=X2, X3=X3, Rn=Rn, R1=R1, R2=R2, R3=R3)
+fuselage = Fuselage(Xn=Xn, X1=X1, X2=X2, X3=X3, R1=R1, R2=R2, R3=R3, stl_resolution=5)
 
 
 # Construct fins
@@ -68,57 +63,47 @@ p1p2 = Line(p1, p2)
 p2p3 = Line(p2, p3)
 p1p3 = Polyline(segments=[p1p2, p2p3])
 
-# Thickness functions - constants
-def fin_thickness_function_top(x, y, z=0):
-    return Vector3(x=0.0, y=0.0, z=-fin_thickness / 2)
-
-
-def fin_thickness_function_bot(x, y, z=0):
-    return Vector3(x=0.0, y=0.0, z=fin_thickness / 2)
-
-
-def leading_edge_width_function(r):
-    temp = Bezier(
-        [Vector3(x=0.0, y=0.02), Vector3(x=0.75, y=0.05), Vector3(x=1.0, y=0.05)]
-    )
-    le_width = temp(r).y
-    return le_width
-
-
-fin1_geom_dict = {
-    "p0": p0,
-    "p1": p1,
-    "p2": p2,
-    "p3": p3,
-    "FIN_THICKNESS": fin_thickness,
-    "FIN_ANGLE": fin_angle,
-    "FIN_TOP_THICKNESS_FUNC": fin_thickness_function_top,
-    "FIN_BOTTOM_THICKNESS_FUNC": fin_thickness_function_bot,
-    "FIN_LEADING_EDGE_FUNC": leading_edge_width_function,
-    "MIRROR_NEW_COMPONENT": False,
-    "rudder_type": "flat",
-    "rudder_length": 0,
-    "rudder_angle": 0,
-    "pivot_angle": 0,
-    "pivot_point": Vector3(x=0, y=0),
-}
+fin1 = Fin(
+    p0=p0,
+    p1=p1,
+    p2=p2,
+    p3=p3,
+    fin_thickness=fin_thickness,
+    fin_angle=fin_angle,
+    top_thickness_function=common.uniform_thickness_function(fin_thickness, "top"),
+    bot_thickness_function=common.uniform_thickness_function(fin_thickness, "bot"),
+    mirror=False,
+    stl_resolution=3,
+)
 
 # Copy for second fin
-fin2_geom_dict = fin1_geom_dict.copy()
-fin2_geom_dict["FIN_ANGLE"] = fin1_geom_dict["FIN_ANGLE"] + np.deg2rad(90)
+fin2 = Fin(
+    p0=p0,
+    p1=p1,
+    p2=p2,
+    p3=p3,
+    fin_thickness=fin_thickness,
+    fin_angle=fin_angle + np.deg2rad(90),
+    top_thickness_function=common.uniform_thickness_function(fin_thickness, "top"),
+    bot_thickness_function=common.uniform_thickness_function(fin_thickness, "bot"),
+    mirror=False,
+    stl_resolution=3,
+)
 
 # Copy for third fin - this should be improved. Maybe
 # make a fin geom func and modify fin height
-fin3_geom_dict = fin1_geom_dict.copy()
-fin3_geom_dict["FIN_ANGLE"] = np.deg2rad(-90)
-fin3_geom_dict["p1"] = 0.5 * fin1_geom_dict["p1"]
-fin3_geom_dict["p2"] = 0.5 * fin1_geom_dict["p2"]
-
-# Add fin dicts
-hifire8.add_component("fin", fin1_geom_dict)
-hifire8.add_component("fin", fin2_geom_dict)
-hifire8.add_component("fin", fin3_geom_dict)
-
+fin3 = Fin(
+    p0=p0,
+    p1=0.5 * p1,
+    p2=0.5 * p2,
+    p3=p3,
+    fin_thickness=fin_thickness,
+    fin_angle=np.deg2rad(-90),
+    top_thickness_function=common.uniform_thickness_function(fin_thickness, "top"),
+    bot_thickness_function=common.uniform_thickness_function(fin_thickness, "bot"),
+    mirror=False,
+    stl_resolution=3,
+)
 
 # Construct wing
 # ====================
@@ -155,25 +140,16 @@ B2B3 = Line(p0=B2, p1=B3)
 B3TT = Line(p0=B3, p1=TT)
 Line_B0TT = Polyline([B0B1, B1B2, B2B3, B3TT])
 
-
-def wing_tf_top(x, y, z=0):
-    return Vector3(x=0, y=0, z=-wing_thickness / 2)
-
-
-def wing_tf_bot(x, y, z=0):
-    return Vector3(x=0, y=0, z=wing_thickness / 2)
-
-
-hifire8.add_wing(
+wing = Wing(
     A0=A0,
     A1=A1,
     TT=TT,
     B0=B0,
     Line_B0TT=Line_B0TT,
-    top_tf=wing_tf_top,
-    bot_tf=wing_tf_bot,
-    LE_wf=leading_edge_width_function,
+    top_tf=common.uniform_thickness_function(wing_thickness, "top"),
+    bot_tf=common.uniform_thickness_function(wing_thickness, "bot"),
     flap_length=flap_length,
+    stl_resolution=4,
 )
 
 
@@ -235,7 +211,7 @@ def nose_tf_bot(x, y, z=0):
     return Vector3(x=0, y=0, z=z)
 
 
-hifire8.add_wing(
+nose = Wing(
     A0=A0n,
     A1=A1n,
     TT=TTn,
@@ -243,9 +219,20 @@ hifire8.add_wing(
     Line_B0TT=Line_B0TTn,
     top_tf=nose_tf_top,
     bot_tf=nose_tf_bot,
-    LE_wf=leading_edge_width_function,
+    LE_wf=common.leading_edge_width_function,
     LE_type="FLAT",
+    stl_resolution=4,
 )
 
-# Generate STL files
+
+# Add components
+hifire8.add_component(fuselage)
+hifire8.add_component(wing, reflection_axis="y")
+hifire8.add_component(nose, reflection_axis="y")
+hifire8.add_component(fin1)
+hifire8.add_component(fin2)
+hifire8.add_component(fin3)
+
+# Generate
 hifire8.generate()
+hifire8.to_stl("hifire8")
