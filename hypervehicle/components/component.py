@@ -71,6 +71,11 @@ class AbstractComponent(ABC):
         """Writes the component to STL file format."""
         pass
 
+    @abstractmethod
+    def analyse(self):
+        """Evaluates properties of the STL mesh."""
+        pass
+
 
 # TODO - add general attributes, such as curvature functions, etc
 
@@ -217,3 +222,13 @@ class Component(AbstractComponent):
 
         # Write STL to file
         stl_mesh.save(outfile)
+
+    def analyse(self):
+        # Get mass properties
+        volume, cog, inertia = self.mesh.get_mass_properties()
+
+        # Print results
+        print(f"Volume: {volume} m^3")
+        print(f"COG location: {cog}")
+        print("Moment of intertia metrix at COG:")
+        print(inertia)
