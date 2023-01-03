@@ -17,7 +17,95 @@ from hypervehicle.geometry import (
 class Fuselage(Component):
     componenttype = FUSELAGE_COMPONENT
 
-    def __init__(self, params: dict, verbosity: int = 1) -> None:
+    def __init__(
+        self,
+        Xn: float = None,
+        X1: float = None,
+        X2: float = None,
+        X3: float = None,
+        R1: float = None,
+        R2: float = None,
+        R3: float = None,
+        X4: float = None,
+        revolve_line=None,
+        cross_sections: list = None,
+        sweep_axis: str = "z",
+        nose_type: str = "sharp-cone",
+        tail_type: str = "flat",
+        x_curve_func=None,
+        x_dash_func=None,
+        y_curve_func=None,
+        y_dash_func=None,
+        offset=None,
+        stl_resolution: int = None,
+        verbosity: int = 1,
+    ) -> None:
+        """Adds the fuselage to the vehicle.
+
+        Parameters
+        ----------
+        Xn: float
+            The axial location of the fuselage nose.
+        X1: float
+            The axial location of the X1 point.
+        X2: float
+            The axial location of the X2 point.
+        X3: float
+            The axial location of the X3 point.
+        X4: float, optional
+            The axial location of the X4 point. The default is None.
+        R1: float
+            The radius of the fuselage at X1.
+        R2: float
+            The radius of the fuselage at X2.
+        R3: float
+            The radius of the fuselage at X3.
+        revolve_line : Line|PolyLine|Bezier
+            A line to be revolved about the primary axis.
+        cross_sections : list, optional
+            A list of cross-sectional patches to sweep through.
+        sweep_axis : str, optional
+            The axis to sweep the cross sections through. The default
+            is z.
+        nose_type: str, optional
+            The fuselage nose type. The default is 'sharp-cone'.
+        tail_type: str, optional
+            The fuselage tail type. Options include 'sharp-cone' and 'flat'.
+            When using 'sharp-cone', X4 must be provided. The default is flat.
+        x_curve_func: function, optional
+            The x-curvature function. The default is None.
+        x_dash_func: function, optional
+            The x-curvature derivative function. The default is None.
+        y_curve_func: function, optional
+            The y-curvature function. The default is None.
+        y_dash_func: function, optional
+            The y-curvature derivative function. The default is None.
+        stl_resolution : int, optional
+            The stl resolution to use when creating the mesh for this
+            component. The default is None.
+        """
+
+        params = {
+            "FUSELAGE_NOSE_OPTION": nose_type,
+            "FUSELAGE_TAIL_OPTION": tail_type,
+            "Xn": Xn,
+            "X1": X1,
+            "X2": X2,
+            "X3": X3,
+            "X4": X4,
+            "R1": R1,
+            "R2": R2,
+            "R3": R3,
+            "revolve_line": revolve_line,
+            "cross_sections": cross_sections,
+            "sweep_axis": sweep_axis,
+            "FUSELAGE_FUNC_CURV_X": x_curve_func,
+            "FUSELAGE_FUNC_CURV_X_DASH": x_dash_func,
+            "FUSELAGE_FUNC_CURV_Y": y_curve_func,
+            "FUSELAGE_FUNC_CURV_Y_DASH": y_dash_func,
+            "OFFSET": offset,
+        }
+
         super().__init__(params, verbosity)
 
     def generate_patches(self):
@@ -210,94 +298,3 @@ class Fuselage(Component):
             for patch_name, patch in self.patches.items():
                 # Overwrite patches with offset patches
                 self.patches[patch_name] = OffsetPatchFunction(patch, offset)
-
-    @classmethod
-    def legacy(
-        cls,
-        Xn: float = None,
-        X1: float = None,
-        X2: float = None,
-        X3: float = None,
-        R1: float = None,
-        R2: float = None,
-        R3: float = None,
-        X4: float = None,
-        revolve_line=None,
-        cross_sections: list = None,
-        sweep_axis: str = "z",
-        nose_type: str = "sharp-cone",
-        tail_type: str = "flat",
-        x_curve_func=None,
-        x_dash_func=None,
-        y_curve_func=None,
-        y_dash_func=None,
-        offset=None,
-        stl_resolution: int = None,
-    ) -> Fuselage:
-        """Adds the fuselage to the vehicle.
-
-        Parameters
-        ----------
-        Xn: float
-            The axial location of the fuselage nose.
-        X1: float
-            The axial location of the X1 point.
-        X2: float
-            The axial location of the X2 point.
-        X3: float
-            The axial location of the X3 point.
-        X4: float, optional
-            The axial location of the X4 point. The default is None.
-        R1: float
-            The radius of the fuselage at X1.
-        R2: float
-            The radius of the fuselage at X2.
-        R3: float
-            The radius of the fuselage at X3.
-        revolve_line : Line|PolyLine|Bezier
-            A line to be revolved about the primary axis.
-        cross_sections : list, optional
-            A list of cross-sectional patches to sweep through.
-        sweep_axis : str, optional
-            The axis to sweep the cross sections through. The default
-            is z.
-        nose_type: str, optional
-            The fuselage nose type. The default is 'sharp-cone'.
-        tail_type: str, optional
-            The fuselage tail type. Options include 'sharp-cone' and 'flat'.
-            When using 'sharp-cone', X4 must be provided. The default is flat.
-        x_curve_func: function, optional
-            The x-curvature function. The default is None.
-        x_dash_func: function, optional
-            The x-curvature derivative function. The default is None.
-        y_curve_func: function, optional
-            The y-curvature function. The default is None.
-        y_dash_func: function, optional
-            The y-curvature derivative function. The default is None.
-        stl_resolution : int, optional
-            The stl resolution to use when creating the mesh for this
-            component. The default is None.
-        """
-        # TODO - merge this method into the init somehow
-        params = {
-            "FUSELAGE_NOSE_OPTION": nose_type,
-            "FUSELAGE_TAIL_OPTION": tail_type,
-            "Xn": Xn,
-            "X1": X1,
-            "X2": X2,
-            "X3": X3,
-            "X4": X4,
-            "R1": R1,
-            "R2": R2,
-            "R3": R3,
-            "revolve_line": revolve_line,
-            "cross_sections": cross_sections,
-            "sweep_axis": sweep_axis,
-            "FUSELAGE_FUNC_CURV_X": x_curve_func,
-            "FUSELAGE_FUNC_CURV_X_DASH": x_dash_func,
-            "FUSELAGE_FUNC_CURV_Y": y_curve_func,
-            "FUSELAGE_FUNC_CURV_Y_DASH": y_dash_func,
-            "OFFSET": offset,
-        }
-
-        return cls(params=params)
