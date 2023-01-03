@@ -98,7 +98,7 @@ class Wing(Component):
         # Find Locations
         if self.params["t_B1"] == None:
             fun_B1 = lambda t: self.Line_B0TT(t).x - self.A1.x
-            self.t_B1 = bisect(fun_B1, 0.0, 1.0)
+            self.t_B1 = round(bisect(fun_B1, 0.0, 1.0), 6)
         else:
             self.t_B1 = self.params["t_B1"]
 
