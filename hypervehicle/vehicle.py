@@ -1,4 +1,4 @@
-from typing import List, Tuple
+from typing import List, Tuple, Callable
 from hypervehicle.components.component import Component
 from hypervehicle.components.constants import (
     FIN_COMPONENT,
@@ -48,17 +48,25 @@ class Vehicle:
         component: Component,
         reflection_axis: str = None,
         append_reflection: bool = True,
+        curvatures: List[Tuple[str, Callable, Callable]] = None,
     ) -> None:
         """Adds a new component to the vehicle.
 
         Parameters
         ----------
+        component : Component
+            The component to add.
         reflection_axis : str, optional
             Include a reflection of the component about the axis specified
             (eg. 'x', 'y' or 'z'). The default is None.
         append_reflection : bool, optional
             When reflecting a new component, add the reflection to the existing
             component, rather than making it a new component. The default is True.
+        curvatures : List[Tuple[str, Callable, Callable]], optional
+            A list of the curvatures to apply to the component being added.
+            This list contains a tuple for each curvature. Each curvatue
+            is defined by (axis, curve_func, curve_func_derivative).
+            The default is None.
         """
         if component.componenttype in Vehicle.ALLOWABLE_COMPONENTS:
             # Overload component verbosity
@@ -73,6 +81,10 @@ class Vehicle:
             if reflection_axis is not None:
                 component._reflection_axis = reflection_axis
                 component._append_reflection = append_reflection
+
+            # Add component curvature functions
+            if curvatures is not None:
+                component._curvatures = curvatures
 
             # Add component
             self.components.append(component)

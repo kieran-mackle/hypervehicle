@@ -104,11 +104,12 @@ class Component(AbstractComponent):
         self.mesh = None  # STL mesh for entire component
         self.stl_resolution = stl_resolution  # STL cells per edge
 
-        # TODO - tidy the below
-        self.x_curv_func = None
-        self.x_curv_func_dash = None
-        self.y_curv_func = None
-        self.y_curv_func_dash = None
+        # Curvature functions
+        self._curvatures = None
+        self._x_curv_func = None
+        self._x_curv_func_dash = None
+        self._y_curv_func = None
+        self._y_curv_func_dash = None
 
         # Component reflection
         self._reflection_axis = None
@@ -121,31 +122,15 @@ class Component(AbstractComponent):
         return f"{self.componenttype} component"
 
     def curve(self):
-
-        # TODO - generalise curvature, similar to transformations,
-        # with stacked functions and axes
-
-        # Curvature about the x-axis
-        if self.x_curv_func is not None:
-            # Longitudal Curvature
-            for key, patch in self.patches.items():
-                self.patches[key] = CurvedPatch(
-                    underlying_surf=patch,
-                    direction="x",
-                    fun=self.x_curv_func,
-                    fun_dash=self.x_curv_func_dash,
-                )
-
-        # Curvature about the y-axis
-        if self.y_curv_func is not None:
-            # Spanwise Curvature
-            for key, patch in self.patches.items():
-                self.patches[key] = CurvedPatch(
-                    underlying_surf=patch,
-                    direction="y",
-                    fun=self.y_curv_func,
-                    fun_dash=self.y_curv_func_dash,
-                )
+        if self._curvatures is not None:
+            for curvature in self._curvatures:
+                for key, patch in self.patches.items():
+                    self.patches[key] = CurvedPatch(
+                        underlying_surf=patch,
+                        direction=curvature[0],
+                        fun=curvature[1],
+                        fun_dash=curvature[2],
+                    )
 
     def rotate(self, angle: float = 0, axis: str = "y"):
         for key, patch in self.patches.items():
