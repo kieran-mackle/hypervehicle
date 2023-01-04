@@ -77,12 +77,6 @@ class AbstractComponent(ABC):
         pass
 
 
-# TODO - add general attributes, such as curvature functions, etc
-
-# TODO - need to document adding specs (curve, rotate, etc) to
-# individual components, handle implied stuff in Vehicle class
-
-
 class Component(AbstractComponent):
     def __init__(
         self, params: dict, stl_resolution: int = 2, verbosity: int = 1
@@ -181,6 +175,7 @@ class Component(AbstractComponent):
             )
 
     def to_vtk(self):
+        raise NotImplementedError("This method has not been implemented yet.")
         # TODO - check for processed grids
         for key, grid in self.grids.items():
             grid.write_to_vtk_file(f"{self.vtk_filename}-wing_{key}.vtk")

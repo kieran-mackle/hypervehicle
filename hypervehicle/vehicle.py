@@ -1,3 +1,4 @@
+from art import tprint, art
 from typing import List, Tuple, Callable
 from hypervehicle.components.component import Component
 from hypervehicle.components.constants import (
@@ -11,10 +12,8 @@ class Vehicle:
     ALLOWABLE_COMPONENTS = [FIN_COMPONENT, WING_COMPONENT, FUSELAGE_COMPONENT]
 
     def __init__(self, **kwargs) -> None:
-        # Vehicle components
+        # Vehicle attributes
         self.components: List[Component] = []
-
-        # TODO - tidy below
         self.name = "vehicle"
         self.vehicle_angle_offset: float = 0
         self.verbosity = 1
@@ -22,8 +21,6 @@ class Vehicle:
         # Internal attributes
         self._generated = False
         self._component_counts = {}
-
-        # TODO - call self.configure with kwargs
 
     def __repr__(self):
         basestr = self.__str__()
@@ -103,6 +100,9 @@ class Vehicle:
     def generate(self):
         """Generate all components of the vehicle."""
         if self.verbosity > 0:
+            tprint("Hypervehicle", "tarty4")
+            p = art("airplane2")
+            print(f" {p}               {p}" + f"               {p}               {p}")
             print("Generating component patches.")
 
         for component in self.components:
