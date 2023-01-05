@@ -5,6 +5,7 @@ import time
 import numpy as np
 import pandas as pd
 from stl import mesh
+from typing import Dict
 import xml.etree.ElementTree as ET
 
 
@@ -118,19 +119,17 @@ def parametricSurfce2stl(
     return stl_mesh
 
 
-def assess_inertial_properties(components: dict, component_densities: dict):
+def assess_inertial_properties(vehicle, component_densities: Dict[str, float]):
     """
 
     Parameters
     ----------
-    components : dict
-        A dictionary containing the mesh components to be analysed. Each key
-        of the dict must contain another dict object, with keys "type" and
-        "mesh". The "type" key is used to index the component density dict.
-    component_densities : dict
+    vehicle : Vehicle
+        A hypervehicle Vehicle instance.
+    component_densities : Dict[str, float]
         A dictionary containing the effective densities for each component.
-        Note that the keys of the dict must match the "type" keys provided in
-        the components dict.
+        Note that the keys of the dict must match the keys of
+        vehicle._enumerated_components.
 
     Returns
     -------
@@ -156,27 +155,32 @@ def assess_inertial_properties(components: dict, component_densities: dict):
     >>> volume, mass, cog, inertia = utils.assess_inertial_properties(components,
                                                              component_densities)
     """
+    # Check if vehicle has been generated
+    if not vehicle._generated:
+        vehicle.generate()
+
     volumes = {}
     masses = {}
     cgs = {}
     inertias = {}
     total_mass = 0
     total_volume = 0
-    for component, data in components.items():
-        inertia_handle = getattr(data["mesh"], "get_mass_properties_with_density")
 
-        volume, vmass, cog, inertia = inertia_handle(component_densities[data["type"]])
+    for name, component in vehicle._enumerated_components.items():
+        inertia_handle = getattr(component.mesh, "get_mass_properties_with_density")
 
-        volumes[component] = volume
-        masses[component] = vmass
-        cgs[component] = cog
-        inertias[component] = inertia
+        volume, vmass, cog, inertia = inertia_handle(component_densities[name])
+
+        volumes[name] = volume
+        masses[name] = vmass
+        cgs[name] = cog
+        inertias[name] = inertia
         total_mass += vmass
         total_volume += volume
 
     # Composite centre of mass
     composite_cog = 0
-    for component in components:
+    for component in vehicle._enumerated_components:
         m = masses[component]
         composite_cog += m * cgs[component]
 
@@ -185,7 +189,7 @@ def assess_inertial_properties(components: dict, component_densities: dict):
     # Parallel axis theorem
     shifted_inertias = {}
     composite_inertia = 0
-    for component in components:
+    for component in vehicle._enumerated_components:
         m = masses[component]
         r = cgs[component] - composite_cog
         I_adj = inertias[component] + m * r**2

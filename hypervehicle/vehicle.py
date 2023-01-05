@@ -1,6 +1,6 @@
 from art import tprint, art
 from typing import List, Tuple, Callable
-from hypervehicle.components import Component
+from hypervehicle.components.component import Component
 from hypervehicle.components.constants import (
     FIN_COMPONENT,
     WING_COMPONENT,
