@@ -218,7 +218,8 @@ class SensitivityStudy:
         self.verbosity = verbosity
 
         # Parameter sensitivities
-        self.sensitivities = None
+        self.parameter_sensitivities = None
+        self.component_sensitivities = None
 
     def __repr__(self):
         return "HyperVehicle sensitivity study"
@@ -226,7 +227,7 @@ class SensitivityStudy:
     def dvdp(
         self,
         parameter_dict: dict,
-        perturbation: float = 20,
+        perturbation: float = 5,
         write_nominal_stl: bool = True,
     ):
         """Computes the sensitivity of the geometry with respect to the
@@ -319,7 +320,6 @@ class SensitivityStudy:
                     dp,
                     component_mesh_name,
                     parameter,
-                    True,
                 )
 
                 sensitivities[parameter][component] = sensitivity_df
@@ -328,15 +328,22 @@ class SensitivityStudy:
             print("  Done.")
 
         # Return output
-        self.sensitivities = sensitivities
-
-        # TODO - option to combine all sensitivities (new method)
+        self.parameter_sensitivities = sensitivities
+        self.component_sensitivities = self._combine(nominal_instance, sensitivities)
 
         return sensitivities
 
+    def to_csv(self):
+        """Writes the sensitivity information to CSV file."""
+        if self.component_sensitivities is None:
+            raise Exception("Sensitivities have not yet been generated.")
+        else:
+            for component, df in self.component_sensitivities.items():
+                df.to_csv(f"{component}_sensitivity.csv", index=False)
+
     @staticmethod
     def _compare_meshes(
-        mesh1, mesh2, dp, component: str, parameter_name: str, save_csv: bool = False
+        mesh1, mesh2, dp, component: str, parameter_name: str
     ) -> pd.DataFrame:
         """Compares two meshes with each other and applies finite differencing
         to quantify their differences.
@@ -352,8 +359,6 @@ class SensitivityStudy:
             The component name.
         parameter_name : str
             The name of the parameter.
-        save_csv : bool, optional
-            Write the differences to a CSV file. The default is True.
 
         Returns
         --------
@@ -396,11 +401,26 @@ class SensitivityStudy:
         # Delete duplicate vertices
         df = df[~df.duplicated()]
 
-        if save_csv:
-            # Save to csv format for visualisation
-            df.to_csv(f"{component}_{parameter_name}_sensitivity.csv", index=False)
-
         return df
+
+    @staticmethod
+    def _combine(nominal_instance, sensitivities):
+        """Combines the sensitivity information for multiple parameters."""
+        component_names = nominal_instance._enumerated_components.keys()
+        params = list(sensitivities.keys())
+
+        allsens = {}
+        for component in component_names:
+            df = sensitivities[params[0]][component][["x", "y", "z"]]
+            for param in params:
+                p_s = sensitivities[param][component][
+                    [f"dxd{param}", f"dyd{param}", f"dzd{param}"]
+                ]
+                df = pd.concat([df, p_s], axis=1)
+
+            allsens[component] = df
+
+        return allsens
 
 
 def append_sensitivities_to_tri(
