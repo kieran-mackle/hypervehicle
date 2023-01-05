@@ -95,8 +95,8 @@ class Component(AbstractComponent):
 
         # STL Attributes
         self.surfaces = None  # STL surfaces for each patch
-        self.mesh = None  # STL mesh for entire component
         self.stl_resolution = stl_resolution  # STL cells per edge
+        self._mesh = None  # STL mesh for entire component
 
         # Curvature functions
         self._curvatures = None
@@ -125,6 +125,28 @@ class Component(AbstractComponent):
                         fun=curvature[1],
                         fun_dash=curvature[2],
                     )
+
+    @property
+    def mesh(self):
+        # Check for processed surfaces
+        if self.surfaces is None:
+            if self.verbosity > 1:
+                print(" Generating surfaces for component.")
+
+            # Generate surfaces
+            self.surface()
+
+        # Combine all surface data
+        surface_data = np.concatenate([s[1].data for s in self.surfaces.items()])
+
+        # Create STL mesh
+        self._mesh = mesh.Mesh(surface_data)
+
+        return self._mesh
+
+    @mesh.setter
+    def mesh(self, value):
+        self._mesh = value
 
     def rotate(self, angle: float = 0, axis: str = "y"):
         for key, patch in self.patches.items():
@@ -180,29 +202,18 @@ class Component(AbstractComponent):
         for key, grid in self.grids.items():
             grid.write_to_vtk_file(f"{self.vtk_filename}-wing_{key}.vtk")
 
-    def to_stl(self, outfile: str = "test.stl", stl_resolution: int = None):
+    def to_stl(self, outfile: str = None, stl_resolution: int = None):
         if self.verbosity > 1:
-            print(f"Writing {outfile}.")
+            print("Writing patches to STL format. ")
+            if outfile is not None:
+                print(f"Output file = {outfile}.")
 
-        # Check for processed surfaces
-        if self.surfaces is None or stl_resolution is not None:
-            if self.verbosity > 1:
-                print(" Generating surfaces for component.")
+        # Get mesh
+        stl_mesh = self.mesh
 
-            # Generate surfaces
-            self.surface(resolution=stl_resolution)
-
-        # Combine all surface data
-        surface_data = np.concatenate([s[1].data for s in self.surfaces.items()])
-
-        # Create STL mesh
-        stl_mesh = mesh.Mesh(surface_data)
-
-        # Save mesh
-        self.mesh = stl_mesh
-
-        # Write STL to file
-        stl_mesh.save(outfile)
+        if outfile is not None:
+            # Write STL to file
+            stl_mesh.save(outfile)
 
     def analyse(self):
         # Get mass properties

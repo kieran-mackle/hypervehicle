@@ -201,12 +201,12 @@ class SensitivityStudy:
     Computes the geometric sensitivities using finite differencing.
     """
 
-    def __init__(self, vehicle_constructor=None, verbosity: int = 1):
+    def __init__(self, vehicle_constructor, verbosity: int = 1):
         """Vehicle geometry sensitivity constructor.
 
         Parameters
         ----------
-        vehicle_constructor : TYPE
+        vehicle_constructor : AbstractGenerator
             The Vehicle instance constructor.
 
         Returns
@@ -223,11 +223,10 @@ class SensitivityStudy:
     def __repr__(self):
         return "HyperVehicle sensitivity study"
 
-    def dGdP(
+    def dvdp(
         self,
         parameter_dict: dict,
         perturbation: float = 20,
-        vehicle_creator_method: str = "create_instance",
         write_nominal_stl: bool = True,
     ):
         """Computes the sensitivity of the geometry with respect to the
@@ -255,60 +254,76 @@ class SensitivityStudy:
             components of the geometry, relative to the nominal geometry.
 
         """
+        # TODO - return perturbed instances? After generatation to allow
+        # quickly writing to STL
+        from hypervehicle.generator import AbstractGenerator
+
         # Create Vehicle instance with nominal parameters
         if self.verbosity > 0:
             print("Generating nominal geometry...")
-        constructor_instance = self.vehicle_constructor(**parameter_dict)
-        nominal_instance = getattr(constructor_instance, vehicle_creator_method)()
-        nominal_instance.write_stl = write_nominal_stl
+
+        constructor_instance: AbstractGenerator = self.vehicle_constructor(
+            **parameter_dict
+        )
+        nominal_instance = constructor_instance.create_instance()
         nominal_instance.verbosity = 0
 
-        # Generate stl meshes
+        # Generate components
         nominal_instance.generate()
-        nominal_meshes = nominal_instance.meshes
+        nominal_meshes = {
+            name: component.mesh
+            for name, component in nominal_instance._enumerated_components.items()
+        }
+
         if self.verbosity > 0:
             print("  Done.")
 
-        sensitivities = {}
+        if write_nominal_stl:
+            # Write nominal instance to STL files
+            nominal_instance.to_stl(prefix=f"nominal_{nominal_instance.name}")
 
         # Generate meshes for each parameter
         if self.verbosity > 0:
             print("Generating perturbed geometries...")
+
+        sensitivities = {}
         for parameter, value in parameter_dict.items():
+            sensitivities[parameter] = {}
+
             # Create copy
             adjusted_parameters = parameter_dict.copy()
 
             # Adjust current parameter for sensitivity analysis
             adjusted_parameters[parameter] *= 1 + perturbation / 100
-            dP = adjusted_parameters[parameter] - value
+            dp = adjusted_parameters[parameter] - value
 
             # Create Vehicle instance with perturbed parameter
             constructor_instance = self.vehicle_constructor(**adjusted_parameters)
-            parameter_instance = getattr(constructor_instance, vehicle_creator_method)()
-            parameter_instance.write_stl = False
+            parameter_instance = constructor_instance.create_instance()
             parameter_instance.verbosity = 0
 
             # Generate stl meshes
             parameter_instance.generate()
-            parameter_meshes = parameter_instance.meshes
+            parameter_meshes = {
+                name: component.mesh
+                for name, component in parameter_instance._enumerated_components.items()
+            }
 
             # Generate sensitivities
-            for component, meshes in nominal_meshes.items():
-                sensitivities[component] = []
-                for ix, nominal_mesh in enumerate(meshes):
-                    parameter_mesh = parameter_meshes[component][ix]
+            for component, nominal_mesh in nominal_meshes.items():
+                parameter_mesh = parameter_meshes[component]
+                component_mesh_name = f"{component}"
+                sensitivity_df = self._compare_meshes(
+                    nominal_mesh,
+                    parameter_mesh,
+                    dp,
+                    component_mesh_name,
+                    parameter,
+                    True,
+                )
 
-                    component_mesh_name = f"{component}_{ix}"
-                    sensitivity_df = self.compare_meshes(
-                        nominal_mesh,
-                        parameter_mesh,
-                        dP,
-                        component_mesh_name,
-                        parameter,
-                        True,
-                    )
+                sensitivities[parameter][component] = sensitivity_df
 
-                    sensitivities[component].append(sensitivity_df)
         if self.verbosity > 0:
             print("  Done.")
 
@@ -320,8 +335,8 @@ class SensitivityStudy:
         return sensitivities
 
     @staticmethod
-    def compare_meshes(
-        mesh1, mesh2, dP, component: str, parameter_name: str, save_csv: bool = False
+    def _compare_meshes(
+        mesh1, mesh2, dp, component: str, parameter_name: str, save_csv: bool = False
     ) -> pd.DataFrame:
         """Compares two meshes with each other and applies finite differencing
         to quantify their differences.
@@ -332,7 +347,7 @@ class SensitivityStudy:
             The reference mesh.
         mesh1 : None
             The perturbed mesh.
-        dP : None
+        dp : None
         component : str
             The component name.
         parameter_name : str
@@ -365,9 +380,14 @@ class SensitivityStudy:
         df["magnitude"] = np.sqrt(np.square(df[["dx", "dy", "dz"]]).sum(axis=1))
 
         # Sensitivity calculations
-        sensitivities = df[["dx", "dy", "dz"]] / dP
+        sensitivities = df[["dx", "dy", "dz"]] / dp
         sensitivities.rename(
-            columns={"dx": "dxdP", "dy": "dydP", "dz": "dzdP"}, inplace=True
+            columns={
+                "dx": f"dxd{parameter_name}",
+                "dy": f"dyd{parameter_name}",
+                "dz": f"dzd{parameter_name}",
+            },
+            inplace=True,
         )
 
         # Merge dataframes
