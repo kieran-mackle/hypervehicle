@@ -1,6 +1,6 @@
 from art import tprint, art
 from typing import List, Tuple, Callable
-from hypervehicle.components.component import Component
+from hypervehicle.components import Component
 from hypervehicle.components.constants import (
     FIN_COMPONENT,
     WING_COMPONENT,
@@ -21,6 +21,7 @@ class Vehicle:
         # Internal attributes
         self._generated = False
         self._component_counts = {}
+        self._enumerated_components = {}
 
     def __repr__(self):
         basestr = self.__str__()
@@ -87,9 +88,11 @@ class Vehicle:
             self.components.append(component)
 
             # Add component count
-            self._component_counts[component.componenttype] = (
-                self._component_counts.get(component.componenttype, 0) + 1
-            )
+            component_count = self._component_counts.get(component.componenttype, 0) + 1
+            self._component_counts[component.componenttype] = component_count
+            self._enumerated_components[
+                f"{component.componenttype}_{component_count}"
+            ] = component
 
             if self.verbosity > 1:
                 print(f"Added new {component.componenttype} component.")
