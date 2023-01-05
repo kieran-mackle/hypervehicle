@@ -1,8 +1,18 @@
 # hypervehicle documentation
 
-[Getting Started](getting-started)
+```
 
-[Example](examples/x43)
+▒█░▒█ █░░█ █▀▀█ █▀▀ █▀▀█ ▀█░█▀ █▀▀ █░░█ ░▀░ █▀▀ █░░ █▀▀ 
+▒█▀▀█ █▄▄█ █░░█ █▀▀ █▄▄▀ ░█▄█░ █▀▀ █▀▀█ ▀█▀ █░░ █░░ █▀▀ 
+▒█░▒█ ▄▄▄█ █▀▀▀ ▀▀▀ ▀░▀▀ ░░▀░░ ▀▀▀ ▀░░▀ ▀▀▀ ▀▀▀ ▀▀▀ ▀▀▀ 
+ ✈                ✈                ✈                ✈ 
+```
+
+The *Hypervehicle* Python package provides a versatile tool to 
+rapidly generate parametric vehicle geometries following a 
+component build-up approach. Take a look at the 
+[Getting Started](getting-started) guide to get set up, 
+then have a look at the [examples](examples/x43).
 
 
 ```{toctree}
@@ -43,7 +53,7 @@ Parameter Sensitivities <examples/sensitivity>
 :caption: API REFERENCE
 
 Vehicle class <apiref/vehicle>
-Polygon formation class <apiref/polygon>
+Components <apiref/component>
 Changelog <apiref/changelog>
 ```
 
