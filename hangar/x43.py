@@ -1,7 +1,7 @@
 import numpy as np
 from hypervehicle import Vehicle
-from gdtk.geom.vector3 import Vector3
-from gdtk.geom.path import Bezier, Line, Polyline
+from hypervehicle.components import Wing, Fin, common
+from hypervehicle.geometry import Vector3, Bezier, Line, Polyline
 
 
 # Geometric parameters
@@ -27,9 +27,7 @@ rudder_angle = 0  # Rudder angle (+ve to +y) (degrees)
 
 # Create Vehicle instance
 x43 = Vehicle()
-x43.configure(
-    name="X-43A", verbosity=1, write_stl=True, stl_resolution=5, stl_filename="x43"
-)
+x43.configure(name="X-43A", verbosity=1)
 
 
 #####################################################
@@ -113,8 +111,7 @@ def leading_edge_width_function(r):
     return le_width
 
 
-# Add wing to x43 vehicle
-x43.add_wing(
+body = Wing(
     A0=A0,
     A1=A1,
     TT=TT,
@@ -164,7 +161,7 @@ def wing2_tf_bot(x, y, z=0):
     return Vector3(x=0, y=0, z=flap_thickness / 2 - z_ba)
 
 
-x43.add_wing(
+wing = Wing(
     A0=fA0,
     A1=fA1,
     TT=fTT,
@@ -237,7 +234,7 @@ def leading_edge_width_function2(r):
     return le_width
 
 
-x43.add_wing(
+inlet = Wing(
     A0=iA0,
     A1=iA1,
     TT=iTT,
@@ -273,14 +270,6 @@ p1p2 = Line(p1, p2)
 p2p3 = Line(p2, p3)
 p1p3 = Polyline(segments=[p1p2, p2p3])
 
-# Thickness functions - constants
-def fin_thickness_function_top(x, y, z=0):
-    return Vector3(x=0.0, y=0.0, z=-fin_thickness / 2)
-
-
-def fin_thickness_function_bot(x, y, z=0):
-    return Vector3(x=0.0, y=0.0, z=fin_thickness / 2)
-
 
 def fin_offset_function(x, y, z):
     return Vector3(x=0, y=y_shift, z=0)
@@ -293,36 +282,58 @@ fin_angle = np.deg2rad(-90)
 # Rudder angle (fin flap)
 rudder_angle = np.deg2rad(rudder_angle)
 
-fin_geom_dict = {
-    "p0": p0,
-    "p1": p1,
-    "p2": p2,
-    "p3": p3,
-    "FIN_THICKNESS": fin_thickness,
-    "FIN_ANGLE": fin_angle,
-    "FIN_TOP_THICKNESS_FUNC": fin_thickness_function_top,
-    "FIN_BOTTOM_THICKNESS_FUNC": fin_thickness_function_bot,
-    "FIN_LEADING_EDGE_FUNC": leading_edge_width_function,
-    "MIRROR_NEW_COMPONENT": False,
-    "rudder_type": "sharp",  # options ['flat', 'sharp']
-    "rudder_length": rudder_length,
-    "rudder_angle": rudder_angle,
-    "pivot_angle": 0,
-    "pivot_point": Vector3(x=0, y=0),
-    "offset_function": fin_offset_function,
-}
+fin1 = Fin(
+    p0=p0,
+    p1=p1,
+    p2=p2,
+    p3=p3,
+    fin_thickness=fin_thickness,
+    fin_angle=fin_angle,
+    top_thickness_function=common.uniform_thickness_function(fin_thickness, "top"),
+    bot_thickness_function=common.uniform_thickness_function(fin_thickness, "bot"),
+    LE_func=leading_edge_width_function,
+    mirror=False,
+    rudder_type="sharp",
+    rudder_length=rudder_length,
+    rudder_angle=rudder_angle,
+    pivot_angle=0,
+    pivot_point=Vector3(x=0, y=0),
+    offset_func=fin_offset_function,
+)
 
 # Make second fin to account for rudder angle
 def fin_offset_function2(x, y, z):
     return Vector3(x=0, y=-y_shift, z=0)
 
 
-fin2_geom_dict = fin_geom_dict.copy()
-fin2_geom_dict["offset_function"] = fin_offset_function2
-fin2_geom_dict["FIN_ANGLE"] = fin_geom_dict["FIN_ANGLE"]
+fin2 = Fin(
+    p0=p0,
+    p1=p1,
+    p2=p2,
+    p3=p3,
+    fin_thickness=fin_thickness,
+    fin_angle=fin_angle,
+    top_thickness_function=common.uniform_thickness_function(fin_thickness, "top"),
+    bot_thickness_function=common.uniform_thickness_function(fin_thickness, "bot"),
+    LE_func=leading_edge_width_function,
+    mirror=False,
+    rudder_type="sharp",
+    rudder_length=rudder_length,
+    rudder_angle=rudder_angle,
+    pivot_angle=0,
+    pivot_point=Vector3(x=0, y=0),
+    offset_func=fin_offset_function2,
+)
 
-x43.add_component("fin", fin_geom_dict)
-x43.add_component("fin", fin2_geom_dict)
+# Add all components
+x43.add_component(body, reflection_axis="y")
+x43.add_component(wing, reflection_axis="y")
+x43.add_component(inlet, reflection_axis="y")
+x43.add_component(fin1)
+x43.add_component(fin2)
 
-# Generate stl
+
+# Generate
+# -------------
 x43.generate()
+x43.to_stl("x43")

@@ -45,5 +45,6 @@ setuptools.setup(
         "black",
         "commitizen",
         "pre-commit",
+        "art",
     ],
 )

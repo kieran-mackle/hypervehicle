@@ -1,19 +1,16 @@
 import numpy as np
 from hypervehicle import Vehicle
-from gdtk.geom.vector3 import Vector3
-from gdtk.geom.path import Bezier, Line, Polyline, Arc
+from hypervehicle.components import Wing, Fin, Fuselage, common
+from hypervehicle.geometry import Vector3, Bezier, Line, Polyline, Arc
 
 
-params = {"x_curve_mult": 0.3, "y_curve_mult": 0}
+params = {"x_curve_mult": 0.3, "y_curve_mult": 0.5}
 
 # Initialise
 hifire4 = Vehicle()
 hifire4.configure(
     name="HIFiRE4",
     verbosity=1,
-    write_stl=True,
-    stl_filename="hifire4",
-    mirror_fins=False,
 )
 
 R = 0.2
@@ -60,8 +57,10 @@ def curv_yd(x, y):
     return params["y_curve_mult"] * 0.1 * 2 * y
 
 
-# Add to vehicle
-hifire4.add_fuselage(
+# Create curvature operations chain
+curvatures = [("x", curv_x, curv_xd), ("y", curv_y, curv_yd)]
+
+fuselage = Fuselage(
     revolve_line=fuseline,
     x_curve_func=curv_x,
     x_dash_func=curv_xd,
@@ -80,7 +79,6 @@ hifire4.add_fuselage(
 #    ---   |---A0----------------------A1----------------------TT
 #
 #             |------------------- wing_L ---------------------|
-
 
 wing_L = 0.8 * L_t
 wing_thickness = 0.25 * R
@@ -105,30 +103,21 @@ B1B2 = Line(p0=B1, p1=B2)
 B2TT = Line(p0=B2, p1=TT)
 Line_B0TT = Polyline([B0B1, B1B2, B2TT])
 
-
-def wing_tf_top(x, y, z=0):
-    return Vector3(x=0, y=0, z=-wing_thickness / 2)
-
-
-def wing_tf_bot(x, y, z=0):
-    return Vector3(x=0, y=0, z=wing_thickness / 2)
-
-
-hifire4.add_wing(
+wing = Wing(
     A0=A0,
     A1=A1,
     TT=TT,
     B0=B0,
     Line_B0TT=Line_B0TT,
-    top_tf=wing_tf_top,
-    bot_tf=wing_tf_bot,
+    top_tf=common.uniform_thickness_function(wing_thickness, "top"),
+    bot_tf=common.uniform_thickness_function(wing_thickness, "bot"),
     curve_x=curv_x,
     curve_dx=curv_xd,
     curve_y=curv_y,
     curve_dy=curv_yd,
     flap_length=flap_length,
     flap_angle=np.deg2rad(flap_angle),
-    stl_resolution=6,
+    stl_resolution=3,
 )
 
 
@@ -155,21 +144,12 @@ p1 += Vector3(x=0, y=-curv_x(p1.x, p1.y))
 p2 += Vector3(x=0, y=-curv_x(p2.x, p2.y))
 p3 += Vector3(x=0, y=-curv_x(p3.x, p3.y))
 
-# Thickness functions
-def fin_thickness_function_top(x, y, z=0):
-    return Vector3(x=0.0, y=0.0, z=-fin_thickness / 2)
-
-
-def fin_thickness_function_bot(x, y, z=0):
-    return Vector3(x=0.0, y=0.0, z=fin_thickness / 2)
-
-
 # Add fins
 offset1 = lambda x, y, z: Vector3(x=0, y=wing_span)
 offset2 = lambda x, y, z: Vector3(x=0, y=-wing_span)
 offset3 = lambda x, y, z: Vector3(x=0, y=0, z=-0.95 * R)
-stl_res = 4
-hifire4.add_fin(
+stl_res = 3
+fin1 = Fin(
     p0=p0,
     p1=p1,
     p2=p2,
@@ -177,13 +157,13 @@ hifire4.add_fin(
     offset_func=offset1,
     fin_thickness=fin_thickness,
     fin_angle=np.deg2rad(-90),
-    top_thickness_function=fin_thickness_function_top,
-    bot_thickness_function=fin_thickness_function_bot,
+    top_thickness_function=common.uniform_thickness_function(fin_thickness, "top"),
+    bot_thickness_function=common.uniform_thickness_function(fin_thickness, "bot"),
     rudder_type="sharp",
     rudder_length=fin_thickness,
     stl_resolution=stl_res,
 )
-hifire4.add_fin(
+fin2 = Fin(
     p0=p0,
     p1=p1,
     p2=p2,
@@ -191,13 +171,13 @@ hifire4.add_fin(
     offset_func=offset2,
     fin_thickness=fin_thickness,
     fin_angle=np.deg2rad(-90),
-    top_thickness_function=fin_thickness_function_top,
-    bot_thickness_function=fin_thickness_function_bot,
+    top_thickness_function=common.uniform_thickness_function(fin_thickness, "top"),
+    bot_thickness_function=common.uniform_thickness_function(fin_thickness, "bot"),
     rudder_type="sharp",
     rudder_length=fin_thickness,
     stl_resolution=stl_res,
 )
-hifire4.add_fin(
+fin3 = Fin(
     p0=p0,
     p1=p1,
     p2=p2,
@@ -205,12 +185,27 @@ hifire4.add_fin(
     offset_func=offset3,
     fin_thickness=fin_thickness,
     fin_angle=np.deg2rad(-90),
-    top_thickness_function=fin_thickness_function_top,
-    bot_thickness_function=fin_thickness_function_bot,
+    top_thickness_function=common.uniform_thickness_function(fin_thickness, "top"),
+    bot_thickness_function=common.uniform_thickness_function(fin_thickness, "bot"),
     rudder_type="sharp",
     rudder_length=fin_thickness,
     stl_resolution=stl_res,
 )
 
-# Generate STL
+# Add components
+hifire4.add_component(
+    fuselage,
+    curvatures=curvatures,
+)
+hifire4.add_component(
+    wing,
+    reflection_axis="y",
+    curvatures=curvatures,
+)
+hifire4.add_component(fin1)
+hifire4.add_component(fin2)
+hifire4.add_component(fin3)
+
+# Generate
 hifire4.generate()
+hifire4.to_stl("hifire4")

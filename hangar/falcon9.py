@@ -1,16 +1,13 @@
 import numpy as np
-from hypervehicle import Vehicle, utils
-from gdtk.geom.vector3 import Vector3
-from gdtk.geom.path import Bezier, Line, Polyline, Arc
+from hypervehicle import Vehicle
+from hypervehicle.components import Wing, Fuselage, Fin
+from hypervehicle.geometry import Vector3, Bezier, Line, Polyline, Arc
 
 
 falcon9 = Vehicle()
 falcon9.configure(
     name="SpaceX Falcon 9",
     verbosity=1,
-    write_stl=True,
-    stl_filename="falcon",
-    cart3d=True,
 )
 
 D = 3.75
@@ -55,8 +52,9 @@ fb2 = Vector3(f1.x - 0.3 * f_L, 0)
 fb_line = Polyline([Line(fb0, fb1), Line(fb1, fb2)])
 
 # Fairing component
-fairing = Polyline([nose_arc, ogive_arc, fairing_line, fb_line])
-falcon9.add_fuselage(revolve_line=fairing, stl_resolution=100)
+fairing_line = Polyline([nose_arc, ogive_arc, fairing_line, fb_line])
+fairing = Fuselage(revolve_line=fairing_line, stl_resolution=100)
+falcon9.add_component(fairing)
 
 # Body
 b00 = Vector3(f1.x, 0)
@@ -73,5 +71,9 @@ base_line = Line(bb0, bb1)
 # Join
 line = Polyline([body_cap_line, body_line, base_line])
 
-falcon9.add_fuselage(revolve_line=line, stl_resolution=50)
+fuselage = Fuselage(revolve_line=line, stl_resolution=50)
+falcon9.add_component(fuselage)
+
+# Generate
 falcon9.generate()
+falcon9.to_stl("falcon9")

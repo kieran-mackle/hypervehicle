@@ -9,6 +9,12 @@ constructing a good parametric model, the generalised nature of
 between geometric components.
 
 
+## TODO 
+- document componet class and provide context of 
+patches, meshes, surfaces, etc.
+
+
+
 ## Fuselage Components
 A fuselage is defined using a series of axial coordinates and 
 corresponding radii. This is shown in the schematic below. 
