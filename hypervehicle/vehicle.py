@@ -25,7 +25,12 @@ class Vehicle:
 
     def __repr__(self):
         basestr = self.__str__()
-        compstr = ", ".join([f"{e[1]} {e[0]}" for e in self._component_counts.items()])
+        if len(self.components) > 0:
+            compstr = ", ".join(
+                [f"{e[1]} {e[0]}" for e in self._component_counts.items()]
+            )
+        else:
+            compstr = "no components"
         return f"{basestr} ({compstr})"
 
     def __str__(self) -> str:
