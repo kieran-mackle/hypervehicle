@@ -32,10 +32,6 @@ class Fuselage(Component):
         sweep_axis: str = "z",
         nose_type: str = "sharp-cone",
         tail_type: str = "flat",
-        x_curve_func=None,
-        x_dash_func=None,
-        y_curve_func=None,
-        y_dash_func=None,
         offset=None,
         stl_resolution: int = 2,
         verbosity: int = 1,
@@ -72,14 +68,6 @@ class Fuselage(Component):
         tail_type: str, optional
             The fuselage tail type. Options include 'sharp-cone' and 'flat'.
             When using 'sharp-cone', X4 must be provided. The default is flat.
-        x_curve_func: function, optional
-            The x-curvature function. The default is None.
-        x_dash_func: function, optional
-            The x-curvature derivative function. The default is None.
-        y_curve_func: function, optional
-            The y-curvature function. The default is None.
-        y_dash_func: function, optional
-            The y-curvature derivative function. The default is None.
         stl_resolution : int, optional
             The stl resolution to use when creating the mesh for this
             component. The default is 2.
@@ -99,10 +87,6 @@ class Fuselage(Component):
             "revolve_line": revolve_line,
             "cross_sections": cross_sections,
             "sweep_axis": sweep_axis,
-            "FUSELAGE_FUNC_CURV_X": x_curve_func,
-            "FUSELAGE_FUNC_CURV_X_DASH": x_dash_func,
-            "FUSELAGE_FUNC_CURV_Y": y_curve_func,
-            "FUSELAGE_FUNC_CURV_Y_DASH": y_dash_func,
             "OFFSET": offset,
         }
 
