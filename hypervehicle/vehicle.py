@@ -170,7 +170,12 @@ class Vehicle:
         # TODO - check if generate() has been run yet.
         raise NotImplementedError("This method has not been implemented yet.")
 
-    def analyse(self):
+    def analyse(self, densities: dict):
         """Evaluates the mesh properties."""
-        # TODO - check if generate() has been run yet.
-        raise NotImplementedError("This method has not been implemented yet.")
+        from hypervehicle.utilities import assess_inertial_properties
+
+        self.volume, self.mass, self.cog, self.inertia = assess_inertial_properties(
+            vehicle=self, component_densities=densities
+        )
+
+        return self.volume, self.mass, self.cog, self.inertia
