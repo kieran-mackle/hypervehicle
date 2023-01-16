@@ -9,17 +9,34 @@ constructing a good parametric model, the generalised nature of
 between geometric components.
 
 
-## TODO 
-- document componet class and provide context of 
-patches, meshes, surfaces, etc.
+## The *hypervehicle* Workflow
+Before diving into the component definitions, this section provides
+an overview of the *hypervehicle* workflow, and how geometries are
+created from arbitrary definitions.
+
+A vehicle is constructed by stacking a collection of *components* 
+together.
+
+Below is a summary of other terminology:
+- Patch: a *patch* is a surface represented by a continuous function
+- Surface: a *surface* is a surface represented by a discrete function
+- Mesh: a *mesh* is a [Numpy STL](https://numpy-stl.readthedocs.io/en/latest/stl.html#stl-mesh) object
 
 
 
 ## Fuselage Components
+
+### Legacy Fuselage
 A fuselage is defined using a series of axial coordinates and 
 corresponding radii. This is shown in the schematic below. 
 
 ![Fuselage geometry definition](../images/components/fuselage.png "Fuselage definition")
+
+### Revolved Fuselage
+Docs coming soon!
+
+### Swept Fuselage
+Docs coming soon!
 
 
 ## Wing Components
