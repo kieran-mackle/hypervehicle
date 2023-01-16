@@ -15,6 +15,9 @@ component build-up approach. Take a look at the
 then have a look at the [examples](examples/x43).
 
 
+![X43](images/x43.gif)
+
+
 ```{toctree}
 :maxdepth: 2
 :hidden:
