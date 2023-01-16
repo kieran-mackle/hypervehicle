@@ -33,9 +33,7 @@ setuptools.setup(
     long_description=open("README.md").read(),
     install_requires=[
         "pytest",
-        "openpyxl",
         "numpy-stl",
-        "matplotlib",
         "scipy",
         "pandas",
         "furo",

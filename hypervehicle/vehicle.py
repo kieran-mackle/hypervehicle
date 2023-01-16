@@ -105,7 +105,7 @@ class Vehicle:
         if self.verbosity > 0:
             tprint("Hypervehicle", "tarty4")
             p = art("airplane2")
-            print(f" {p}               {p}" + f"               {p}               {p}")
+            print(f" {p}               {p}               {p}               {p}")
             print("Generating component patches.")
 
         for component in self.components:
@@ -169,11 +169,6 @@ class Vehicle:
 
         if self.verbosity > 0:
             print("All components written to STL file format.")
-
-    def show(self):
-        """Plots the vehicle"""
-        # TODO - check if generate() has been run yet.
-        raise NotImplementedError("This method has not been implemented yet.")
 
     def analyse(self, densities: dict):
         """Evaluates the mesh properties."""
