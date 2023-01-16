@@ -178,7 +178,7 @@ class Component(AbstractComponent):
 
     def surface(self, resolution: int = None):
 
-        resolution = self.stl_resolution if resolution is None else resolution
+        stl_resolution = self.stl_resolution if resolution is None else resolution
 
         # Check for patches
         if len(self.patches) == 0:
@@ -192,9 +192,19 @@ class Component(AbstractComponent):
         # Generate surfaces
         for key, patch in self.patches.items():
             flip = True if key.split("_")[-1] == "mirrored" else False
-            self.surfaces[key] = parametricSurfce2stl(
-                patch, resolution, flip_faces=flip
-            )
+            res = stl_resolution
+
+            if "swept" in key:
+                # Sweptt fuselage component
+                res = (
+                    int(stl_resolution / 4)
+                    if "end" in key
+                    else int(stl_resolution / 4) * 4
+                )
+                flip = True if "1" in key else False
+
+            # Append surface
+            self.surfaces[key] = parametricSurfce2stl(patch, res, flip_faces=flip)
 
     def to_vtk(self):
         raise NotImplementedError("This method has not been implemented yet.")
