@@ -337,3 +337,13 @@ x43.add_component(fin2)
 # -------------
 x43.generate()
 x43.to_stl("x43")
+
+# Assess inertial properties
+densities = {
+    "wing_1": 1680,
+    "wing_2": 5590,
+    "wing_3": 1680,
+    "fin_1": 5590,
+    "fin_2": 5590,
+}
+volume, mass, cog, inertia = x43.analyse(densities)
