@@ -100,10 +100,6 @@ class Component(AbstractComponent):
 
         # Curvature functions
         self._curvatures = None
-        self._x_curv_func = None
-        self._x_curv_func_dash = None
-        self._y_curv_func = None
-        self._y_curv_func_dash = None
 
         # Component reflection
         self._reflection_axis = None
