@@ -130,7 +130,12 @@ class Vehicle:
         # Set generated boolean to True
         self._generated = True
 
-    def transform(self, transformations: List[Tuple[int, str]]):
+    def transform(self, transformations: List[Tuple[str, float]]):
+        """Transform vehicle by applying the tranformations. Currently
+        only supports rotations.
+
+        To rotate 180 degrees about the x axis, followed by 90 degrees
+        about the y axis, transformations = [("x", 180), ("y", 90)]"""
         # TODO - specify transform type (eg. rotate) in the Tuple
         if not self._generated:
             raise Exception("Vehicle has not been generated yet.")
@@ -138,7 +143,7 @@ class Vehicle:
         # Rotate to frame
         for component in self.components:
             for transform in transformations:
-                component.rotate(angle=transform[0], axis=transform[1])
+                component.rotate(angle=transform[1], axis=transform[0])
 
             # Reset any meshes generated from un-transformed patches
             component.surfaces = None
