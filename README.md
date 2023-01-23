@@ -101,7 +101,7 @@ can do so using [`venv`](https://docs.python.org/3/library/venv.html) or
 inside the `hypervehicle` root directory).
 
 ```
-pip install -e .
+pip install -e .[all]
 ```
 
 3. Install the [pre-commit](https://pre-commit.com/) hooks.

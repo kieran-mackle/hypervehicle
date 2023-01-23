@@ -22,6 +22,22 @@ def get_version(rel_path):
 with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 
+# Define dependencies groups
+dev = [
+    "furo >= 2022.12.7",
+    "myst_parser >= 0.18.1",
+    "sphinx_copybutton >= 0.5.1",
+    "sphinx_inline_tabs >= 2022.1.2b11",
+    "sphinx-autobuild >= 2021.3.14",
+]
+docs = [
+    "pytest >= 7.2.1",
+    "black >= 22.12.0",
+    "commitizen >= 2.39.1",
+    "pre-commit >= 2.21.0",
+]
+all_dep = dev + docs
+
 setuptools.setup(
     name="hypervehicle",
     version=get_version("hypervehicle/__init__.py"),
@@ -32,17 +48,14 @@ setuptools.setup(
     description="Parametric geometry generation tool for hypersonic vehicles",
     long_description=open("README.md").read(),
     install_requires=[
-        "pytest",
-        "numpy-stl",
-        "scipy",
-        "pandas",
-        "furo",
-        "myst_parser",
-        "sphinx_copybutton",
-        "sphinx_inline_tabs",
-        "black",
-        "commitizen",
-        "pre-commit",
-        "art",
+        "numpy-stl >= 3.0.0",
+        "scipy >= 1.10.0",
+        "pandas >= 1.5.2",
+        "art >= 5.8",
     ],
+    extras_require={
+        "dev": dev,
+        "docs": docs,
+        "all": all_dep,
+    },
 )
