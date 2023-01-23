@@ -1,25 +1,48 @@
+<a name="readme-top"></a>
 
 # HYPERVEHICLE: Parametric Vehicle Geometry Generation
 
-A suite of tools to rapidly generate parametric geometry for hypersonic vehicles. Check out the [hypervehicle hangar](docs/hangar.md)
+A suite of tools to rapidly generate parametric geometry 
+for hypersonic vehicles. 
+Check out the [hypervehicle hangar](docs/source/hangar.md)
 for some examples.
 
 [![x43](https://user-images.githubusercontent.com/60687606/168926371-a383434b-3ea5-40ab-989a-93f7a8d7b4ff.png)](docs/hangar.md)
 
 
-## Important Note
-**Please change to the development branch, as master is now outdated and will be merged soon.**
+
+<!-- TABLE OF CONTENTS -->
+<details>
+  <summary><h2>Table of Contents</h2></summary>
+  <ol>
+    <li>
+      <a href="#getting-started">Getting Started</a>
+      <ul>
+        <li><a href="#environment">Working Environment</a></li>
+        <li><a href="#prerequisites">Prerequisites</a></li>
+        <li><a href="#installation">Installation</a></li>
+      </ul>
+    </li>
+    <li><a href="#usage">Usage</a></li>
+    <li><a href="#contributing">Contributing</a></li>
+  </ol>
+</details>
+
 
 
 ## Getting Started
 
+<a name="environment"></a>
+
 ### Working in a dedicated environment
-It is *very* recommended that you work in a dedicated environment. This is especially important when running simulations
-on UQ's HPC's, which may not have the latest version of Python. To avoid any conflicts, [Anaconda](https://www.anaconda.com/)
-is recommended, with a Python3.9 environment.
+It is *highly* recommended that you work in a dedicated environment. This 
+is especially important when running simulations on UQ's HPC's, which may 
+not have the latest version of Python. To avoid any conflicts, 
+[Anaconda](https://www.anaconda.com/) is recommended, with a Python3.9 
+environment.
 
 
-### Dependencies
+### Prerequisites
 Hypervehicle relies on the [Eilmer](https://github.com/gdtk-uq/gdtk) geometry 
 package. Note that a full Eilmer install is not required. Instead, do a 
 [sparse checkout](https://stackoverflow.com/questions/600079/how-do-i-clone-a-subdirectory-only-of-a-git-repository)
@@ -38,8 +61,6 @@ python3 -m pip install -e ./
 cd ../../../
 ```
 
-
-
 ### Installation
 
 First clone the repository, then install via pip as an editable install.
@@ -50,29 +71,98 @@ cd hypervehicle
 python3 -m pip install -e ./
 ```
 
+<p align="right">[<a href="#readme-top">back to top</a>]</p>
 
-### Testing your install
+
+## Usage
+Please see the [example geometry generation](docs/source/example.md) 
+to generate a mockup of the X-43A, shown above.
+
+<p align="right">[<a href="#readme-top">back to top</a>]</p>
+
+
+
+## Contributing 
+
+<!-- start contribution guidelines -->
+
+To contribute to `hypervehicle`, please read the instructions below 
+to maintain the styling of the code.
+
+### Setting up for Development
+
+1. Create a new Python virtual environment to isolate the package. You 
+can do so using [`venv`](https://docs.python.org/3/library/venv.html) or
+[anaconda](https://www.anaconda.com/).
+
+2. Install the code in editable mode using the command below (run from
+inside the `hypervehicle` root directory).
+
 ```
-python3 -m pytest tests/
+pip install -e .[all]
 ```
 
-
-
-## Documentation
-HYPERVEHICLE is well documented in-code. To access more information on a 
-specific method, use the `help()` method of Python. To view documentation 
-of the entire codebase in html format, run the commands below.
+3. Install the [pre-commit](https://pre-commit.com/) hooks.
 
 ```
-cd docs
+pre-commit install
+```
+
+4. Start developing! After following the steps above, you are ready
+to start developing the code. Make sure to follow the guidelines 
+below.
+
+
+### Developing *hypervehicle*
+
+- Before making any changes, create a new branch to develop on using 
+`git checkout -b new-branch-name`.
+
+- Run [black](https://black.readthedocs.io/en/stable/index.html) on any
+code you modify. This formats it according to 
+[PEP8](https://peps.python.org/pep-0008/) standards.
+
+- Document as you go: use 
+[numpy style](https://numpydoc.readthedocs.io/en/latest/format.html) 
+docstrings, and add to the docs where relevant.
+
+- Write unit tests for the code you add, and include them in `tests/`. 
+This project uses [pytest](https://docs.pytest.org/en/7.2.x/).
+
+- Commit code regularly to avoid large commits with many changes. 
+
+- Write meaningful commit messages, following the 
+[Conventional Commits standard](https://www.conventionalcommits.org/en/v1.0.0/).
+The python package [commitizen](https://commitizen-tools.github.io/commitizen/)
+is a great tool to help with this, and is already configured for this
+repo. Simply stage changed code, then use the `cz c` command to make a 
+commit.
+
+- Open a [Pull Request](https://github.com/kieran-mackle/hypervehicle/pulls) 
+when your code is complete and ready to be merged.
+
+
+### Building the Docs
+To build the documentation, run the commands below. 
+
+```
+cd docs/
 make html
-xdg-open _build/html/index.html
+xdg-open build/html/index.html
 ```
 
+If you are actively developing the docs, consider using
+[sphinx-autobuild](https://pypi.org/project/sphinx-autobuild/).
+This will continuosly update the docs for you to see any changes
+live, rather than re-building repeatadly. From the `docs/` 
+directory, run the following command:
 
-## Example Vehicle Generation
-Please see the [example geometry generation](docs/example.md) to generate a mockup of the X-43A, shown above.
+```
+sphinx-autobuild source/ build/html --open-browser
+```
 
+<!-- end contribution guidelines -->
 
+<p align="right">[<a href="#readme-top">back to top</a>]</p>
 
 

@@ -2,13 +2,11 @@ import os
 import numpy as np
 from stl import Mesh
 from hypervehicle import Vehicle
-from gdtk.geom.vector3 import Vector3
-from gdtk.geom.path import Bezier, Line, Polyline
+from hypervehicle.components import Wing
+from hypervehicle.geometry import Vector3, Bezier, Line, Polyline
 
 
 def test_wing():
-
-    wing = Vehicle()
 
     L = 3.7
     beta = np.deg2rad(2)
@@ -71,21 +69,7 @@ def test_wing():
         le_width = temp(r).y
         return le_width
 
-    def wing1_curv_x(x, y):
-        "Curvature in x-direction (about y-axis)"
-        return 0  # .05 * y**2 * x
-
-    def wing1_curv_xd(x, y):
-        return 0  # .05 * y**2 * 1
-
-    def wing1_curv_y(x, y):
-        "Curvature in y-direction (about x-axis)"
-        return 0  # .1 * y**2
-
-    def wing1_curv_yd(x, y):
-        return 0  # .1 * 2*y
-
-    wing.add_wing(
+    wing_component = Wing(
         A0=A0,
         A1=A1,
         TT=TT,
@@ -96,22 +80,20 @@ def test_wing():
         flap_length=flap_length,
         flap_angle=flap_angle,
         LE_wf=leading_edge_width_function,
+        stl_resolution=2,
     )
 
-    # Generate stl
-    wing.configure(
-        verbosity=1, write_stl=True, stl_resolution=2, stl_filename="wingtest"
-    )
-    wing.mirror = True
+    # Generate wing
+    wing = Vehicle()
+    wing.add_component(wing_component, reflection_axis="y")
+    wing.configure(verbosity=1)
     wing.generate()
+
+    # Get mesh
+    actual = wing.components[0].mesh
 
     # Compare output to reference stl
     tests_dir = os.path.dirname(os.path.realpath(__file__))
+    reference = Mesh.from_file(os.path.join(tests_dir, "data", "wing.stl"))
 
-    reference = Mesh.from_file(os.path.join(tests_dir, "data", "test-wing1.stl"))
-    actual = Mesh.from_file(os.path.join(tests_dir, "..", "wingtest-wing1.stl"))
-
-    # Delete file created
-    os.remove(os.path.join(tests_dir, "..", "wingtest-wing1.stl"))
-
-    assert np.all(reference.vectors == actual.vectors), "Wing stl failed"
+    assert np.all(reference.vectors == actual.vectors), "Wing STL failed"
