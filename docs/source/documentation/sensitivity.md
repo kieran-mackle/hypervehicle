@@ -4,8 +4,6 @@ The *hypervehicle* tool also features the generation of
 geometry sensitivities via method of finite differences.
 This page outlines how to use this capability.
 
-![geom](../images/sensitivity/geom.gif)
-
 
 ## Theory
 
@@ -29,6 +27,4 @@ supplied, along with the parameters to be varied.
 
 ## Example
 Interested in seeing this theory in application? Check out the
-[example](../examples/sensitivity.md).
-
-
+[parameter sensitivities](../examples/sensitivity.md) tutorial.

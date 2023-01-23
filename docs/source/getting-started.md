@@ -41,4 +41,5 @@ python3 -m pytest tests/
 
 
 ## Example
-See an example of using *hypervehicle* [here](examples/x43.md).
+See an example of using *hypervehicle* to generate geometry, 
+check out the [X-43A tutorial](examples/x43.md).
