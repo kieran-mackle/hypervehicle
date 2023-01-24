@@ -557,7 +557,7 @@ def append_sensitivities_to_tri(
         left_index=True,
         right_index=True,
     ).drop("index", axis=1)
-    combined_sense.to_csv("all_components_sensitivity.csv")
+    combined_sense.to_csv("all_components_sensitivity.csv", index=False)
 
     # Write the matched sensitivity df to i.tri file as new xml element
     # NumberOfComponents is how many sensitivity components there are (3 for x,y,z)
