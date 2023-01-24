@@ -1,7 +1,6 @@
 import os
 import sys
 import glob
-import time
 import numpy as np
 import pandas as pd
 from stl import mesh
@@ -11,110 +10,128 @@ import xml.etree.ElementTree as ET
 
 def parametricSurfce2stl(
     parametric_surface,
-    triangles_per_edge,
+    triangles_per_edge: int,
+    si: float = 1.0,
+    sj: float = 1.0,
     mirror_y=False,
-    re_evaluate_centroid=False,
     flip_faces=False,
-):
+) -> mesh.Mesh:
     """
     Function to convert parametric_surface generated using the Eilmer Geometry
     Package into a stl mesh object.
 
-    Inputs:
-        parametric_surface - surface object
-        triangles_per_edge - resolution for stl object.
-        mirror_y - create mirror image about x-z plane
-    Outputs:
-        stl_mesh - triangulated mesh object suitable for numpy-stl
+    Parameters
+    ----------
+        parametric_surface : Any
+            The parametric surface object.
+        si : float, optional
+            The clustering in the i-direction. The default is 1.0.
+        sj : float, optional
+            The clustering in the j-direction. The default is 1.0.
+        triangles_per_edge : int
+            The resolution for the stl object.
+        mirror_y : bool, optional
+            Create mirror image about x-z plane. The default is False.
+
+    Returns
+    ----------
+    stl_mesh : Mesh
+        The numpy-stl mesh.
     """
-    if triangles_per_edge is None:
-        raise Exception(
-            "Please define STL resolution, either component-wise, or for "
-            + "the entire vehicle."
-        )
+    # TODO - allow different ni and nj discretisation
 
-    # create list of vertices
-    r_list = np.linspace(0.0, 1.0, triangles_per_edge + 1)
-    s_list = np.linspace(0.0, 1.0, triangles_per_edge + 1)
+    ni = triangles_per_edge
+    nj = triangles_per_edge
 
-    y_mult = -1 if mirror_y else 1
-    index = (triangles_per_edge + 1) ** 2
+    def gen_points(lb, ub, steps, spacing=1.0):
+        span = ub - lb
+        dx = 1.0 / (steps - 1)
+        return np.array([lb + (i * dx) ** spacing * span for i in range(steps)])
 
-    # create vertices for corner points of each quad cell
-    vertices = np.empty(((triangles_per_edge + 1) ** 2 + triangles_per_edge**2, 3))
+    # Create list of vertices
+    r_list = gen_points(lb=0.0, ub=1.0, steps=ni + 1, spacing=si)
+    s_list = gen_points(lb=0.0, ub=1.0, steps=nj + 1, spacing=sj)
+
+    y_mult: int = -1 if mirror_y else 1
+
+    # Create vertices for corner points of each quad cell
+    # columns x, y, z for each vertex row
+    # quad exterior vertices + quad centres
+    vertices: np.ndarray = np.zeros(((ni + 1) * (nj + 1) + ni * nj, 3))
+    centre_ix: int = (ni + 1) * (nj + 1)
+
+    # For vertices along the x direction (i)
     for i, r in enumerate(r_list):
+
+        # For vertices along the y direction (j)
         for j, s in enumerate(s_list):
-            p1 = time.time()
+
+            # Evaluate position
             pos = parametric_surface(r, s)
 
-            vertices[j * (triangles_per_edge + 1) + i] = np.array(
-                [pos.x, y_mult * pos.y, pos.z]
-            )
+            # Assign vertex
+            vertices[j * (ni + 1) + i] = np.array([pos.x, y_mult * pos.y, pos.z])
 
-            # create vertices for centre point of each quad cell,
-            # which is used to split each cell into 4x triangles
+            # Create vertices for centre point of each quad cell
             try:
-                if re_evaluate_centroid is True:
-                    r = 0.5 * (r_list[i] + r_list[i + 1])
-                    r = 0.5 * (s_list[i] + s_list[i + 1])
-                    pos = parametric_surface(r, s)
-                    pos_x = pos.x
-                    pos_y = pos.y
-                    pos_z = pos.z
+                # Try index to bail before calling surface
+                vertices[centre_ix + (j * ni + i)]
 
-                else:
-                    r0 = r_list[i]
-                    r1 = r_list[i + 1]
-                    s0 = s_list[j]
-                    s1 = s_list[j + 1]
+                r0 = r_list[i]
+                r1 = r_list[i + 1]
+                s0 = s_list[j]
+                s1 = s_list[j + 1]
 
-                    pos00 = parametric_surface(r0, s0)
-                    pos10 = parametric_surface(r1, s0)
-                    pos01 = parametric_surface(r0, s1)
-                    pos11 = parametric_surface(r1, s1)
+                # Get corner points
+                pos00 = parametric_surface(r0, s0)
+                pos10 = parametric_surface(r1, s0)
+                pos01 = parametric_surface(r0, s1)
+                pos11 = parametric_surface(r1, s1)
 
-                    pos_x = 0.25 * (pos00.x + pos10.x + pos01.x + pos11.x)
-                    pos_y = 0.25 * (pos00.y + pos10.y + pos01.y + pos11.y)
-                    pos_z = 0.25 * (pos00.z + pos10.z + pos01.z + pos11.z)
+                # Evaluate quad centre coordinate
+                pos_x = 0.25 * (pos00.x + pos10.x + pos01.x + pos11.x)
+                pos_y = 0.25 * (pos00.y + pos10.y + pos01.y + pos11.y)
+                pos_z = 0.25 * (pos00.z + pos10.z + pos01.z + pos11.z)
 
-                vertices[index + (j * triangles_per_edge + i)] = np.array(
-                    [
-                        pos_x,
-                        y_mult * pos_y,
-                        pos_z,
-                    ]
-                )
-            except:
+                # Assign quad centre vertices
+                vc = np.array([pos_x, y_mult * pos_y, pos_z])
+                vertices[centre_ix + (j * ni + i)] = vc
+
+            except IndexError:
+                # Index out of bounds
                 pass
 
-    # Create list of faces
-    faces = []  # np.zeros((triangles_per_edge**2*4, 3))
-    for i in range(triangles_per_edge):
-        for j in range(triangles_per_edge):
-            p00 = j * (triangles_per_edge + 1) + i  # bottom left
-            p10 = j * (triangles_per_edge + 1) + i + 1  # bottom right
-            p01 = (j + 1) * (triangles_per_edge + 1) + i  # top left
-            p11 = (j + 1) * (triangles_per_edge + 1) + i + 1  # top right
-            pzz = index + (j * triangles_per_edge + i)  # vertex at centre of cell
+    # Create list of faces, defining the face vertices
+    faces = []
+    for i in range(ni):
+        for j in range(nj):
+            p00 = j * (nj + 1) + i  # bottom left
+            p10 = j * (nj + 1) + i + 1  # bottom right
+            p01 = (j + 1) * (ni + 1) + i  # top left
+            p11 = (j + 1) * (ni + 1) + i + 1  # top right
+
+            pc = centre_ix + j * min(ni, nj) + i  # vertex at centre of cell
 
             if mirror_y or flip_faces:
-                faces.append([p00, pzz, p10])
-                faces.append([p10, pzz, p11])
-                faces.append([p11, pzz, p01])
-                faces.append([p01, pzz, p00])
+                faces.append([p00, pc, p10])
+                faces.append([p10, pc, p11])
+                faces.append([p11, pc, p01])
+                faces.append([p01, pc, p00])
             else:
-                faces.append([p00, p10, pzz])
-                faces.append([p10, p11, pzz])
-                faces.append([p11, p01, pzz])
-                faces.append([p01, p00, pzz])
+                faces.append([p00, p10, pc])
+                faces.append([p10, p11, pc])
+                faces.append([p11, p01, pc])
+                faces.append([p01, p00, pc])
 
     faces = np.array(faces)
 
-    # create the mesh object
+    # Create the STL mesh object
     stl_mesh = mesh.Mesh(np.zeros(faces.shape[0], dtype=mesh.Mesh.dtype))
-    for i, f in enumerate(faces):
-        for j in range(3):
-            stl_mesh.vectors[i][j] = vertices[f[j], :]
+    for ix, face in enumerate(faces):
+        # For each face
+        for c in range(3):
+            # For each coordinate x/y/z
+            stl_mesh.vectors[ix][c] = vertices[face[c], :]
 
     return stl_mesh
 

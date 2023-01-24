@@ -101,6 +101,9 @@ class Component(AbstractComponent):
         # Curvature functions
         self._curvatures = None
 
+        # Clustering
+        self._clustering = {}
+
         # Component reflection
         self._reflection_axis = None
         self._append_reflection = True
@@ -200,7 +203,9 @@ class Component(AbstractComponent):
                 flip = True if "1" in key else False
 
             # Append surface
-            self.surfaces[key] = parametricSurfce2stl(patch, res, flip_faces=flip)
+            self.surfaces[key] = parametricSurfce2stl(
+                patch, res, flip_faces=flip, **self._clustering
+            )
 
     def to_vtk(self):
         raise NotImplementedError("This method has not been implemented yet.")

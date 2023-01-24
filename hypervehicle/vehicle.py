@@ -1,5 +1,5 @@
 from art import tprint, art
-from typing import List, Tuple, Callable
+from typing import List, Tuple, Callable, Dict
 from hypervehicle.components.component import Component
 from hypervehicle.components.constants import (
     FIN_COMPONENT,
@@ -52,6 +52,7 @@ class Vehicle:
         reflection_axis: str = None,
         append_reflection: bool = True,
         curvatures: List[Tuple[str, Callable, Callable]] = None,
+        clustering: Dict[str, float] = None,
     ) -> None:
         """Adds a new component to the vehicle.
 
@@ -70,6 +71,9 @@ class Vehicle:
             This list contains a tuple for each curvature. Each curvatue
             is defined by (axis, curve_func, curve_func_derivative).
             The default is None.
+        clustering : Dict[str, float], optional
+            Optionally provide clustering options for the stl meshes. The
+            default is None.
         """
         if component.componenttype in Vehicle.ALLOWABLE_COMPONENTS:
             # Overload component verbosity
@@ -88,6 +92,10 @@ class Vehicle:
             # Add component curvature functions
             if curvatures is not None:
                 component._curvatures = curvatures
+
+            # Add component clustering
+            if clustering is not None:
+                component._clustering = clustering
 
             # Add component
             self.components.append(component)
