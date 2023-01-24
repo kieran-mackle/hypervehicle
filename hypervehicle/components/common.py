@@ -1,7 +1,7 @@
 import numpy as np
 from hypervehicle.geometry import Vector3, Bezier
 from hypervehicle.components import Wing, Fuselage, Fin
-from hypervehicle.geometry import Vector3, Bezier, Line, Polyline, Arc
+from hypervehicle.geometry import Vector3, Bezier, Line, Polyline, Arc, CoonsPatch
 
 
 def leading_edge_width_function(r):
@@ -24,6 +24,26 @@ def uniform_thickness_function(thickness: float, side: str):
         return Vector3(x=0.0, y=0.0, z=m * thickness / 2)
 
     return tf
+
+
+def circle_patch(centre: Vector3, r: float, plane: str = "xy") -> CoonsPatch:
+    """Returns a parametric surface of a circle."""
+    # TODO - planes other than xy
+    tr = Vector3(x=centre.x + r * np.cos(np.pi / 4), y=centre.y + r * np.sin(np.pi / 4))
+    tl = Vector3(x=centre.x - r * np.cos(np.pi / 4), y=centre.y + r * np.sin(np.pi / 4))
+    br = Vector3(x=centre.x + r * np.cos(np.pi / 4), y=centre.y - r * np.sin(np.pi / 4))
+    bl = Vector3(
+        x=centre.x - r * np.cos(np.pi / 4), y=centre.y + -r * np.sin(np.pi / 4)
+    )
+
+    n = Arc(a=tl, b=tr, c=centre)
+    e = Arc(a=br, b=tr, c=centre)
+    s = Arc(a=bl, b=br, c=centre)
+    w = Arc(a=bl, b=tl, c=centre)
+
+    patch = CoonsPatch(north=n, east=e, south=s, west=w)
+
+    return patch
 
 
 class OgiveNose(Fuselage):
