@@ -1,10 +1,12 @@
+import re
 import os
 import sys
 import glob
 import numpy as np
 import pandas as pd
 from stl import mesh
-from typing import Dict
+from tqdm import tqdm
+from typing import Dict, List
 import xml.etree.ElementTree as ET
 
 
@@ -445,9 +447,8 @@ class SensitivityStudy:
 
 
 def append_sensitivities_to_tri(
-    dp_files: list,
+    dp_filenames: List[str],
     components_filepath: str = "Components.i.tri",
-    sensitivity_name: str = None,
 ):
     """Appends shape sensitivity data to .i.tri file.
 
@@ -458,9 +459,6 @@ def append_sensitivities_to_tri(
     components_filepath : str, optional
         The filepath to the .tri file to be appended to. The default is
         'Components.i.tri'.
-    sensitivity_name : str, optional
-        The name of the design feature which the sensitivity is to. If None,
-        this will be detrived from the inputted dp_files. The default is None.
 
     Examples
     ---------
@@ -482,14 +480,25 @@ def append_sensitivities_to_tri(
 
     points_df = pd.DataFrame(points_data_list, columns=["x", "y", "z"]).dropna()
 
-    # Load and concatenate sensitivity data
+    # Load and concatenate sensitivity data across components
     dp_df = pd.DataFrame()
-    for file in dp_files:
-        df = pd.read_csv(file)
+    for filename in dp_filenames:
+        df = pd.read_csv(filename)
         dp_df = pd.concat([dp_df, df])
 
+    # Extract parameters
+    parameters = []
+    param_cols = dp_df.columns[3:]
+    for i in range(int(len(param_cols) / 3)):
+        parameters.append(param_cols[int(i * 3)].split("dxd")[-1])
+
     # Match points_df to sensitivity df
+    print("Running matching algorithm...")
     data_str = "\n "
+    pbar = tqdm(
+        total=len(points_df), position=0, leave=True, desc="Point matching progress"
+    )
+    param_data = dict(zip(parameters, ["\n " for _ in parameters]))
     for i in range(len(points_df)):
         tolerance = 1e-5
         match_x = (points_df["x"].iloc[i] - dp_df["x"]).abs() < tolerance
@@ -499,40 +508,52 @@ def append_sensitivities_to_tri(
         match = match_x & match_y & match_z
         try:
             # What if there are multiple matches? (due to intersect perturbations)
-            matched_data = dp_df[match].iloc[0][["dxdP", "dydP", "dzdP"]].values
+            matched_data = dp_df[match].iloc[0][param_cols].values
 
             # Round off infinitesimally small values
             matched_data[abs(matched_data) < 1e-8] = 0
 
-            line = ""
-            for i in range(3):
-                line += f"\t{matched_data[i]:.14e}"
-            line += "\n "
-            # data_str += f'{matched_data[0]} {matched_data[1]} {matched_data[2]}\n '
+            # Update data string
+            p_n = 0
+            for parameter, data_str in param_data.items():
+                line = ""
+                for j in range(3):
+                    line += f"\t{matched_data[j+3*p_n]:.14e}"
+                line += "\n "
 
-        except:
+                data_str += line
+                param_data[parameter] = data_str
+                p_n += 1
+
+        except IndexError:
             # No match found, append zeros to maintain order
             line = f"\t{0:.14e}\t{0:.14e}\t{0:.14e}\n "
-            # data_str += '0 0 0\n '
-        data_str += line
+
+            # Update data string for each parameter
+            p_n = 0
+            for parameter, data_str in param_data.items():
+                param_data[parameter] = data_str + line
+                p_n += 1
+
+        # Update progress bar
+        pbar.update(1)
+
+    pbar.close()
+    print("Done.")
 
     # Write the matched sensitivity df to i.tri file as new xml element
     # NumberOfComponents is how many sensitivity components there are (3 for x,y,z)
-    if sensitivity_name is None:
-        # Attempt to construct sensitivity name
-        filename = dp_files[0]
-        sensitivity_name = "".join("".join(filename.split("_")[2:]).split(".")[:-1])
-
-    attribs = {
-        "Name": f"{sensitivity_name}",
-        "NumberOfComponents": "3",
-        "type": "Float64",
-        "format": "ascii",
-        "TRIXtype": "SHAPE_LINEARIZATION",
-    }
-    PointData = ET.SubElement(piece, "PointData")
-    PointDataArray = ET.SubElement(PointData, "DataArray", attribs)
-    PointDataArray.text = data_str
+    for parameter in parameters:
+        attribs = {
+            "Name": f"{parameter}_sens",
+            "NumberOfComponents": "3",
+            "type": "Float64",
+            "format": "ascii",
+            "TRIXtype": "SHAPE_LINEARIZATION",
+        }
+        PointData = ET.SubElement(piece, "PointData")
+        PointDataArray = ET.SubElement(PointData, "DataArray", attribs)
+        PointDataArray.text = param_data[parameter]
 
     # Save to file
     tree.write(components_filepath)
