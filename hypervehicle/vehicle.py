@@ -1,5 +1,5 @@
 from art import tprint, art
-from typing import List, Tuple, Callable, Dict
+from typing import List, Tuple, Callable, Dict, Any
 from hypervehicle.components.component import Component
 from hypervehicle.components.constants import (
     FIN_COMPONENT,
@@ -53,6 +53,7 @@ class Vehicle:
         append_reflection: bool = True,
         curvatures: List[Tuple[str, Callable, Callable]] = None,
         clustering: Dict[str, float] = None,
+        transformations: List[Tuple[str, Any]] = None,
     ) -> None:
         """Adds a new component to the vehicle.
 
@@ -74,7 +75,14 @@ class Vehicle:
         clustering : Dict[str, float], optional
             Optionally provide clustering options for the stl meshes. The
             default is None.
+        transformations : List[Tuple[str, Any]], optional
+            A list of transformations to apply to the nominal component. The
+            default is None
         """
+        # TODO - expand docs on transformations: each tuple is of the
+        # form (transform_name, args)
+        # include options
+        # maybe change from tuples to dict
         if component.componenttype in Vehicle.ALLOWABLE_COMPONENTS:
             # Overload component verbosity
             if self.verbosity == 0:
@@ -96,6 +104,10 @@ class Vehicle:
             # Add component clustering
             if clustering is not None:
                 component._clustering = clustering
+
+            # Add transformations
+            if transformations is not None:
+                component._transformations = transformations
 
             # Add component
             self.components.append(component)
@@ -136,6 +148,9 @@ class Vehicle:
 
             # Reflect
             component.reflect()
+
+            # Apply transformations
+            component.transform()
 
         if self.verbosity > 0:
             print("All component patches generated.")

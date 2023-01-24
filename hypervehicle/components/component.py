@@ -1,11 +1,14 @@
 import numpy as np
 from stl import mesh
+from typing import Callable
 from abc import ABC, abstractmethod
 from gdtk.geom.sgrid import StructuredGrid
 from hypervehicle.geometry import (
     CurvedPatch,
     RotatedPatch,
     MirroredPatch,
+    Vector3,
+    OffsetPatchFunction,
 )
 from hypervehicle.utilities import parametricSurfce2stl
 
@@ -104,6 +107,9 @@ class Component(AbstractComponent):
         # Clustering
         self._clustering = {}
 
+        # Transformations
+        self._transformations = []
+
         # Component reflection
         self._reflection_axis = None
         self._append_reflection = True
@@ -150,6 +156,17 @@ class Component(AbstractComponent):
     def rotate(self, angle: float = 0, axis: str = "y"):
         for key, patch in self.patches.items():
             self.patches[key] = RotatedPatch(patch, np.deg2rad(angle), axis=axis)
+
+    def translate(self, offset_function: Callable):
+        # TODO - allow passing Vector3 object
+        # Could wrap it in a lambda if provided
+        for key, patch in self.patches.items():
+            self.patches[key] = OffsetPatchFunction(patch, offset_function)
+
+    def transform(self):
+        for transform in self._transformations:
+            func = getattr(self, transform[0])
+            func(*transform[1:])
 
     def reflect(self, axis: str = None):
         axis = self._reflection_axis if self._reflection_axis is not None else axis
