@@ -480,6 +480,13 @@ def append_sensitivities_to_tri(
 
     points_df = pd.DataFrame(points_data_list, columns=["x", "y", "z"]).dropna()
 
+    # Ensure previous components sensitivity file is not included
+    try:
+        del dp_filenames[dp_filenames.index("all_components_sensitivity.csv")]
+    except ValueError:
+        # It is not in there
+        pass
+
     # Load and concatenate sensitivity data across components
     dp_df = pd.DataFrame()
     for filename in dp_filenames:
@@ -499,6 +506,7 @@ def append_sensitivities_to_tri(
         total=len(points_df), position=0, leave=True, desc="Point matching progress"
     )
     param_data = dict(zip(parameters, ["\n " for _ in parameters]))
+    all_data = np.zeros((len(points_df), len(param_cols)), dtype=float)
     for i in range(len(points_df)):
         tolerance = 1e-5
         match_x = (points_df["x"].iloc[i] - dp_df["x"]).abs() < tolerance
@@ -513,7 +521,8 @@ def append_sensitivities_to_tri(
             # Round off infinitesimally small values
             matched_data[abs(matched_data) < 1e-8] = 0
 
-            # Update data string
+            # Update data
+            all_data[i, :] = matched_data
             p_n = 0
             for parameter, data_str in param_data.items():
                 line = ""
@@ -540,6 +549,15 @@ def append_sensitivities_to_tri(
 
     pbar.close()
     print("Done.")
+
+    # Write combined sensitivity data to CSV
+    combined_sense = pd.merge(
+        left=points_df.reset_index(),
+        right=pd.DataFrame(all_data, columns=param_cols),
+        left_index=True,
+        right_index=True,
+    ).drop("index", axis=1)
+    combined_sense.to_csv("all_components_sensitivity.csv")
 
     # Write the matched sensitivity df to i.tri file as new xml element
     # NumberOfComponents is how many sensitivity components there are (3 for x,y,z)
