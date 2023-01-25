@@ -35,7 +35,7 @@ Vehicle Hangar <hangar>
 Getting Started <getting-started>
 Component Definitions <documentation/components>
 Sensitivities <documentation/sensitivity>
-Contributing <documentation/contributing>
+Contributing to hypervehicle <documentation/contributing>
 ```
 
 
