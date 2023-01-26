@@ -449,8 +449,10 @@ class SensitivityStudy:
 def append_sensitivities_to_tri(
     dp_filenames: List[str],
     components_filepath: str = "Components.i.tri",
+    match_tolerance: float = 1e-5,
+    rounding_tolerance: float = 1e-8,
     verbosity: int = 1,
-):
+) -> float:
     """Appends shape sensitivity data to .i.tri file.
 
     Parameters
@@ -460,6 +462,17 @@ def append_sensitivities_to_tri(
     components_filepath : str, optional
         The filepath to the .tri file to be appended to. The default is
         'Components.i.tri'.
+    match_tolerance : float, optional
+        The precision tolerance for matching point coordinates. The
+        default is 1e-5.
+    rounding_tolerance : float, optional
+        The tolerance to round data off to. The default is 1e-8.
+
+    Returns
+    ---------
+    match_fraction : float
+        The fraction of cells which got matched. If this is below 100%, try
+        decreasing the match tolerance and run again.
 
     Examples
     ---------
@@ -509,19 +522,19 @@ def append_sensitivities_to_tri(
     data_str = "\n "
     param_data = dict(zip(parameters, ["\n " for _ in parameters]))
     all_data = np.zeros((len(points_df), len(param_cols)), dtype=float)
+    matched_points = 0
     for i in range(len(points_df)):
-        tolerance = 1e-5
-        match_x = (points_df["x"].iloc[i] - dp_df["x"]).abs() < tolerance
-        match_y = (points_df["y"].iloc[i] - dp_df["y"]).abs() < tolerance
-        match_z = (points_df["z"].iloc[i] - dp_df["z"]).abs() < tolerance
+        match_x = (points_df["x"].iloc[i] - dp_df["x"]).abs() < match_tolerance
+        match_y = (points_df["y"].iloc[i] - dp_df["y"]).abs() < match_tolerance
+        match_z = (points_df["z"].iloc[i] - dp_df["z"]).abs() < match_tolerance
 
         match = match_x & match_y & match_z
         try:
-            # What if there are multiple matches? (due to intersect perturbations)
+            # TODO - what if there are multiple matches? (due to intersect perturbations)
             matched_data = dp_df[match].iloc[0][param_cols].values
 
             # Round off infinitesimally small values
-            matched_data[abs(matched_data) < 1e-8] = 0
+            matched_data[abs(matched_data) < rounding_tolerance] = 0
 
             # Update data
             all_data[i, :] = matched_data
@@ -535,6 +548,9 @@ def append_sensitivities_to_tri(
                 data_str += line
                 param_data[parameter] = data_str
                 p_n += 1
+
+            # Count matched points
+            matched_points += 1
 
         except IndexError:
             # No match found, append zeros to maintain order
@@ -550,9 +566,10 @@ def append_sensitivities_to_tri(
         if verbosity > 0:
             pbar.update(1)
 
+    match_fraction = matched_points / len(points_df)
     if verbosity > 0:
         pbar.close()
-        print("Done.")
+        print(f"Done - matched {100*match_fraction:.2f}% of points.")
 
     # Write combined sensitivity data to CSV
     combined_sense = pd.merge(
@@ -579,6 +596,8 @@ def append_sensitivities_to_tri(
 
     # Save to file
     tree.write(components_filepath)
+
+    return match_fraction
 
 
 def csv_to_delaunay(filepath: str):
