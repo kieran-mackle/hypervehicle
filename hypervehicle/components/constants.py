@@ -1,3 +1,4 @@
 FIN_COMPONENT = "fin"
 WING_COMPONENT = "wing"
 FUSELAGE_COMPONENT = "fuselage"
+COMPOSITE_COMPONENT = "composite"

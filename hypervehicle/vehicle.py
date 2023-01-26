@@ -5,11 +5,17 @@ from hypervehicle.components.constants import (
     FIN_COMPONENT,
     WING_COMPONENT,
     FUSELAGE_COMPONENT,
+    COMPOSITE_COMPONENT,
 )
 
 
 class Vehicle:
-    ALLOWABLE_COMPONENTS = [FIN_COMPONENT, WING_COMPONENT, FUSELAGE_COMPONENT]
+    ALLOWABLE_COMPONENTS = [
+        FIN_COMPONENT,
+        WING_COMPONENT,
+        FUSELAGE_COMPONENT,
+        COMPOSITE_COMPONENT,
+    ]
 
     def __init__(self, **kwargs) -> None:
         # Vehicle attributes
@@ -79,10 +85,6 @@ class Vehicle:
             A list of transformations to apply to the nominal component. The
             default is None
         """
-        # TODO - expand docs on transformations: each tuple is of the
-        # form (transform_name, args)
-        # include options
-        # maybe change from tuples to dict
         if component.componenttype in Vehicle.ALLOWABLE_COMPONENTS:
             # Overload component verbosity
             if self.verbosity == 0:

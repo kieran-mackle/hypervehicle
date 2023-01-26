@@ -1,13 +1,12 @@
 import numpy as np
 from stl import mesh
-from typing import Callable
 from abc import ABC, abstractmethod
 from gdtk.geom.sgrid import StructuredGrid
+from typing import List, Callable, Dict, Any
 from hypervehicle.geometry import (
     CurvedPatch,
     RotatedPatch,
     MirroredPatch,
-    Vector3,
     OffsetPatchFunction,
 )
 from hypervehicle.utilities import parametricSurfce2stl
