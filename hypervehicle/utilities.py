@@ -449,6 +449,7 @@ class SensitivityStudy:
 def append_sensitivities_to_tri(
     dp_filenames: List[str],
     components_filepath: str = "Components.i.tri",
+    verbosity: int = 1,
 ):
     """Appends shape sensitivity data to .i.tri file.
 
@@ -500,11 +501,12 @@ def append_sensitivities_to_tri(
         parameters.append(param_cols[int(i * 3)].split("dxd")[-1])
 
     # Match points_df to sensitivity df
-    print("Running matching algorithm...")
+    if verbosity > 0:
+        print("Running coordinate matching algorithm for sensitivities...")
+        pbar = tqdm(
+            total=len(points_df), position=0, leave=True, desc="Point matching progress"
+        )
     data_str = "\n "
-    pbar = tqdm(
-        total=len(points_df), position=0, leave=True, desc="Point matching progress"
-    )
     param_data = dict(zip(parameters, ["\n " for _ in parameters]))
     all_data = np.zeros((len(points_df), len(param_cols)), dtype=float)
     for i in range(len(points_df)):
@@ -545,10 +547,12 @@ def append_sensitivities_to_tri(
                 p_n += 1
 
         # Update progress bar
-        pbar.update(1)
+        if verbosity > 0:
+            pbar.update(1)
 
-    pbar.close()
-    print("Done.")
+    if verbosity > 0:
+        pbar.close()
+        print("Done.")
 
     # Write combined sensitivity data to CSV
     combined_sense = pd.merge(
