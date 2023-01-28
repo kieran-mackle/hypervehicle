@@ -480,6 +480,7 @@ def append_sensitivities_to_tri(
                     'wing_1_body_width_sensitivity.csv']
 
     """
+    # TODO - rename to 'combine sensitivity' or "combine_comp_sens"
     # Parse .tri file
     tree = ET.parse(components_filepath)
     root = tree.getroot()

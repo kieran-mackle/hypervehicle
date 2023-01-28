@@ -2,7 +2,7 @@ import numpy as np
 from hypervehicle import Vehicle
 from hypervehicle.transformations import CART3D
 from hypervehicle.components import Wing, Fuselage, Fin
-from hypervehicle.geometry import Vector3, Bezier, Line, Polyline, Arc
+from hypervehicle.geometry import Vector3, Line, Polyline
 from hypervehicle.components.common import (
     uniform_thickness_function,
     leading_edge_width_function,
@@ -23,7 +23,7 @@ canard_angle = 0  # degrees
 
 # Ogive nose
 nose = OgiveNose(h=h, r_n=r_n, r_o=r_o, L_o=L_o, stl_resolution=50)
-refex.add_component(nose)
+# refex.add_component(nose)
 
 # Vehicle body
 # TODO - need to improve locating nose to avoid below
@@ -39,7 +39,7 @@ base_line = Line(bb0, bb1)
 
 body_line = Polyline([body_cap_line, body_top_line, base_line])
 body_fuse = Fuselage(revolve_line=body_line, stl_resolution=50)
-refex.add_component(body_fuse)
+# refex.add_component(body_fuse)
 
 # Cannards
 #   p1-----p2
@@ -78,7 +78,7 @@ for i in range(2):
         rudder_length=fin_thickness,
         stl_resolution=3,
     )
-    refex.add_component(fin)
+    # refex.add_component(fin)
 
 # Wings
 wing_thickness = 2 * fin_thickness
@@ -119,8 +119,7 @@ wing = Wing(
     flap_length=flap_length,
     stl_resolution=3,
 )
-wing._reflect = True
-# refex.add_component(wing)
+refex.add_component(wing, reflection_axis="y", append_reflection=True)
 
 # Tail rudder/fin
 tail_height = 4
@@ -149,7 +148,7 @@ tail = Fin(
     rudder_length=rudder_length,
     stl_resolution=3,
 )
-# refex.add_component(tail)
+refex.add_component(tail)
 
 # Generate Vehicle
 refex.generate()
