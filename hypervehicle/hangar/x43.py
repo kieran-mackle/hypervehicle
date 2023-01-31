@@ -1,11 +1,11 @@
 import numpy as np
 from hypervehicle import Vehicle
-from hypervehicle.generator import AbstractGenerator
+from hypervehicle.generator import Generator
 from hypervehicle.components import Wing, Fin, common
 from hypervehicle.geometry import Vector3, Bezier, Line, Polyline
 
 
-class ParametricX43(AbstractGenerator):
+class ParametricX43(Generator):
     def __init__(self, **kwargs) -> None:
         # Vehicle parameters
         self.body_length = 3.7  # From body rear to nose

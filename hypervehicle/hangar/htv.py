@@ -2,11 +2,11 @@ import numpy as np
 from hypervehicle import Vehicle
 from scipy.optimize import bisect
 from hypervehicle.components import Wing
-from hypervehicle.generator import AbstractGenerator
+from hypervehicle.generator import Generator
 from hypervehicle.geometry import Vector3, Line, Polyline
 
 
-class ParametricHTV(AbstractGenerator):
+class ParametricHTV(Generator):
     def __init__(self, **kwargs) -> None:
         # Vehicle parameters
         self.L = 1

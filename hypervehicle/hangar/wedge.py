@@ -1,10 +1,10 @@
 from hypervehicle import Vehicle
 from hypervehicle.components import Fuselage
-from hypervehicle.generator import AbstractGenerator
+from hypervehicle.generator import Generator
 from hypervehicle.geometry import Vector3, Line, CoonsPatch
 
 
-class ParametricWedge(AbstractGenerator):
+class ParametricWedge(Generator):
     def __init__(self, **kwargs) -> None:
         # Wedge parameters
         self.wingspan = 1

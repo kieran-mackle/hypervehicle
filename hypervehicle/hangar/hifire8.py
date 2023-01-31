@@ -1,11 +1,11 @@
 import numpy as np
 from hypervehicle import Vehicle
-from hypervehicle.generator import AbstractGenerator
+from hypervehicle.generator import Generator
 from hypervehicle.geometry import Vector3, Line, Polyline
 from hypervehicle.components import Wing, Fin, Fuselage, common
 
 
-class ParametricHIFiRE8(AbstractGenerator):
+class ParametricHIFiRE8(Generator):
     def __init__(self, **kwargs) -> None:
         # Vehicle parameters
         self.L = 1.2

@@ -1,11 +1,11 @@
 import numpy as np
 from hypervehicle import Vehicle
-from hypervehicle.generator import AbstractGenerator
+from hypervehicle.generator import Generator
 from hypervehicle.components import Fuselage
 from hypervehicle.geometry import Vector3, Line, Polyline, Arc
 
 
-class ParametricFalcon9(AbstractGenerator):
+class ParametricFalcon9(Generator):
     def __init__(self, **kwargs) -> None:
         # Vehicle parameters
         self.D = 3.75

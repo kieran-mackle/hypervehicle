@@ -1,11 +1,11 @@
 import numpy as np
 from hypervehicle import Vehicle
 from hypervehicle.geometry import Vector3
-from hypervehicle.generator import AbstractGenerator
+from hypervehicle.generator import Generator
 from hypervehicle.components import Fuselage, Fin, common
 
 
-class ParametricRocket(AbstractGenerator):
+class ParametricRocket(Generator):
     def __init__(self, **kwargs) -> None:
         # Vehicle parameters
         self.fin_height = 0.1

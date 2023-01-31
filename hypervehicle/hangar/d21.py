@@ -2,12 +2,12 @@ import numpy as np
 from hypervehicle import Vehicle
 from scipy.optimize import bisect
 from gdtk.geom.vector3 import Vector3
-from hypervehicle.generator import AbstractGenerator
+from hypervehicle.generator import Generator
 from hypervehicle.components import Wing, Fuselage, Fin
 from hypervehicle.geometry import Vector3, Bezier, Line, Polyline
 
 
-class ParametricD21(AbstractGenerator):
+class ParametricD21(Generator):
     def __init__(self, **kwargs) -> None:
         # Vehicle parameters
         self.R_b = 1  # Body radius
