@@ -121,7 +121,14 @@ class Component(AbstractComponent):
         self.name = name
 
     def __repr__(self):
-        return self.__str__()
+        s0 = "hypervehicle "
+
+        if self.name:
+            s1 = f"component [ name tagged: '{self.name}' ]"
+        else:
+            s1 = f"{self.componenttype} component"
+
+        return s0 + s1
 
     def __str__(self):
         if self.name:
