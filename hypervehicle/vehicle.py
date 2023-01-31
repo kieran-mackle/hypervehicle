@@ -202,7 +202,16 @@ class Vehicle:
             component.mesh = None
 
     def to_stl(self, prefix: str = None):
-        """Writes the vehicle components to STL file."""
+        """Writes the vehicle components to STL file.
+
+        Parameters
+        ----------
+        prefix : str, optional
+            The prefix to use when saving components to STL. If components
+            have been individually assigned names, those names will be used
+            preferentially. If None, the vehicle instance name will be used.
+            The default is None.
+        """
         prefix = self.name if prefix is None else prefix
 
         if self.verbosity > 0:
@@ -214,7 +223,12 @@ class Vehicle:
             no = types_generated.get(component.componenttype, 0)
 
             # Write component to stl
-            component.to_stl(f"{prefix}-{component.componenttype}-{no}.stl")
+            if component.name:
+                stl_name = f"{component.name}.stl"
+            else:
+                # Revert to prefix naming
+                stl_name = f"{prefix}-{component.componenttype}-{no}.stl"
+            component.to_stl(stl_name)
 
             # Update component count
             types_generated[component.componenttype] = no + 1

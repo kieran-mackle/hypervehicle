@@ -121,14 +121,11 @@ class Component(AbstractComponent):
         self.name = name
 
     def __repr__(self):
-        s0 = "hypervehicle "
-
+        s = f"{self.componenttype} component"
         if self.name:
-            s1 = f"component [ name tagged: '{self.name}' ]"
-        else:
-            s1 = f"{self.componenttype} component"
+            s += f" (tagged '{self.name}')"
 
-        return s0 + s1
+        return s
 
     def __str__(self):
         if self.name:
@@ -246,7 +243,7 @@ class Component(AbstractComponent):
         for key, grid in self.grids.items():
             grid.write_to_vtk_file(f"{self.vtk_filename}-wing_{key}.vtk")
 
-    def to_stl(self, outfile: str = None, stl_resolution: int = None):
+    def to_stl(self, outfile: str = None):
         if self.verbosity > 1:
             print("Writing patches to STL format. ")
             if outfile is not None:

@@ -55,7 +55,7 @@ class OgiveNose(Fuselage):
         L_o: float,
         stl_resolution: int = 3,
         name: str = None,
-        **kwargs
+        **kwargs,
     ) -> None:
         """A Fuselage wrapper to create an Ogive nose component.
         Parameters
@@ -111,4 +111,7 @@ class OgiveNose(Fuselage):
         )
 
     def __repr__(self):
-        return "Ogive nose component"
+        s = "Ogive nose component"
+        if self.name:
+            s += f" (tagged '{self.name}')"
+        return s
