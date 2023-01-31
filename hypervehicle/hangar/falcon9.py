@@ -27,8 +27,8 @@ class ParametricFalcon9(AbstractGenerator):
         )
 
         # Dependencies
-        x_o = -np.sqrt((self.r_o - self.r_n) ** 2 - (self.r_o - h) ** 2)
-        y_t = self.r_n * (self.r_o - h) / (self.r_o - self.r_n)
+        x_o = -np.sqrt((self.r_o - self.r_n) ** 2 - (self.r_o - self.h) ** 2)
+        y_t = self.r_n * (self.r_o - self.h) / (self.r_o - self.r_n)
         x_t = x_o - np.sqrt(self.r_n**2 - y_t**2)
         x_a = x_o - self.r_n
 
@@ -50,7 +50,7 @@ class ParametricFalcon9(AbstractGenerator):
         fairing_line = Line(f0, f1)
 
         # Body radius
-        r_b = D / 2
+        r_b = self.D / 2
 
         # Fairing to body
         fb0 = f1

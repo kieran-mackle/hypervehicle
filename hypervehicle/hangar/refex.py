@@ -88,7 +88,7 @@ class ParametricReFEX(AbstractGenerator):
                 rudder_length=fin_thickness,
                 stl_resolution=3,
             )
-            # refex.add_component(fin)
+            refex.add_component(fin)
 
         # Wings
         wing_thickness = 2 * fin_thickness
