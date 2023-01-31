@@ -356,13 +356,26 @@ class SensitivityStudy:
 
         return sensitivities
 
-    def to_csv(self):
-        """Writes the sensitivity information to CSV file."""
+    def to_csv(self, outdir: str = None):
+        """Writes the sensitivity information to CSV file.
+
+        Parameters
+        ----------
+        outdir : str, optional
+            The output directory to write the sensitivity files to. If
+            None, the current working directory will be used. The default
+            is None.
+        """
         if self.component_sensitivities is None:
             raise Exception("Sensitivities have not yet been generated.")
         else:
+            if outdir is None:
+                outdir = os.getcwd()
+
             for component, df in self.component_sensitivities.items():
-                df.to_csv(f"{component}_sensitivity.csv", index=False)
+                df.to_csv(
+                    os.path.join(outdir, f"{component}_sensitivity.csv"), index=False
+                )
 
     @staticmethod
     def _compare_meshes(
