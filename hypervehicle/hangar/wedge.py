@@ -11,9 +11,8 @@ class ParametricWedge(AbstractGenerator):
         self.chord = 1
         self.thickness = 0.1
 
-        # Unpack kwargs (overwrites any params)
-        for item in kwargs:
-            setattr(self, item, kwargs[item])
+        # Complete instantiation
+        super.__init__(**kwargs)
 
     def create_instance(self) -> Vehicle:
         # Create vehicle object
