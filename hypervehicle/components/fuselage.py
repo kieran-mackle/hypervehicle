@@ -35,6 +35,7 @@ class Fuselage(Component):
         offset=None,
         stl_resolution: int = 2,
         verbosity: int = 1,
+        name: str = None,
     ) -> None:
         """Adds the fuselage to the vehicle.
 
@@ -90,7 +91,7 @@ class Fuselage(Component):
             "OFFSET": offset,
         }
 
-        super().__init__(params, stl_resolution, verbosity)
+        super().__init__(params, stl_resolution, verbosity, name)
 
     def generate_patches(self):
         offset = self.params["OFFSET"] if "OFFSET" in self.params else None

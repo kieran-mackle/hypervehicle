@@ -81,7 +81,11 @@ class AbstractComponent(ABC):
 
 class Component(AbstractComponent):
     def __init__(
-        self, params: dict, stl_resolution: int = 2, verbosity: int = 1
+        self,
+        params: dict,
+        stl_resolution: int = 2,
+        verbosity: int = 1,
+        name: str = None,
     ) -> None:
         # Set verbosity
         self.verbosity = verbosity
@@ -113,11 +117,21 @@ class Component(AbstractComponent):
         self._reflection_axis = None
         self._append_reflection = True
 
+        # Component name
+        self.name = name
+
     def __repr__(self):
-        return f"{self.componenttype} component"
+        s = f"{self.componenttype} component"
+        if self.name:
+            s += f" (tagged '{self.name}')"
+
+        return s
 
     def __str__(self):
-        return f"{self.componenttype} component"
+        if self.name:
+            return self.name
+        else:
+            return f"{self.componenttype} component"
 
     def curve(self):
         if self._curvatures is not None:
@@ -229,7 +243,7 @@ class Component(AbstractComponent):
         for key, grid in self.grids.items():
             grid.write_to_vtk_file(f"{self.vtk_filename}-wing_{key}.vtk")
 
-    def to_stl(self, outfile: str = None, stl_resolution: int = None):
+    def to_stl(self, outfile: str = None):
         if self.verbosity > 1:
             print("Writing patches to STL format. ")
             if outfile is not None:

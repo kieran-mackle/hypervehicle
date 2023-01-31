@@ -54,7 +54,8 @@ class OgiveNose(Fuselage):
         r_o: float,
         L_o: float,
         stl_resolution: int = 3,
-        **kwargs
+        name: str = None,
+        **kwargs,
     ) -> None:
         """A Fuselage wrapper to create an Ogive nose component.
         Parameters
@@ -105,7 +106,12 @@ class OgiveNose(Fuselage):
 
         fairing = Polyline([nose_arc, ogive_arc, fairing_line, fb_line])
 
-        super().__init__(revolve_line=fairing, stl_resolution=stl_resolution, **kwargs)
+        super().__init__(
+            revolve_line=fairing, stl_resolution=stl_resolution, name=name, **kwargs
+        )
 
     def __repr__(self):
-        return "Ogive nose component"
+        s = "Ogive nose component"
+        if self.name:
+            s += f" (tagged '{self.name}')"
+        return s

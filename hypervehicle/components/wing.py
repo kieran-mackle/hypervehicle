@@ -47,6 +47,7 @@ class Wing(Component):
         close_wing: bool = False,
         stl_resolution: int = 2,
         verbosity: int = 1,
+        name: str = None,
     ) -> None:
 
         # Check if a LE function was provided
@@ -77,7 +78,7 @@ class Wing(Component):
             "CLOSE_WING": close_wing,
         }
 
-        super().__init__(params, stl_resolution, verbosity)
+        super().__init__(params, stl_resolution, verbosity, name)
 
         # Extract construction points for planform
         # TODO - avoid pre-defined params dict structure for flexibility

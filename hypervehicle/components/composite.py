@@ -22,10 +22,18 @@ class CompositeComponent(Component):
     componenttype = COMPOSITE_COMPONENT
     ALLOWABLE_COMPONENTS = [FIN_COMPONENT, WING_COMPONENT, FUSELAGE_COMPONENT]
 
-    def __init__(self, stl_resolution: int = 2, verbosity: int = 1) -> None:
+    def __init__(
+        self,
+        stl_resolution: int = 2,
+        verbosity: int = 1,
+        name: str = None,
+    ) -> None:
         # Initialise base class
         super().__init__(
-            params=None, stl_resolution=stl_resolution, verbosity=verbosity
+            params=None,
+            stl_resolution=stl_resolution,
+            verbosity=verbosity,
+            name=name,
         )
 
         self.components: List[Component] = []

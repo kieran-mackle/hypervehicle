@@ -43,6 +43,7 @@ class Fin(Component):
         offset_func=None,
         stl_resolution: int = 2,
         verbosity: int = 1,
+        name: str = None,
     ) -> None:
         """Creates a new fin component.
 
@@ -86,7 +87,7 @@ class Fin(Component):
             "offset_function": offset_func,
         }
 
-        super().__init__(params, stl_resolution, verbosity)
+        super().__init__(params, stl_resolution, verbosity, name)
 
     def generate_patches(self):
         # Initialise
