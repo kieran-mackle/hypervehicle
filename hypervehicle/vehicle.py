@@ -28,6 +28,7 @@ class Vehicle:
         self._generated = False
         self._component_counts = {}
         self._enumerated_components = {}
+        self._named_components = {}
         self._vehicle_transformations = None
 
     def __repr__(self):
@@ -56,6 +57,7 @@ class Vehicle:
     def add_component(
         self,
         component: Component,
+        name: str = None,
         reflection_axis: str = None,
         append_reflection: bool = True,
         curvatures: List[Tuple[str, Callable, Callable]] = None,
@@ -68,6 +70,9 @@ class Vehicle:
         ----------
         component : Component
             The component to add.
+        name : str, optional
+            The name to assign to this component. If provided, it will be used when
+            writing to STL. The default is None.
         reflection_axis : str, optional
             Include a reflection of the component about the axis specified
             (eg. 'x', 'y' or 'z'). The default is None.
@@ -121,6 +126,14 @@ class Vehicle:
             self._enumerated_components[
                 f"{component.componenttype}_{component_count}"
             ] = component
+
+            # Process component name
+            if name is not None:
+                # Assign component name
+                component.name = name
+            else:
+                name = f"{component.componenttype}_{component_count}"
+            self._named_components[name] = component
 
             if self.verbosity > 1:
                 print(f"Added new {component.componenttype} component.")

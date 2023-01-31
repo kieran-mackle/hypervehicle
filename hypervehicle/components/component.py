@@ -81,7 +81,11 @@ class AbstractComponent(ABC):
 
 class Component(AbstractComponent):
     def __init__(
-        self, params: dict, stl_resolution: int = 2, verbosity: int = 1
+        self,
+        params: dict,
+        stl_resolution: int = 2,
+        verbosity: int = 1,
+        name: str = None,
     ) -> None:
         # Set verbosity
         self.verbosity = verbosity
@@ -113,11 +117,17 @@ class Component(AbstractComponent):
         self._reflection_axis = None
         self._append_reflection = True
 
+        # Component name
+        self.name = name
+
     def __repr__(self):
-        return f"{self.componenttype} component"
+        return self.__str__()
 
     def __str__(self):
-        return f"{self.componenttype} component"
+        if self.name:
+            return self.name
+        else:
+            return f"{self.componenttype} component"
 
     def curve(self):
         if self._curvatures is not None:
