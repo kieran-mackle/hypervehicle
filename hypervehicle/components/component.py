@@ -206,7 +206,6 @@ class Component(AbstractComponent):
             )
 
     def surface(self, resolution: int = None):
-
         stl_resolution = self.stl_resolution if resolution is None else resolution
 
         # Check for patches

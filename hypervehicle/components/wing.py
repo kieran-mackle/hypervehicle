@@ -49,7 +49,6 @@ class Wing(Component):
         verbosity: int = 1,
         name: str = None,
     ) -> None:
-
         # Check if a LE function was provided
         if LE_wf is None and LE_type == "custom":
             # Assign default LE function
@@ -106,7 +105,6 @@ class Wing(Component):
         self.TE_mean_line = None
 
     def generate_patches(self):
-
         # Create wing planform shape
         self._create_planform_patches()
 

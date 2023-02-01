@@ -66,9 +66,7 @@ def poly_gen_main(polygon_geometries: list, verbosity: int = 1) -> list:
     poly_list = []
 
     if len(polygon_geometries) > 0:
-
         for poly_dict in polygon_geometries:
-
             assert len(list(poly_dict)) == 1, "Error in POLYGON_GEOM_LIST"
 
             poly_type = list(poly_dict)[0]

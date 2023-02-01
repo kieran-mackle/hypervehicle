@@ -7,7 +7,6 @@ from hypervehicle.geometry import Vector3, Bezier, Line, Polyline
 
 
 def test_wing():
-
     L = 3.7
     beta = np.deg2rad(2)
     LE_height = 0.02

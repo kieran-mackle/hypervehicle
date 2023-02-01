@@ -64,10 +64,8 @@ def parametricSurfce2stl(
 
     # For vertices along the x direction (i)
     for i, r in enumerate(r_list):
-
         # For vertices along the y direction (j)
         for j, s in enumerate(s_list):
-
             # Evaluate position
             pos = parametric_surface(r, s)
 

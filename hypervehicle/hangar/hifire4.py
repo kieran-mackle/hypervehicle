@@ -18,7 +18,6 @@ class ParametricHIFiRE4(Generator):
         super().__init__(**kwargs)
 
     def create_instance(self) -> Vehicle:
-
         # Initialise
         hifire4 = Vehicle()
         hifire4.configure(

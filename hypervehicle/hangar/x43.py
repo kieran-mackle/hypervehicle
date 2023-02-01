@@ -208,7 +208,6 @@ class ParametricX43(Generator):
             return Vector3(x=0, y=0, z=vehicle_z - 0.05)
 
         def inlet_tf_bot(x, y, z=0):
-
             # Get z-location of vehicle body
             vehicle_body = wing1_tf_bot(x, y, z).z
 
