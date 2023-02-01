@@ -21,7 +21,7 @@ class ParametricD21(Generator):
         self.te_fin_stl_res = 3
 
         # Complete instantiation
-        super.__init__(**kwargs)
+        super().__init__(**kwargs)
 
     def create_instance(self) -> Vehicle:
         # Initialise

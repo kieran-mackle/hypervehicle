@@ -12,7 +12,7 @@ class ParametricWedge(Generator):
         self.thickness = 0.1
 
         # Complete instantiation
-        super.__init__(**kwargs)
+        super().__init__(**kwargs)
 
     def create_instance(self) -> Vehicle:
         # Create vehicle object

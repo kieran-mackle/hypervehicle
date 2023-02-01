@@ -14,7 +14,7 @@ class ParametricHIFiRE8(Generator):
         self.nozzle_length = 0.1
 
         # Complete instantiation
-        super.__init__(**kwargs)
+        super().__init__(**kwargs)
 
     def create_instance(self) -> Vehicle:
         # Instantiate hypervehicle and add all components

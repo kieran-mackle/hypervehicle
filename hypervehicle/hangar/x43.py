@@ -28,7 +28,7 @@ class ParametricX43(Generator):
         self.rudder_angle = 0  # Rudder angle (+ve to +y) (degrees)
 
         # Complete instantiation
-        super.__init__(**kwargs)
+        super().__init__(**kwargs)
 
     def create_instance(self) -> Vehicle:
         # Create Vehicle instance

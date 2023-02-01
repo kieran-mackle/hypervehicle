@@ -22,7 +22,7 @@ class ParametricHTV(Generator):
         self.t_LE_nom = 0.025
 
         # Complete instantiation
-        super.__init__(**kwargs)
+        super().__init__(**kwargs)
 
     def create_instance(self) -> Vehicle:
         # Create Vehicle instance

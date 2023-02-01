@@ -15,7 +15,7 @@ class ParametricHIFiRE4(Generator):
         self.L_b = 4
 
         # Complete instantiation
-        super.__init__(**kwargs)
+        super().__init__(**kwargs)
 
     def create_instance(self) -> Vehicle:
 

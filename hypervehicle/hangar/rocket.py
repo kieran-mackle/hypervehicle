@@ -22,7 +22,7 @@ class ParametricRocket(Generator):
         self.R3 = 0.15
 
         # Complete instantiation
-        super.__init__(**kwargs)
+        super().__init__(**kwargs)
 
     def create_instance(self) -> Vehicle:
         rocket = Vehicle()

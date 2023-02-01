@@ -16,7 +16,7 @@ class ParametricFalcon9(Generator):
         self.f_L = 6
 
         # Complete instantiation
-        super.__init__(**kwargs)
+        super().__init__(**kwargs)
 
     def create_instance(self) -> Vehicle:
         # Initialise
