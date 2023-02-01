@@ -207,13 +207,12 @@ class Vehicle:
         Parameters
         ----------
         prefix : str, optional
-            The prefix to use when saving components to STL. If components
-            have been individually assigned names, those names will be used
-            preferentially. If None, the vehicle instance name will be used.
+            The prefix to use when saving components to STL. Note that if
+            components have been individually assigned name tags, the prefix
+            provided will take precedence. If no prefix is specified, and no
+            component name tag is available, the Vehicle name will be used.
             The default is None.
         """
-        prefix = self.name if prefix is None else prefix
-
         if self.verbosity > 0:
             print(f"Writing vehicle components to STL, with prefix {prefix}.")
 
@@ -223,18 +222,25 @@ class Vehicle:
             no = types_generated.get(component.componenttype, 0)
 
             # Write component to stl
-            if component.name:
+            if prefix:
+                # Use prefix provided
+                stl_name = f"{prefix}-{component.componenttype}-{no}.stl"
+            elif component.name:
                 stl_name = f"{component.name}.stl"
             else:
-                # Revert to prefix naming
-                stl_name = f"{prefix}-{component.componenttype}-{no}.stl"
+                # No prefix or component name, use vehicle name as fallback
+                stl_name = f"{self.name}-{component.componenttype}-{no}.stl"
+
+            if self.verbosity > 0:
+                print(f"\r  Writing: {stl_name}", end="")
+
             component.to_stl(stl_name)
 
             # Update component count
             types_generated[component.componenttype] = no + 1
 
         if self.verbosity > 0:
-            print("All components written to STL file format.")
+            print("\rAll components written to STL file format.", end="\n")
 
     def analyse(self, densities: dict):
         """Evaluates the mesh properties."""

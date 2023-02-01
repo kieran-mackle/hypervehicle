@@ -124,6 +124,7 @@ class ParametricX43(Generator):
             top_tf=wing1_tf_top,
             bot_tf=wing1_tf_bot,
             LE_wf=leading_edge_width_function,
+            stl_resolution=4,
         )
 
         # WING 2 (flaps)
@@ -139,7 +140,6 @@ class ParametricX43(Generator):
         #     A0-------------------------A1---------------TT
 
         flap_thickness = 0.03 * L / L_nom
-        fflap_angle = np.deg2rad(-self.flap_angle)
 
         fA0 = Vector3(x=B0.x + self.flap_length, y=B0.y)
         fA1 = Vector3(
@@ -248,6 +248,7 @@ class ParametricX43(Generator):
             top_tf=inlet_tf_top,
             bot_tf=inlet_tf_bot,
             LE_wf=leading_edge_width_function2,
+            stl_resolution=4,
         )
 
         #####################################################
@@ -282,7 +283,7 @@ class ParametricX43(Generator):
         fin_angle = np.deg2rad(-90)
 
         # Rudder angle (fin flap)
-        rudder_angle = np.deg2rad(rudder_angle)
+        rudder_angle = np.deg2rad(self.rudder_angle)
 
         fin1 = Fin(
             p0=p0,
@@ -335,11 +336,11 @@ class ParametricX43(Generator):
         )
 
         # Add all components
-        x43.add_component(body, reflection_axis="y")
-        x43.add_component(wing, reflection_axis="y")
-        x43.add_component(inlet, reflection_axis="y")
-        x43.add_component(fin1)
-        x43.add_component(fin2)
+        x43.add_component(body, reflection_axis="y", name="body")
+        x43.add_component(wing, reflection_axis="y", name="wing")
+        x43.add_component(inlet, reflection_axis="y", name="inlet")
+        x43.add_component(fin1, name="fin1")
+        x43.add_component(fin2, name="fin2")
 
         return x43
 
