@@ -250,6 +250,7 @@ class SensitivityStudy:
         parameter_dict: dict,
         perturbation: float = 5,
         write_nominal_stl: bool = True,
+        nominal_stl_prefix: str = None,
     ):
         """Computes the sensitivity of the geometry with respect to the
         parameters.
@@ -268,6 +269,9 @@ class SensitivityStudy:
         write_nominal_stl : bool, optional
             A boolean flag to write the nominal geometry STL(s) to file. The
             default is True.
+        nominal_stl_prefix : str, optional
+            The prefix to append when writing STL files for the nominal geometry.
+            If None, no prefix will be used. The default is None.
 
         Returns
         -------
@@ -302,7 +306,7 @@ class SensitivityStudy:
 
         if write_nominal_stl:
             # Write nominal instance to STL files
-            nominal_instance.to_stl(prefix=f"nominal_{nominal_instance.name}")
+            nominal_instance.to_stl(prefix=nominal_stl_prefix)
 
         # Generate meshes for each parameter
         if self.verbosity > 0:
