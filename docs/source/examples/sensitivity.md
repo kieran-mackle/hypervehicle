@@ -19,14 +19,14 @@ previously.
 
 ### Parametric Geometry Generator
 The next step is to refactor the geometry generation code into a 
-`Generator` object. This object inherits from the `AbstractGenerator`
+`Generator` object. This object inherits from the `Generator`
 object, shown below. This class has two methods: the `__init__` method,
 where all geometric parameters are passed as arguments, and the 
 `create_instance` method, which returns a [`Vehicle`](vehicle) object 
 ready to be `generate`d.
 
 ```{eval-rst}
-.. autoclass:: hypervehicle.generator.AbstractGenerator
+.. autoclass:: hypervehicle.generator.Generator
 ```
 
 
@@ -38,20 +38,19 @@ are unpacked and overwrite the default parameters.
 ```python
 from hypervehicle import Vehicle
 from hypervehicle.components import Fuselage
-from hypervehicle.generator import AbstractGenerator
+from hypervehicle.generator import Generator
 from hypervehicle.geometry import Vector3, Line, CoonsPatch
 
 
-class ParametricWedge(AbstractGenerator):
+class ParametricWedge(Generator):
     def __init__(self, **kwargs) -> None:
         # Wedge parameters
         self.wingspan = 1
         self.chord = 1
         self.thickness = 0.1
 
-        # Unpack kwargs (overwrites any params)
-        for item in kwargs:
-            setattr(self, item, kwargs[item])
+        # Complete instantiation
+        super().__init__(**kwargs)
 
     def create_instance(self) -> Vehicle:
         # Create vehicle object
