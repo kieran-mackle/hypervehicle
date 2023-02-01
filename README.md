@@ -7,8 +7,7 @@ for hypersonic vehicles.
 Check out the [hypervehicle hangar](docs/source/hangar.md)
 for some examples.
 
-[![x43](https://user-images.githubusercontent.com/60687606/168926371-a383434b-3ea5-40ab-989a-93f7a8d7b4ff.png)](docs/hangar.md)
-
+[![x43](docs/source/images/x43.gif)](docs/hangar.md)
 
 
 <!-- TABLE OF CONTENTS -->
