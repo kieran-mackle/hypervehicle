@@ -214,7 +214,11 @@ class Vehicle:
             The default is None.
         """
         if self.verbosity > 0:
-            print(f"Writing vehicle components to STL, with prefix {prefix}.")
+            s = "Writing vehicle components to STL"
+            if prefix:
+                print(f"{s}, with prefix '{prefix}'.")
+            else:
+                print(f"{s}.")
 
         types_generated = {}
         for component in self.components:
