@@ -56,8 +56,10 @@ Parameter Sensitivities <examples/sensitivity>
 :hidden:
 :caption: API REFERENCE
 
-Vehicle class <apiref/vehicle>
+Vehicle <apiref/vehicle>
 Components <apiref/component>
+Utilities <apiref/utilities>
+Generator <apiref/generator>
 Changelog <apiref/changelog>
 ```
 

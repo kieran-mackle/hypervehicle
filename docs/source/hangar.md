@@ -11,7 +11,7 @@ from hypervehicle.hangar import ParametricX43
 parametric_generator = ParametricX43()
 x43 = parametric_generator.create_instance()
 x43.generate()
-x43.to_stl("x43")
+x43.to_stl()
 ```
 
 

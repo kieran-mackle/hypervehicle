@@ -3,6 +3,8 @@ from abc import ABC, abstractmethod
 
 
 class AbstractGenerator(ABC):
+    """Abstract Generator Interface."""
+
     @abstractmethod
     def __init__(self, **kwargs) -> None:
         pass
@@ -13,7 +15,10 @@ class AbstractGenerator(ABC):
 
 
 class Generator(AbstractGenerator):
+    """Hypervehicle Parametric Generator."""
+
     def __init__(self, **kwargs) -> None:
+        """Initialises the generator."""
         # Unpack kwargs and overwrite parameter named attributes
         for item in kwargs:
             setattr(self, item, kwargs[item])

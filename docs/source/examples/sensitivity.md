@@ -18,21 +18,20 @@ previously.
 
 
 ### Parametric Geometry Generator
+
 The next step is to refactor the geometry generation code into a 
-`Generator` object. This object inherits from the `Generator`
-object, shown below. This class has two methods: the `__init__` method,
+`ParametricGenerator` object. This object inherits from the 
+{py:class}`.Generator` object. This class has two methods: 
+the {py:meth}`.Generator.__init__` method,
 where all geometric parameters are passed as arguments, and the 
-`create_instance` method, which returns a [`Vehicle`](vehicle) object 
-ready to be `generate`d.
-
-```{eval-rst}
-.. autoclass:: hypervehicle.generator.Generator
-```
+{py:meth}`.create_instance` method, which returns a 
+[`Vehicle`](vehicle) object ready to be {py:meth}`.generate`'d.
 
 
-
-The code below provides an example of this class. Note how the named kwargs 
-are unpacked and overwrite the default parameters.
+The code below provides an example of this class. Note that the 
+named `kwargs` are passed to `super().__init__` to be unpacked 
+and overwrite the default parameters. See {py:class}`.Generator`
+for more details.
 
 
 ```python
@@ -117,7 +116,7 @@ implemented.
 
 ### Run the Sensitivity Study
 With the steps above completed, you can run a sensitivity study
-by creating an instance of `hypervehicle.utilities.SensitivityStudy`.
+by creating an instance of {py:class}`.SensitivityStudy`.
 
 Then, define the design parameters which you would like to get 
 sensitivities to. In this example, we are extracting the geometric 
@@ -125,7 +124,7 @@ sensitivities to each wedge parameter: the thickness, the chord
 and the wingspan. We specify this with the `parameters` dictionary,
 passing along the nominal values to perturb about.
 
-Finally, run the study by calling the `dvdp` method, passing in 
+Finally, run the study by calling the {py:meth}`.dvdp` method, passing in 
 the design parameters.
 
 
