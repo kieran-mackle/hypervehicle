@@ -238,7 +238,7 @@ class Vehicle:
                 stl_name = f"{self.name}-{component.componenttype}-{no}.stl"
 
             if self.verbosity > 0:
-                print(f"\r  Writing: {stl_name}", end="")
+                print(f"  Writing: {stl_name}                 ", end="\r")
 
             component.to_stl(stl_name)
 
