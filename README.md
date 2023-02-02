@@ -74,7 +74,7 @@ python3 -m pip install -e ./
 
 
 ## Usage
-Please see the [example geometry generation](docs/source/example.md) 
+Please see the [example geometry generation](docs/source/examples/x43.md) 
 to generate a mockup of the X-43A, shown above.
 
 <p align="right">[<a href="#readme-top">back to top</a>]</p>
