@@ -298,7 +298,7 @@ class ParametricX43(Generator):
             bot_thickness_function=common.uniform_thickness_function(
                 fin_thickness, "bot"
             ),
-            LE_func=leading_edge_width_function,
+            LE_wf=leading_edge_width_function,
             mirror=False,
             rudder_type="sharp",
             rudder_length=self.rudder_length,
@@ -325,7 +325,7 @@ class ParametricX43(Generator):
             bot_thickness_function=common.uniform_thickness_function(
                 fin_thickness, "bot"
             ),
-            LE_func=leading_edge_width_function,
+            LE_wf=leading_edge_width_function,
             mirror=False,
             rudder_type="sharp",
             rudder_length=self.rudder_length,

@@ -1,7 +1,7 @@
 import numpy as np
 from hypervehicle import Vehicle
 from hypervehicle.generator import Generator
-from hypervehicle.components import Wing, Fin, Fuselage, common
+from hypervehicle.components import Wing, Fin, RevolvedComponent, common
 from hypervehicle.geometry import Vector3, Line, Polyline, Arc
 
 
@@ -64,12 +64,8 @@ class ParametricHIFiRE4(Generator):
         # Create curvature operations chain
         curvatures = [("x", curv_x, curv_xd), ("y", curv_y, curv_yd)]
 
-        fuselage = Fuselage(
+        fuselage = RevolvedComponent(
             revolve_line=fuseline,
-            x_curve_func=curv_x,
-            x_dash_func=curv_xd,
-            y_curve_func=curv_y,
-            y_dash_func=curv_yd,
             stl_resolution=20,
         )
 
@@ -114,10 +110,6 @@ class ParametricHIFiRE4(Generator):
             Line_B0TT=Line_B0TT,
             top_tf=common.uniform_thickness_function(wing_thickness, "top"),
             bot_tf=common.uniform_thickness_function(wing_thickness, "bot"),
-            curve_x=curv_x,
-            curve_dx=curv_xd,
-            curve_y=curv_y,
-            curve_dy=curv_yd,
             flap_length=flap_length,
             flap_angle=np.deg2rad(flap_angle),
             stl_resolution=3,

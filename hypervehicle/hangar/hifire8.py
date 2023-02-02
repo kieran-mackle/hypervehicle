@@ -1,8 +1,26 @@
 import numpy as np
 from hypervehicle import Vehicle
 from hypervehicle.generator import Generator
-from hypervehicle.geometry import Vector3, Line, Polyline
-from hypervehicle.components import Wing, Fin, Fuselage, common
+from hypervehicle.geometry import Vector3, Line, Polyline, Bezier
+from hypervehicle.components import (
+    Wing,
+    Fin,
+    RevolvedComponent,
+    CompositeComponent,
+    common,
+)
+
+
+def leading_edge_width_function(r):
+    temp = Bezier(
+        [
+            Vector3(x=0.0, y=0.01),
+            Vector3(x=0.5, y=0.1),
+            Vector3(x=1.0, y=0.01),
+        ]
+    )
+    le_width = temp(r).y
+    return le_width
 
 
 class ParametricHIFiRE8(Generator):
@@ -39,9 +57,22 @@ class ParametricHIFiRE8(Generator):
         R2 = self.R_base - X2 * np.tan(fuse_slope)
         R3 = R2  # R_base - X3*np.tan(fuse_slope)
 
-        fuselage = Fuselage(
-            Xn=Xn, X1=X1, X2=X2, X3=X3, R1=R1, R2=R2, R3=R3, stl_resolution=5
+        fuse_line = Polyline(
+            [
+                Line(p0=Vector3(X1, R1), p1=Vector3(X2, R2)),
+                Line(p0=Vector3(X2, R2), p1=Vector3(X3, R3)),
+                Line(p0=Vector3(X3, R3), p1=Vector3(X3, 0)),
+            ]
         )
+        fuselage_0 = RevolvedComponent(fuse_line)
+
+        fuse_base_line = Line(p0=Vector3(X1, 0), p1=Vector3(X1, R1))
+        fuselage_1 = RevolvedComponent(fuse_base_line)
+
+        # Create composite component for fuselage
+        fuselage = CompositeComponent(stl_resolution=8)
+        fuselage.add_component(fuselage_0)
+        fuselage.add_component(fuselage_1)
 
         # Construct fins
         # ====================
@@ -65,11 +96,6 @@ class ParametricHIFiRE8(Generator):
         p2 = Vector3(x=0.7 * fin_length, y=eval_r_at_x(0.7 * fin_length) + fin_height)
         p3 = Vector3(x=fin_length, y=eval_r_at_x(fin_length))
 
-        # Construct p1p3 path ?
-        p1p2 = Line(p1, p2)
-        p2p3 = Line(p2, p3)
-        p1p3 = Polyline(segments=[p1p2, p2p3])
-
         fin1 = Fin(
             p0=p0,
             p1=p1,
@@ -83,6 +109,7 @@ class ParametricHIFiRE8(Generator):
             bot_thickness_function=common.uniform_thickness_function(
                 fin_thickness, "bot"
             ),
+            LE_wf=leading_edge_width_function,
             mirror=False,
             stl_resolution=3,
         )
@@ -101,6 +128,7 @@ class ParametricHIFiRE8(Generator):
             bot_thickness_function=common.uniform_thickness_function(
                 fin_thickness, "bot"
             ),
+            LE_wf=leading_edge_width_function,
             mirror=False,
             stl_resolution=3,
         )
@@ -120,6 +148,7 @@ class ParametricHIFiRE8(Generator):
             bot_thickness_function=common.uniform_thickness_function(
                 fin_thickness, "bot"
             ),
+            LE_wf=leading_edge_width_function,
             mirror=False,
             stl_resolution=3,
         )
@@ -167,6 +196,7 @@ class ParametricHIFiRE8(Generator):
             Line_B0TT=Line_B0TT,
             top_tf=common.uniform_thickness_function(wing_thickness, "top"),
             bot_tf=common.uniform_thickness_function(wing_thickness, "bot"),
+            LE_wf=leading_edge_width_function,
             flap_length=flap_length,
             stl_resolution=4,
         )
@@ -234,18 +264,18 @@ class ParametricHIFiRE8(Generator):
             Line_B0TT=Line_B0TTn,
             top_tf=nose_tf_top,
             bot_tf=nose_tf_bot,
-            LE_wf=common.leading_edge_width_function,
+            LE_wf=leading_edge_width_function,
             LE_type="FLAT",
             stl_resolution=4,
         )
 
         # Add components
-        hifire8.add_component(fuselage)
-        hifire8.add_component(wing, reflection_axis="y")
-        hifire8.add_component(nose, reflection_axis="y")
-        hifire8.add_component(fin1)
-        hifire8.add_component(fin2)
-        hifire8.add_component(fin3)
+        hifire8.add_component(fuselage, name="fuselage")
+        hifire8.add_component(wing, reflection_axis="y", name="wing")
+        hifire8.add_component(nose, reflection_axis="y", name="nose")
+        hifire8.add_component(fin1, name="fin1")
+        hifire8.add_component(fin2, name="fin2")
+        hifire8.add_component(fin3, name="fin3")
 
         return hifire8
 
@@ -255,4 +285,4 @@ if __name__ == "__main__":
     parametric_generator = ParametricHIFiRE8()
     hifire8 = parametric_generator.create_instance()
     hifire8.generate()
-    hifire8.to_stl("hifire8")
+    hifire8.to_stl()

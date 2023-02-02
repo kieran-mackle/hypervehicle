@@ -3,7 +3,7 @@ from hypervehicle import Vehicle
 from scipy.optimize import bisect
 from gdtk.geom.vector3 import Vector3
 from hypervehicle.generator import Generator
-from hypervehicle.components import Wing, Fuselage, Fin
+from hypervehicle.components import Wing, Fin, RevolvedComponent
 from hypervehicle.geometry import Vector3, Bezier, Line, Polyline
 
 
@@ -42,7 +42,7 @@ class ParametricD21(Generator):
         bL2 = Line(b1, b2)
 
         fuseline = Polyline([bL0, bL1, bL2])
-        fuselage = Fuselage(revolve_line=fuseline, stl_resolution=20)
+        fuselage = RevolvedComponent(revolve_line=fuseline, stl_resolution=20)
         d21.add_component(fuselage)
 
         # Construct Aerospike nose
@@ -56,7 +56,7 @@ class ParametricD21(Generator):
         back_cap = Line(p0=top, p1=Vector3(x=-0.5, y=0.0) + shift)
 
         noseline = Polyline([front_bz, back_cap])
-        nose = Fuselage(revolve_line=noseline, stl_resolution=20)
+        nose = RevolvedComponent(revolve_line=noseline, stl_resolution=20)
         d21.add_component(nose)
 
         # Construct wings

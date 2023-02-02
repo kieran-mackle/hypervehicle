@@ -33,9 +33,9 @@ Vehicle Hangar <hangar>
 :caption: DOCUMENTATION
 
 Getting Started <getting-started>
-Component Definitions <documentation/components>
-Sensitivities <documentation/sensitivity>
-Contributing <documentation/contributing>
+Building Components <documentation/components>
+Building Vehicles <documentation/vehicle>
+Extracting Sensitivities <documentation/sensitivity>
 ```
 
 
@@ -57,9 +57,10 @@ Parameter Sensitivities <examples/sensitivity>
 :caption: API REFERENCE
 
 Vehicle <apiref/vehicle>
-Components <apiref/component>
+Components <apiref/components/index>
 Utilities <apiref/utilities>
 Generator <apiref/generator>
+Contributing <documentation/contributing>
 Changelog <apiref/changelog>
 ```
 

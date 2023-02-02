@@ -2,13 +2,9 @@ import numpy as np
 from hypervehicle import Vehicle
 from hypervehicle.generator import Generator
 from hypervehicle.transformations import CART3D
-from hypervehicle.components import Wing, Fuselage, Fin
+from hypervehicle.components.common import uniform_thickness_function, OgiveNose
+from hypervehicle.components import Wing, RevolvedComponent, Fin, SweptComponent
 from hypervehicle.geometry import Vector3, Line, Polyline, Arc, CoonsPatch, Bezier
-from hypervehicle.components.common import (
-    uniform_thickness_function,
-    leading_edge_width_function,
-    OgiveNose,
-)
 
 
 def leading_edge_width_function(r):
@@ -76,7 +72,7 @@ class ParametricReFEX(Generator):
         base_line = Line(bb0, bb1)
 
         body_line = Polyline([body_cap_line, body_top_line, base_line])
-        body_fuse = Fuselage(revolve_line=body_line, stl_resolution=50)
+        body_fuse = RevolvedComponent(revolve_line=body_line, stl_resolution=50)
 
         # Add revolved surface
         if self.generate_fuselage:
@@ -117,7 +113,7 @@ class ParametricReFEX(Generator):
                     bot_thickness_function=uniform_thickness_function(
                         self.fin_thickness, "bot"
                     ),
-                    LE_func=leading_edge_width_function,
+                    LE_wf=leading_edge_width_function,
                     pivot_angle=np.deg2rad(self.canard_angle),
                     pivot_point=pivot_point,
                     rudder_type="sharp",
@@ -247,7 +243,7 @@ class ParametricReFEX(Generator):
 
         sections = [c1, c2, c3]
         if self.generate_fuselage:
-            body_transition = Fuselage(
+            body_transition = SweptComponent(
                 cross_sections=sections,
                 sweep_axis="x",
                 stl_resolution=20,
@@ -280,7 +276,7 @@ class ParametricReFEX(Generator):
                 bot_thickness_function=uniform_thickness_function(
                     self.tail_thickness, "bot"
                 ),
-                LE_func=leading_edge_width_function,
+                LE_wf=leading_edge_width_function,
                 rudder_type="sharp",
                 rudder_length=rudder_length,
                 stl_resolution=3,

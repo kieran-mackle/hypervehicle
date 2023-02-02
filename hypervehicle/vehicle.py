@@ -4,8 +4,9 @@ from hypervehicle.components.component import Component
 from hypervehicle.components.constants import (
     FIN_COMPONENT,
     WING_COMPONENT,
-    FUSELAGE_COMPONENT,
     COMPOSITE_COMPONENT,
+    SWEPT_COMPONENT,
+    REVOLVED_COMPONENT,
 )
 
 
@@ -13,7 +14,8 @@ class Vehicle:
     ALLOWABLE_COMPONENTS = [
         FIN_COMPONENT,
         WING_COMPONENT,
-        FUSELAGE_COMPONENT,
+        SWEPT_COMPONENT,
+        REVOLVED_COMPONENT,
         COMPOSITE_COMPONENT,
     ]
 
@@ -236,7 +238,7 @@ class Vehicle:
                 stl_name = f"{self.name}-{component.componenttype}-{no}.stl"
 
             if self.verbosity > 0:
-                print(f"\r  Writing: {stl_name}", end="")
+                print(f"  Writing: {stl_name}                 ", end="\r")
 
             component.to_stl(stl_name)
 
