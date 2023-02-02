@@ -2,13 +2,9 @@ import numpy as np
 from hypervehicle import Vehicle
 from hypervehicle.generator import Generator
 from hypervehicle.transformations import CART3D
+from hypervehicle.components.common import uniform_thickness_function, OgiveNose
 from hypervehicle.components import Wing, RevolvedComponent, Fin, SweptComponent
 from hypervehicle.geometry import Vector3, Line, Polyline, Arc, CoonsPatch, Bezier
-from hypervehicle.components.common import (
-    uniform_thickness_function,
-    leading_edge_width_function,
-    OgiveNose,
-)
 
 
 def leading_edge_width_function(r):

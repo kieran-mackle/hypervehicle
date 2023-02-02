@@ -7,9 +7,9 @@ from hypervehicle.geometry import Vector3, Bezier, Line, Polyline, Arc, CoonsPat
 def leading_edge_width_function(r):
     temp = Bezier(
         [
-            Vector3(x=0.0, y=0.02),
-            Vector3(x=0.75, y=0.1),
-            Vector3(x=1.0, y=0.3),
+            Vector3(x=0.0, y=0.01),
+            Vector3(x=0.5, y=0.1),
+            Vector3(x=1.0, y=0.01),
         ]
     )
     le_width = temp(r).y
