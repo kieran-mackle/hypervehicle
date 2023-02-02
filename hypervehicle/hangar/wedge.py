@@ -1,6 +1,6 @@
 from hypervehicle import Vehicle
-from hypervehicle.components import Fuselage
 from hypervehicle.generator import Generator
+from hypervehicle.components import SweptComponent
 from hypervehicle.geometry import Vector3, Line, CoonsPatch
 
 
@@ -53,7 +53,7 @@ class ParametricWedge(Generator):
             patch = CoonsPatch(north=N, south=S, east=E, west=W)
             sections.append(patch)
 
-        fuselage = Fuselage(
+        fuselage = SweptComponent(
             cross_sections=sections,
             sweep_axis="z",
             stl_resolution=10,

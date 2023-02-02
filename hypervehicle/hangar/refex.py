@@ -2,7 +2,7 @@ import numpy as np
 from hypervehicle import Vehicle
 from hypervehicle.generator import Generator
 from hypervehicle.transformations import CART3D
-from hypervehicle.components import Wing, Fuselage, Fin
+from hypervehicle.components import Wing, RevolvedComponent, Fin, SweptComponent
 from hypervehicle.geometry import Vector3, Line, Polyline, Arc, CoonsPatch, Bezier
 from hypervehicle.components.common import (
     uniform_thickness_function,
@@ -76,7 +76,7 @@ class ParametricReFEX(Generator):
         base_line = Line(bb0, bb1)
 
         body_line = Polyline([body_cap_line, body_top_line, base_line])
-        body_fuse = Fuselage(revolve_line=body_line, stl_resolution=50)
+        body_fuse = RevolvedComponent(revolve_line=body_line, stl_resolution=50)
 
         # Add revolved surface
         if self.generate_fuselage:
@@ -247,7 +247,7 @@ class ParametricReFEX(Generator):
 
         sections = [c1, c2, c3]
         if self.generate_fuselage:
-            body_transition = Fuselage(
+            body_transition = SweptComponent(
                 cross_sections=sections,
                 sweep_axis="x",
                 stl_resolution=20,

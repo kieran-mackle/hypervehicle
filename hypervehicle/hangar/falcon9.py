@@ -1,7 +1,7 @@
 import numpy as np
 from hypervehicle import Vehicle
 from hypervehicle.generator import Generator
-from hypervehicle.components import Fuselage
+from hypervehicle.components import RevolvedComponent
 from hypervehicle.geometry import Vector3, Line, Polyline, Arc
 
 
@@ -60,7 +60,7 @@ class ParametricFalcon9(Generator):
 
         # Fairing component
         fairing_line = Polyline([nose_arc, ogive_arc, fairing_line, fb_line])
-        fairing = Fuselage(revolve_line=fairing_line, stl_resolution=100)
+        fairing = RevolvedComponent(revolve_line=fairing_line, stl_resolution=100)
         falcon9.add_component(fairing)
 
         # Body
@@ -78,7 +78,7 @@ class ParametricFalcon9(Generator):
         # Join
         line = Polyline([body_cap_line, body_line, base_line])
 
-        fuselage = Fuselage(revolve_line=line, stl_resolution=50)
+        fuselage = RevolvedComponent(revolve_line=line, stl_resolution=50)
         falcon9.add_component(fuselage)
 
         return falcon9

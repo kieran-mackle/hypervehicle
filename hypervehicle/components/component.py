@@ -82,7 +82,7 @@ class AbstractComponent(ABC):
 class Component(AbstractComponent):
     def __init__(
         self,
-        params: dict,
+        params: dict = None,
         stl_resolution: int = 2,
         verbosity: int = 1,
         name: str = None,

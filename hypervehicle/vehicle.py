@@ -4,8 +4,9 @@ from hypervehicle.components.component import Component
 from hypervehicle.components.constants import (
     FIN_COMPONENT,
     WING_COMPONENT,
-    FUSELAGE_COMPONENT,
     COMPOSITE_COMPONENT,
+    SWEPT_COMPONENT,
+    REVOLVED_COMPONENT,
 )
 
 
@@ -13,7 +14,8 @@ class Vehicle:
     ALLOWABLE_COMPONENTS = [
         FIN_COMPONENT,
         WING_COMPONENT,
-        FUSELAGE_COMPONENT,
+        SWEPT_COMPONENT,
+        REVOLVED_COMPONENT,
         COMPOSITE_COMPONENT,
     ]
 

@@ -1,6 +1,6 @@
 import numpy as np
 from hypervehicle.geometry import Vector3, Bezier
-from hypervehicle.components import Wing, Fuselage, Fin
+from hypervehicle.components import Wing, RevolvedComponent, Fin
 from hypervehicle.geometry import Vector3, Bezier, Line, Polyline, Arc, CoonsPatch
 
 
@@ -46,7 +46,7 @@ def circle_patch(centre: Vector3, r: float, plane: str = "xy") -> CoonsPatch:
     return patch
 
 
-class OgiveNose(Fuselage):
+class OgiveNose(RevolvedComponent):
     def __init__(
         self,
         h: float,

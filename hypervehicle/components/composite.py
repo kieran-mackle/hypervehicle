@@ -3,7 +3,8 @@ from hypervehicle.components.component import Component
 from hypervehicle.components.constants import (
     FIN_COMPONENT,
     WING_COMPONENT,
-    FUSELAGE_COMPONENT,
+    SWEPT_COMPONENT,
+    REVOLVED_COMPONENT,
     COMPOSITE_COMPONENT,
 )
 
@@ -20,7 +21,12 @@ class CompositeComponent(Component):
     """
 
     componenttype = COMPOSITE_COMPONENT
-    ALLOWABLE_COMPONENTS = [FIN_COMPONENT, WING_COMPONENT, FUSELAGE_COMPONENT]
+    ALLOWABLE_COMPONENTS = [
+        FIN_COMPONENT,
+        WING_COMPONENT,
+        SWEPT_COMPONENT,
+        REVOLVED_COMPONENT,
+    ]
 
     def __init__(
         self,
