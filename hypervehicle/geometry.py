@@ -766,7 +766,6 @@ class CubePatch(ParametricSurface):
         ) + "face = {}".format(self.face)
 
     def __call__(self, r, s):
-
         if self.face == "east":
             x = 1.0
             y = -1.0 + 2.0 * r
@@ -823,7 +822,6 @@ class SpherePatch(ParametricSurface):
         ) + "face = {}".format(self.face)
 
     def __call__(self, r, s):
-
         # First create a cube face, then map to a sphere.
         # Can change below to call a cube patch rather than
         # computing cube face here, it just adds a dependency.

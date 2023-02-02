@@ -1,15 +1,23 @@
 from art import tprint, art
-from typing import List, Tuple, Callable
+from typing import List, Tuple, Callable, Dict, Any
 from hypervehicle.components.component import Component
 from hypervehicle.components.constants import (
     FIN_COMPONENT,
     WING_COMPONENT,
-    FUSELAGE_COMPONENT,
+    COMPOSITE_COMPONENT,
+    SWEPT_COMPONENT,
+    REVOLVED_COMPONENT,
 )
 
 
 class Vehicle:
-    ALLOWABLE_COMPONENTS = [FIN_COMPONENT, WING_COMPONENT, FUSELAGE_COMPONENT]
+    ALLOWABLE_COMPONENTS = [
+        FIN_COMPONENT,
+        WING_COMPONENT,
+        SWEPT_COMPONENT,
+        REVOLVED_COMPONENT,
+        COMPOSITE_COMPONENT,
+    ]
 
     def __init__(self, **kwargs) -> None:
         # Vehicle attributes
@@ -22,6 +30,8 @@ class Vehicle:
         self._generated = False
         self._component_counts = {}
         self._enumerated_components = {}
+        self._named_components = {}
+        self._vehicle_transformations = None
 
     def __repr__(self):
         basestr = self.__str__()
@@ -49,9 +59,12 @@ class Vehicle:
     def add_component(
         self,
         component: Component,
+        name: str = None,
         reflection_axis: str = None,
         append_reflection: bool = True,
         curvatures: List[Tuple[str, Callable, Callable]] = None,
+        clustering: Dict[str, float] = None,
+        transformations: List[Tuple[str, Any]] = None,
     ) -> None:
         """Adds a new component to the vehicle.
 
@@ -59,6 +72,9 @@ class Vehicle:
         ----------
         component : Component
             The component to add.
+        name : str, optional
+            The name to assign to this component. If provided, it will be used when
+            writing to STL. The default is None.
         reflection_axis : str, optional
             Include a reflection of the component about the axis specified
             (eg. 'x', 'y' or 'z'). The default is None.
@@ -70,6 +86,12 @@ class Vehicle:
             This list contains a tuple for each curvature. Each curvatue
             is defined by (axis, curve_func, curve_func_derivative).
             The default is None.
+        clustering : Dict[str, float], optional
+            Optionally provide clustering options for the stl meshes. The
+            default is None.
+        transformations : List[Tuple[str, Any]], optional
+            A list of transformations to apply to the nominal component. The
+            default is None
         """
         if component.componenttype in Vehicle.ALLOWABLE_COMPONENTS:
             # Overload component verbosity
@@ -89,6 +111,14 @@ class Vehicle:
             if curvatures is not None:
                 component._curvatures = curvatures
 
+            # Add component clustering
+            if clustering is not None:
+                component._clustering = clustering
+
+            # Add transformations
+            if transformations is not None:
+                component._transformations = transformations
+
             # Add component
             self.components.append(component)
 
@@ -98,6 +128,14 @@ class Vehicle:
             self._enumerated_components[
                 f"{component.componenttype}_{component_count}"
             ] = component
+
+            # Process component name
+            if name is not None:
+                # Assign component name
+                component.name = name
+            else:
+                name = f"{component.componenttype}_{component_count}"
+            self._named_components[name] = component
 
             if self.verbosity > 1:
                 print(f"Added new {component.componenttype} component.")
@@ -129,18 +167,29 @@ class Vehicle:
             # Reflect
             component.reflect()
 
-        if self.verbosity > 0:
-            print("All component patches generated.")
+            # Apply transformations
+            component.transform()
 
         # Set generated boolean to True
         self._generated = True
+
+        # Apply any vehicle transformations
+        if self._vehicle_transformations:
+            self.transform(self._vehicle_transformations)
+
+        if self.verbosity > 0:
+            print("All component patches generated.")
+
+    def add_vehicle_transformations(self, transformations: List[Tuple[str, float]]):
+        """Add transformations to apply to the vehicle after running generate()."""
+        self._vehicle_transformations = transformations
 
     def transform(self, transformations: List[Tuple[str, float]]):
         """Transform vehicle by applying the tranformations. Currently
         only supports rotations.
 
         To rotate 180 degrees about the x axis, followed by 90 degrees
-        about the y axis, transformations = [("x", 180), ("y", 90)]"""
+        about the y axis, transformations = [(180, "x"), (90, "y")]"""
         # TODO - specify transform type (eg. rotate) in the Tuple
         if not self._generated:
             raise Exception("Vehicle has not been generated yet.")
@@ -148,18 +197,30 @@ class Vehicle:
         # Rotate to frame
         for component in self.components:
             for transform in transformations:
-                component.rotate(angle=transform[1], axis=transform[0])
+                component.rotate(angle=transform[0], axis=transform[1])
 
             # Reset any meshes generated from un-transformed patches
             component.surfaces = None
             component.mesh = None
 
     def to_stl(self, prefix: str = None):
-        """Writes the vehicle components to STL file."""
-        prefix = self.name if prefix is None else prefix
+        """Writes the vehicle components to STL file.
 
+        Parameters
+        ----------
+        prefix : str, optional
+            The prefix to use when saving components to STL. Note that if
+            components have been individually assigned name tags, the prefix
+            provided will take precedence. If no prefix is specified, and no
+            component name tag is available, the Vehicle name will be used.
+            The default is None.
+        """
         if self.verbosity > 0:
-            print(f"Writing vehicle components to STL, with prefix {prefix}.")
+            s = "Writing vehicle components to STL"
+            if prefix:
+                print(f"{s}, with prefix '{prefix}'.")
+            else:
+                print(f"{s}.")
 
         types_generated = {}
         for component in self.components:
@@ -167,13 +228,25 @@ class Vehicle:
             no = types_generated.get(component.componenttype, 0)
 
             # Write component to stl
-            component.to_stl(f"{prefix}-{component.componenttype}-{no}.stl")
+            if prefix:
+                # Use prefix provided
+                stl_name = f"{prefix}-{component.componenttype}-{no}.stl"
+            elif component.name:
+                stl_name = f"{component.name}.stl"
+            else:
+                # No prefix or component name, use vehicle name as fallback
+                stl_name = f"{self.name}-{component.componenttype}-{no}.stl"
+
+            if self.verbosity > 0:
+                print(f"  Writing: {stl_name}                 ", end="\r")
+
+            component.to_stl(stl_name)
 
             # Update component count
             types_generated[component.componenttype] = no + 1
 
         if self.verbosity > 0:
-            print("All components written to STL file format.")
+            print("\rAll components written to STL file format.", end="\n")
 
     def analyse(self, densities: dict):
         """Evaluates the mesh properties."""

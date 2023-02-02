@@ -2,10 +2,12 @@ import numpy as np
 from stl import mesh
 from abc import ABC, abstractmethod
 from gdtk.geom.sgrid import StructuredGrid
+from typing import List, Callable, Dict, Any
 from hypervehicle.geometry import (
     CurvedPatch,
     RotatedPatch,
     MirroredPatch,
+    OffsetPatchFunction,
 )
 from hypervehicle.utilities import parametricSurfce2stl
 
@@ -79,7 +81,11 @@ class AbstractComponent(ABC):
 
 class Component(AbstractComponent):
     def __init__(
-        self, params: dict, stl_resolution: int = 2, verbosity: int = 1
+        self,
+        params: dict = None,
+        stl_resolution: int = 2,
+        verbosity: int = 1,
+        name: str = None,
     ) -> None:
         # Set verbosity
         self.verbosity = verbosity
@@ -101,15 +107,31 @@ class Component(AbstractComponent):
         # Curvature functions
         self._curvatures = None
 
+        # Clustering
+        self._clustering = {}
+
+        # Transformations
+        self._transformations = []
+
         # Component reflection
         self._reflection_axis = None
         self._append_reflection = True
 
+        # Component name
+        self.name = name
+
     def __repr__(self):
-        return f"{self.componenttype} component"
+        s = f"{self.componenttype} component"
+        if self.name:
+            s += f" (tagged '{self.name}')"
+
+        return s
 
     def __str__(self):
-        return f"{self.componenttype} component"
+        if self.name:
+            return self.name
+        else:
+            return f"{self.componenttype} component"
 
     def curve(self):
         if self._curvatures is not None:
@@ -148,6 +170,17 @@ class Component(AbstractComponent):
         for key, patch in self.patches.items():
             self.patches[key] = RotatedPatch(patch, np.deg2rad(angle), axis=axis)
 
+    def translate(self, offset_function: Callable):
+        # TODO - allow passing Vector3 object
+        # Could wrap it in a lambda if provided
+        for key, patch in self.patches.items():
+            self.patches[key] = OffsetPatchFunction(patch, offset_function)
+
+    def transform(self):
+        for transform in self._transformations:
+            func = getattr(self, transform[0])
+            func(*transform[1:])
+
     def reflect(self, axis: str = None):
         axis = self._reflection_axis if self._reflection_axis is not None else axis
         if axis is not None:
@@ -173,7 +206,6 @@ class Component(AbstractComponent):
             )
 
     def surface(self, resolution: int = None):
-
         stl_resolution = self.stl_resolution if resolution is None else resolution
 
         # Check for patches
@@ -200,7 +232,9 @@ class Component(AbstractComponent):
                 flip = True if "1" in key else False
 
             # Append surface
-            self.surfaces[key] = parametricSurfce2stl(patch, res, flip_faces=flip)
+            self.surfaces[key] = parametricSurfce2stl(
+                patch, res, flip_faces=flip, **self._clustering
+            )
 
     def to_vtk(self):
         raise NotImplementedError("This method has not been implemented yet.")
@@ -208,7 +242,7 @@ class Component(AbstractComponent):
         for key, grid in self.grids.items():
             grid.write_to_vtk_file(f"{self.vtk_filename}-wing_{key}.vtk")
 
-    def to_stl(self, outfile: str = None, stl_resolution: int = None):
+    def to_stl(self, outfile: str = None):
         if self.verbosity > 1:
             print("Writing patches to STL format. ")
             if outfile is not None:

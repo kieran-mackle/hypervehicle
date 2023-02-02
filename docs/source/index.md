@@ -33,9 +33,9 @@ Vehicle Hangar <hangar>
 :caption: DOCUMENTATION
 
 Getting Started <getting-started>
-Component Definitions <documentation/components>
-Sensitivities <documentation/sensitivity>
-Contributing to hypervehicle <documentation/contributing>
+Building Components <documentation/components>
+Building Vehicles <documentation/vehicle>
+Extracting Sensitivities <documentation/sensitivity>
 ```
 
 
@@ -56,8 +56,11 @@ Parameter Sensitivities <examples/sensitivity>
 :hidden:
 :caption: API REFERENCE
 
-Vehicle class <apiref/vehicle>
-Components <apiref/component>
+Vehicle <apiref/vehicle>
+Components <apiref/components/index>
+Utilities <apiref/utilities>
+Generator <apiref/generator>
+Contributing <documentation/contributing>
 Changelog <apiref/changelog>
 ```
 

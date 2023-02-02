@@ -1,120 +1,137 @@
+import re
 import os
 import sys
 import glob
-import time
 import numpy as np
 import pandas as pd
 from stl import mesh
-from typing import Dict
+from tqdm import tqdm
+from typing import Dict, List
 import xml.etree.ElementTree as ET
 
 
 def parametricSurfce2stl(
     parametric_surface,
-    triangles_per_edge,
+    triangles_per_edge: int,
+    si: float = 1.0,
+    sj: float = 1.0,
     mirror_y=False,
-    re_evaluate_centroid=False,
     flip_faces=False,
-):
+) -> mesh.Mesh:
     """
     Function to convert parametric_surface generated using the Eilmer Geometry
     Package into a stl mesh object.
 
-    Inputs:
-        parametric_surface - surface object
-        triangles_per_edge - resolution for stl object.
-        mirror_y - create mirror image about x-z plane
-    Outputs:
-        stl_mesh - triangulated mesh object suitable for numpy-stl
+    Parameters
+    ----------
+        parametric_surface : Any
+            The parametric surface object.
+        si : float, optional
+            The clustering in the i-direction. The default is 1.0.
+        sj : float, optional
+            The clustering in the j-direction. The default is 1.0.
+        triangles_per_edge : int
+            The resolution for the stl object.
+        mirror_y : bool, optional
+            Create mirror image about x-z plane. The default is False.
+
+    Returns
+    ----------
+    stl_mesh : Mesh
+        The numpy-stl mesh.
     """
-    if triangles_per_edge is None:
-        raise Exception(
-            "Please define STL resolution, either component-wise, or for "
-            + "the entire vehicle."
-        )
+    # TODO - allow different ni and nj discretisation
 
-    # create list of vertices
-    r_list = np.linspace(0.0, 1.0, triangles_per_edge + 1)
-    s_list = np.linspace(0.0, 1.0, triangles_per_edge + 1)
+    ni = triangles_per_edge
+    nj = triangles_per_edge
 
-    y_mult = -1 if mirror_y else 1
-    index = (triangles_per_edge + 1) ** 2
+    def gen_points(lb, ub, steps, spacing=1.0):
+        span = ub - lb
+        dx = 1.0 / (steps - 1)
+        return np.array([lb + (i * dx) ** spacing * span for i in range(steps)])
 
-    # create vertices for corner points of each quad cell
-    vertices = np.empty(((triangles_per_edge + 1) ** 2 + triangles_per_edge**2, 3))
+    # Create list of vertices
+    r_list = gen_points(lb=0.0, ub=1.0, steps=ni + 1, spacing=si)
+    s_list = gen_points(lb=0.0, ub=1.0, steps=nj + 1, spacing=sj)
+
+    y_mult: int = -1 if mirror_y else 1
+
+    # Create vertices for corner points of each quad cell
+    # columns x, y, z for each vertex row
+    # quad exterior vertices + quad centres
+    vertices: np.ndarray = np.zeros(((ni + 1) * (nj + 1) + ni * nj, 3))
+    centre_ix: int = (ni + 1) * (nj + 1)
+
+    # For vertices along the x direction (i)
     for i, r in enumerate(r_list):
+        # For vertices along the y direction (j)
         for j, s in enumerate(s_list):
-            p1 = time.time()
+            # Evaluate position
             pos = parametric_surface(r, s)
 
-            vertices[j * (triangles_per_edge + 1) + i] = np.array(
-                [pos.x, y_mult * pos.y, pos.z]
-            )
+            # Assign vertex
+            vertices[j * (ni + 1) + i] = np.array([pos.x, y_mult * pos.y, pos.z])
 
-            # create vertices for centre point of each quad cell,
-            # which is used to split each cell into 4x triangles
+            # Create vertices for centre point of each quad cell
             try:
-                if re_evaluate_centroid is True:
-                    r = 0.5 * (r_list[i] + r_list[i + 1])
-                    r = 0.5 * (s_list[i] + s_list[i + 1])
-                    pos = parametric_surface(r, s)
-                    pos_x = pos.x
-                    pos_y = pos.y
-                    pos_z = pos.z
+                # Try index to bail before calling surface
+                vertices[centre_ix + (j * ni + i)]
 
-                else:
-                    r0 = r_list[i]
-                    r1 = r_list[i + 1]
-                    s0 = s_list[j]
-                    s1 = s_list[j + 1]
+                r0 = r_list[i]
+                r1 = r_list[i + 1]
+                s0 = s_list[j]
+                s1 = s_list[j + 1]
 
-                    pos00 = parametric_surface(r0, s0)
-                    pos10 = parametric_surface(r1, s0)
-                    pos01 = parametric_surface(r0, s1)
-                    pos11 = parametric_surface(r1, s1)
+                # Get corner points
+                pos00 = parametric_surface(r0, s0)
+                pos10 = parametric_surface(r1, s0)
+                pos01 = parametric_surface(r0, s1)
+                pos11 = parametric_surface(r1, s1)
 
-                    pos_x = 0.25 * (pos00.x + pos10.x + pos01.x + pos11.x)
-                    pos_y = 0.25 * (pos00.y + pos10.y + pos01.y + pos11.y)
-                    pos_z = 0.25 * (pos00.z + pos10.z + pos01.z + pos11.z)
+                # Evaluate quad centre coordinate
+                pos_x = 0.25 * (pos00.x + pos10.x + pos01.x + pos11.x)
+                pos_y = 0.25 * (pos00.y + pos10.y + pos01.y + pos11.y)
+                pos_z = 0.25 * (pos00.z + pos10.z + pos01.z + pos11.z)
 
-                vertices[index + (j * triangles_per_edge + i)] = np.array(
-                    [
-                        pos_x,
-                        y_mult * pos_y,
-                        pos_z,
-                    ]
-                )
-            except:
+                # Assign quad centre vertices
+                vc = np.array([pos_x, y_mult * pos_y, pos_z])
+                vertices[centre_ix + (j * ni + i)] = vc
+
+            except IndexError:
+                # Index out of bounds
                 pass
 
-    # Create list of faces
-    faces = []  # np.zeros((triangles_per_edge**2*4, 3))
-    for i in range(triangles_per_edge):
-        for j in range(triangles_per_edge):
-            p00 = j * (triangles_per_edge + 1) + i  # bottom left
-            p10 = j * (triangles_per_edge + 1) + i + 1  # bottom right
-            p01 = (j + 1) * (triangles_per_edge + 1) + i  # top left
-            p11 = (j + 1) * (triangles_per_edge + 1) + i + 1  # top right
-            pzz = index + (j * triangles_per_edge + i)  # vertex at centre of cell
+    # Create list of faces, defining the face vertices
+    faces = []
+    for i in range(ni):
+        for j in range(nj):
+            p00 = j * (nj + 1) + i  # bottom left
+            p10 = j * (nj + 1) + i + 1  # bottom right
+            p01 = (j + 1) * (ni + 1) + i  # top left
+            p11 = (j + 1) * (ni + 1) + i + 1  # top right
+
+            pc = centre_ix + j * min(ni, nj) + i  # vertex at centre of cell
 
             if mirror_y or flip_faces:
-                faces.append([p00, pzz, p10])
-                faces.append([p10, pzz, p11])
-                faces.append([p11, pzz, p01])
-                faces.append([p01, pzz, p00])
+                faces.append([p00, pc, p10])
+                faces.append([p10, pc, p11])
+                faces.append([p11, pc, p01])
+                faces.append([p01, pc, p00])
             else:
-                faces.append([p00, p10, pzz])
-                faces.append([p10, p11, pzz])
-                faces.append([p11, p01, pzz])
-                faces.append([p01, p00, pzz])
+                faces.append([p00, p10, pc])
+                faces.append([p10, p11, pc])
+                faces.append([p11, p01, pc])
+                faces.append([p01, p00, pc])
 
     faces = np.array(faces)
 
-    # create the mesh object
+    # Create the STL mesh object
     stl_mesh = mesh.Mesh(np.zeros(faces.shape[0], dtype=mesh.Mesh.dtype))
-    for i, f in enumerate(faces):
-        for j in range(3):
-            stl_mesh.vectors[i][j] = vertices[f[j], :]
+    for ix, face in enumerate(faces):
+        # For each face
+        for c in range(3):
+            # For each coordinate x/y/z
+            stl_mesh.vectors[ix][c] = vertices[face[c], :]
 
     return stl_mesh
 
@@ -233,6 +250,7 @@ class SensitivityStudy:
         parameter_dict: dict,
         perturbation: float = 5,
         write_nominal_stl: bool = True,
+        nominal_stl_prefix: str = None,
     ):
         """Computes the sensitivity of the geometry with respect to the
         parameters.
@@ -251,6 +269,9 @@ class SensitivityStudy:
         write_nominal_stl : bool, optional
             A boolean flag to write the nominal geometry STL(s) to file. The
             default is True.
+        nominal_stl_prefix : str, optional
+            The prefix to append when writing STL files for the nominal geometry.
+            If None, no prefix will be used. The default is None.
 
         Returns
         -------
@@ -285,7 +306,7 @@ class SensitivityStudy:
 
         if write_nominal_stl:
             # Write nominal instance to STL files
-            nominal_instance.to_stl(prefix=f"nominal_{nominal_instance.name}")
+            nominal_instance.to_stl(prefix=nominal_stl_prefix)
 
         # Generate meshes for each parameter
         if self.verbosity > 0:
@@ -337,13 +358,26 @@ class SensitivityStudy:
 
         return sensitivities
 
-    def to_csv(self):
-        """Writes the sensitivity information to CSV file."""
+    def to_csv(self, outdir: str = None):
+        """Writes the sensitivity information to CSV file.
+
+        Parameters
+        ----------
+        outdir : str, optional
+            The output directory to write the sensitivity files to. If
+            None, the current working directory will be used. The default
+            is None.
+        """
         if self.component_sensitivities is None:
             raise Exception("Sensitivities have not yet been generated.")
         else:
+            if outdir is None:
+                outdir = os.getcwd()
+
             for component, df in self.component_sensitivities.items():
-                df.to_csv(f"{component}_sensitivity.csv", index=False)
+                df.to_csv(
+                    os.path.join(outdir, f"{component}_sensitivity.csv"), index=False
+                )
 
     @staticmethod
     def _compare_meshes(
@@ -428,10 +462,12 @@ class SensitivityStudy:
 
 
 def append_sensitivities_to_tri(
-    dp_files: list,
+    dp_filenames: List[str],
     components_filepath: str = "Components.i.tri",
-    sensitivity_name: str = None,
-):
+    match_tolerance: float = 1e-5,
+    rounding_tolerance: float = 1e-8,
+    verbosity: int = 1,
+) -> float:
     """Appends shape sensitivity data to .i.tri file.
 
     Parameters
@@ -441,9 +477,17 @@ def append_sensitivities_to_tri(
     components_filepath : str, optional
         The filepath to the .tri file to be appended to. The default is
         'Components.i.tri'.
-    sensitivity_name : str, optional
-        The name of the design feature which the sensitivity is to. If None,
-        this will be detrived from the inputted dp_files. The default is None.
+    match_tolerance : float, optional
+        The precision tolerance for matching point coordinates. The
+        default is 1e-5.
+    rounding_tolerance : float, optional
+        The tolerance to round data off to. The default is 1e-8.
+
+    Returns
+    ---------
+    match_fraction : float
+        The fraction of cells which got matched. If this is below 100%, try
+        decreasing the match tolerance and run again.
 
     Examples
     ---------
@@ -451,6 +495,7 @@ def append_sensitivities_to_tri(
                     'wing_1_body_width_sensitivity.csv']
 
     """
+    # TODO - rename to 'combine sensitivity' or "combine_comp_sens"
     # Parse .tri file
     tree = ET.parse(components_filepath)
     root = tree.getroot()
@@ -465,60 +510,110 @@ def append_sensitivities_to_tri(
 
     points_df = pd.DataFrame(points_data_list, columns=["x", "y", "z"]).dropna()
 
-    # Load and concatenate sensitivity data
+    # Ensure previous components sensitivity file is not included
+    try:
+        del dp_filenames[dp_filenames.index("all_components_sensitivity.csv")]
+    except ValueError:
+        # It is not in there
+        pass
+
+    # Load and concatenate sensitivity data across components
     dp_df = pd.DataFrame()
-    for file in dp_files:
-        df = pd.read_csv(file)
+    for filename in dp_filenames:
+        df = pd.read_csv(filename)
         dp_df = pd.concat([dp_df, df])
 
+    # Extract parameters
+    parameters = []
+    param_cols = dp_df.columns[3:]
+    for i in range(int(len(param_cols) / 3)):
+        parameters.append(param_cols[int(i * 3)].split("dxd")[-1])
+
     # Match points_df to sensitivity df
+    if verbosity > 0:
+        print("Running coordinate matching algorithm for sensitivities...")
+        pbar = tqdm(
+            total=len(points_df), position=0, leave=True, desc="Point matching progress"
+        )
     data_str = "\n "
+    param_data = dict(zip(parameters, ["\n " for _ in parameters]))
+    all_data = np.zeros((len(points_df), len(param_cols)), dtype=float)
+    matched_points = 0
     for i in range(len(points_df)):
-        tolerance = 1e-5
-        match_x = (points_df["x"].iloc[i] - dp_df["x"]).abs() < tolerance
-        match_y = (points_df["y"].iloc[i] - dp_df["y"]).abs() < tolerance
-        match_z = (points_df["z"].iloc[i] - dp_df["z"]).abs() < tolerance
+        match_x = (points_df["x"].iloc[i] - dp_df["x"]).abs() < match_tolerance
+        match_y = (points_df["y"].iloc[i] - dp_df["y"]).abs() < match_tolerance
+        match_z = (points_df["z"].iloc[i] - dp_df["z"]).abs() < match_tolerance
 
         match = match_x & match_y & match_z
         try:
-            # What if there are multiple matches? (due to intersect perturbations)
-            matched_data = dp_df[match].iloc[0][["dxdP", "dydP", "dzdP"]].values
+            # TODO - what if there are multiple matches? (due to intersect perturbations)
+            matched_data = dp_df[match].iloc[0][param_cols].values
 
             # Round off infinitesimally small values
-            matched_data[abs(matched_data) < 1e-8] = 0
+            matched_data[abs(matched_data) < rounding_tolerance] = 0
 
-            line = ""
-            for i in range(3):
-                line += f"\t{matched_data[i]:.14e}"
-            line += "\n "
-            # data_str += f'{matched_data[0]} {matched_data[1]} {matched_data[2]}\n '
+            # Update data
+            all_data[i, :] = matched_data
+            p_n = 0
+            for parameter, data_str in param_data.items():
+                line = ""
+                for j in range(3):
+                    line += f"\t{matched_data[j+3*p_n]:.14e}"
+                line += "\n "
 
-        except:
+                data_str += line
+                param_data[parameter] = data_str
+                p_n += 1
+
+            # Count matched points
+            matched_points += 1
+
+        except IndexError:
             # No match found, append zeros to maintain order
             line = f"\t{0:.14e}\t{0:.14e}\t{0:.14e}\n "
-            # data_str += '0 0 0\n '
-        data_str += line
+
+            # Update data string for each parameter
+            p_n = 0
+            for parameter, data_str in param_data.items():
+                param_data[parameter] = data_str + line
+                p_n += 1
+
+        # Update progress bar
+        if verbosity > 0:
+            pbar.update(1)
+
+    match_fraction = matched_points / len(points_df)
+    if verbosity > 0:
+        pbar.close()
+        print(f"Done - matched {100*match_fraction:.2f}% of points.")
+
+    # Write combined sensitivity data to CSV
+    combined_sense = pd.merge(
+        left=points_df.reset_index(),
+        right=pd.DataFrame(all_data, columns=param_cols),
+        left_index=True,
+        right_index=True,
+    ).drop("index", axis=1)
+    combined_sense.to_csv("all_components_sensitivity.csv", index=False)
 
     # Write the matched sensitivity df to i.tri file as new xml element
     # NumberOfComponents is how many sensitivity components there are (3 for x,y,z)
-    if sensitivity_name is None:
-        # Attempt to construct sensitivity name
-        filename = dp_files[0]
-        sensitivity_name = "".join("".join(filename.split("_")[2:]).split(".")[:-1])
-
-    attribs = {
-        "Name": f"{sensitivity_name}",
-        "NumberOfComponents": "3",
-        "type": "Float64",
-        "format": "ascii",
-        "TRIXtype": "SHAPE_LINEARIZATION",
-    }
-    PointData = ET.SubElement(piece, "PointData")
-    PointDataArray = ET.SubElement(PointData, "DataArray", attribs)
-    PointDataArray.text = data_str
+    for parameter in parameters:
+        attribs = {
+            "Name": f"{parameter}_sens",
+            "NumberOfComponents": "3",
+            "type": "Float64",
+            "format": "ascii",
+            "TRIXtype": "SHAPE_LINEARIZATION",
+        }
+        PointData = ET.SubElement(piece, "PointData")
+        PointDataArray = ET.SubElement(PointData, "DataArray", attribs)
+        PointDataArray.text = param_data[parameter]
 
     # Save to file
     tree.write(components_filepath)
+
+    return match_fraction
 
 
 def csv_to_delaunay(filepath: str):

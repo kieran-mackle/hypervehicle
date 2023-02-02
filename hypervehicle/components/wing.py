@@ -47,8 +47,62 @@ class Wing(Component):
         close_wing: bool = False,
         stl_resolution: int = 2,
         verbosity: int = 1,
+        name: str = None,
     ) -> None:
+        """Creates a new fin component.
 
+        Parameters
+        ----------
+        A0 : Vector3
+            Point p0 of the fin geometry.
+        A1 : Vector3
+            Point p1 of the fin geometry.
+        TT : Vector3
+            Point p2 of the fin geometry.
+        B0 : Vector3
+            Point p3 of the fin geometry.
+        Line_B0TT : Polyline
+            The thickness of the fin.
+        Line_B0TT_TYPE : str, optional
+            The axial position angle of the placement of the fin.
+        t_B1 : float, optional
+            The t value of the first discretisation point. The default
+            is None.
+        t_B2 : float, optional
+            The t value of the second discretisation point. The default
+            is None.
+        top_tf : Callable
+            The thickness function for the top surface of the wing.
+        bot_tf : Callable
+            The thickness function for the top surface of the wing.
+        LE_wf : Callable, optional
+            The thickness function for the leading edge of the wing.
+        LE_type : str, optional
+            The type of LE to create, either "FLAT" or "custom". The
+            default is "custom".
+        tail_option : str, optional
+            The type of trailing edge to use, currently only "FLAP". The
+            default is "FLAP".
+        flap_length : float, optional
+            The length of the trailing edge flap. The default is 0.
+        flap_angle : float, optional
+            The angle of the flap, specified in radians. The default is 0.
+        mirror : bool, optional
+            Mirror the wing. The default is False.
+        mirror_new_component : bool, optional
+            Create a new component for the mirrored patches. The default
+            is False.
+        close_wing : bool, optional
+            If the wing is not being mirrored, it is useful to set this
+            to True, to close the STL object. The default is False.
+        stl_resolution : int, optional
+            The stl resolution to use when creating the mesh for this
+            component. The default is None.
+        verbosity : int, optional
+            The verbosity of the component. The default is 1.
+        name : str, optional
+            The name tag for the component. The default is None.
+        """
         # Check if a LE function was provided
         if LE_wf is None and LE_type == "custom":
             # Assign default LE function
@@ -77,7 +131,7 @@ class Wing(Component):
             "CLOSE_WING": close_wing,
         }
 
-        super().__init__(params, stl_resolution, verbosity)
+        super().__init__(params, stl_resolution, verbosity, name)
 
         # Extract construction points for planform
         # TODO - avoid pre-defined params dict structure for flexibility
@@ -105,7 +159,6 @@ class Wing(Component):
         self.TE_mean_line = None
 
     def generate_patches(self):
-
         # Create wing planform shape
         self._create_planform_patches()
 

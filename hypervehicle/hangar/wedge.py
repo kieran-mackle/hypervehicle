@@ -1,19 +1,18 @@
 from hypervehicle import Vehicle
-from hypervehicle.components import Fuselage
-from hypervehicle.generator import AbstractGenerator
+from hypervehicle.generator import Generator
+from hypervehicle.components import SweptComponent
 from hypervehicle.geometry import Vector3, Line, CoonsPatch
 
 
-class ParametricWedge(AbstractGenerator):
+class ParametricWedge(Generator):
     def __init__(self, **kwargs) -> None:
         # Wedge parameters
         self.wingspan = 1
         self.chord = 1
         self.thickness = 0.1
 
-        # Unpack kwargs (overwrites any params)
-        for item in kwargs:
-            setattr(self, item, kwargs[item])
+        # Complete instantiation
+        super().__init__(**kwargs)
 
     def create_instance(self) -> Vehicle:
         # Create vehicle object
@@ -54,7 +53,7 @@ class ParametricWedge(AbstractGenerator):
             patch = CoonsPatch(north=N, south=S, east=E, west=W)
             sections.append(patch)
 
-        fuselage = Fuselage(
+        fuselage = SweptComponent(
             cross_sections=sections,
             sweep_axis="z",
             stl_resolution=10,

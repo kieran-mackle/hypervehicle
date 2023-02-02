@@ -52,6 +52,7 @@ setuptools.setup(
         "scipy >= 1.10.0",
         "pandas >= 1.5.2",
         "art >= 5.8",
+        "tqdm >= 4.64.1",
     ],
     extras_require={
         "dev": dev,

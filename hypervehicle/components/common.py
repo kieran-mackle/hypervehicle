@@ -1,15 +1,15 @@
 import numpy as np
 from hypervehicle.geometry import Vector3, Bezier
-from hypervehicle.components import Wing, Fuselage, Fin
-from hypervehicle.geometry import Vector3, Bezier, Line, Polyline, Arc
+from hypervehicle.components import Wing, RevolvedComponent, Fin
+from hypervehicle.geometry import Vector3, Bezier, Line, Polyline, Arc, CoonsPatch
 
 
 def leading_edge_width_function(r):
     temp = Bezier(
         [
-            Vector3(x=0.0, y=0.02),
-            Vector3(x=0.75, y=0.1),
-            Vector3(x=1.0, y=0.3),
+            Vector3(x=0.0, y=0.01),
+            Vector3(x=0.5, y=0.1),
+            Vector3(x=1.0, y=0.01),
         ]
     )
     le_width = temp(r).y
@@ -26,7 +26,27 @@ def uniform_thickness_function(thickness: float, side: str):
     return tf
 
 
-class OgiveNose(Fuselage):
+def circle_patch(centre: Vector3, r: float, plane: str = "xy") -> CoonsPatch:
+    """Returns a parametric surface of a circle."""
+    # TODO - planes other than xy
+    tr = Vector3(x=centre.x + r * np.cos(np.pi / 4), y=centre.y + r * np.sin(np.pi / 4))
+    tl = Vector3(x=centre.x - r * np.cos(np.pi / 4), y=centre.y + r * np.sin(np.pi / 4))
+    br = Vector3(x=centre.x + r * np.cos(np.pi / 4), y=centre.y - r * np.sin(np.pi / 4))
+    bl = Vector3(
+        x=centre.x - r * np.cos(np.pi / 4), y=centre.y + -r * np.sin(np.pi / 4)
+    )
+
+    n = Arc(a=tl, b=tr, c=centre)
+    e = Arc(a=br, b=tr, c=centre)
+    s = Arc(a=bl, b=br, c=centre)
+    w = Arc(a=bl, b=tl, c=centre)
+
+    patch = CoonsPatch(north=n, east=e, south=s, west=w)
+
+    return patch
+
+
+class OgiveNose(RevolvedComponent):
     def __init__(
         self,
         h: float,
@@ -34,7 +54,8 @@ class OgiveNose(Fuselage):
         r_o: float,
         L_o: float,
         stl_resolution: int = 3,
-        **kwargs
+        name: str = None,
+        **kwargs,
     ) -> None:
         """A Fuselage wrapper to create an Ogive nose component.
         Parameters
@@ -85,7 +106,12 @@ class OgiveNose(Fuselage):
 
         fairing = Polyline([nose_arc, ogive_arc, fairing_line, fb_line])
 
-        super().__init__(revolve_line=fairing, stl_resolution=stl_resolution, **kwargs)
+        super().__init__(
+            revolve_line=fairing, stl_resolution=stl_resolution, name=name, **kwargs
+        )
 
     def __repr__(self):
-        return "Ogive nose component"
+        s = "Ogive nose component"
+        if self.name:
+            s += f" (tagged '{self.name}')"
+        return s

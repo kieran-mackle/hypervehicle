@@ -1,6 +1,18 @@
 # Vehicle Hangar
 
 This page is a showcase of vehicle geometries possible using *hypervehicle*.
+Note that all of these vehicles can be accessed via the `hypervehicle.hangar`
+namespace. For example, to generate the X-43A geometry shown below, the following
+code can be used.
+
+```python
+from hypervehicle.hangar import ParametricX43
+
+parametric_generator = ParametricX43()
+x43 = parametric_generator.create_instance()
+x43.generate()
+x43.to_stl()
+```
 
 
 ## [X-43A](https://en.wikipedia.org/wiki/NASA_X-43)
