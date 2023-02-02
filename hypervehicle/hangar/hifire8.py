@@ -109,7 +109,7 @@ class ParametricHIFiRE8(Generator):
             bot_thickness_function=common.uniform_thickness_function(
                 fin_thickness, "bot"
             ),
-            LE_func=leading_edge_width_function,
+            LE_wf=leading_edge_width_function,
             mirror=False,
             stl_resolution=3,
         )
@@ -128,7 +128,7 @@ class ParametricHIFiRE8(Generator):
             bot_thickness_function=common.uniform_thickness_function(
                 fin_thickness, "bot"
             ),
-            LE_func=leading_edge_width_function,
+            LE_wf=leading_edge_width_function,
             mirror=False,
             stl_resolution=3,
         )
@@ -148,7 +148,7 @@ class ParametricHIFiRE8(Generator):
             bot_thickness_function=common.uniform_thickness_function(
                 fin_thickness, "bot"
             ),
-            LE_func=leading_edge_width_function,
+            LE_wf=leading_edge_width_function,
             mirror=False,
             stl_resolution=3,
         )

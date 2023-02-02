@@ -113,7 +113,7 @@ class ParametricReFEX(Generator):
                     bot_thickness_function=uniform_thickness_function(
                         self.fin_thickness, "bot"
                     ),
-                    LE_func=leading_edge_width_function,
+                    LE_wf=leading_edge_width_function,
                     pivot_angle=np.deg2rad(self.canard_angle),
                     pivot_point=pivot_point,
                     rudder_type="sharp",
@@ -276,7 +276,7 @@ class ParametricReFEX(Generator):
                 bot_thickness_function=uniform_thickness_function(
                     self.tail_thickness, "bot"
                 ),
-                LE_func=leading_edge_width_function,
+                LE_wf=leading_edge_width_function,
                 rudder_type="sharp",
                 rudder_length=rudder_length,
                 stl_resolution=3,

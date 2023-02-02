@@ -2,8 +2,9 @@ from __future__ import annotations
 import numpy as np
 from scipy.optimize import bisect
 from gdtk.geom.vector3 import Vector3
+from typing import Callable, Optional
 from gdtk.geom.surface import CoonsPatch
-from gdtk.geom.path import Line, Polyline, Bezier
+from gdtk.geom.path import Line, Polyline
 from hypervehicle.components.component import Component
 from hypervehicle.components.constants import FIN_COMPONENT
 from hypervehicle.geometry import (
@@ -31,19 +32,19 @@ class Fin(Component):
         p3: Vector3,
         fin_thickness: float,
         fin_angle: float,
-        top_thickness_function,
-        bot_thickness_function,
-        LE_func=None,
-        mirror: bool = False,
-        rudder_type: str = "flat",
-        rudder_length: float = 0,
-        rudder_angle: float = 0,
-        pivot_angle: float = 0,
-        pivot_point: Vector3 = Vector3(x=0, y=0),
-        offset_func=None,
-        stl_resolution: int = 2,
-        verbosity: int = 1,
-        name: str = None,
+        top_thickness_function: Callable,
+        bot_thickness_function: Callable,
+        LE_wf: Optional[Callable] = None,
+        mirror: Optional[bool] = False,
+        rudder_type: Optional[str] = "flat",
+        rudder_length: Optional[float] = 0,
+        rudder_angle: Optional[float] = 0,
+        pivot_angle: Optional[float] = 0,
+        pivot_point: Optional[Vector3] = Vector3(x=0, y=0),
+        offset_func: Optional[Callable] = None,
+        stl_resolution: Optional[int] = 2,
+        verbosity: Optional[int] = 1,
+        name: Optional[str] = None,
     ) -> None:
         """Creates a new fin component.
 
@@ -57,16 +58,46 @@ class Fin(Component):
             Point p2 of the fin geometry.
         p3 : Vector3
             Point p3 of the fin geometry.
+        fin_thickness : float
+            The thickness of the fin.
+        fin_angle : float
+            The axial position angle of the placement of the fin.
+        top_thickness_function : Callable
+            The thickness function for the top surface of the fin.
+        bot_thickness_function : Callable
+            The thickness function for the top surface of the fin.
+        LE_wf : Callable, optional
+            The thickness function for the leading edge of the fin.
+        mirror : bool, optional
+            Mirror the fin. The default is False.
+        rudder_type : str, optional
+            The type of rudder to use, either "flat" or "sharp". The
+            default is "flat".
+        rudder_length : float, optional
+            The length of the rudder. The default is 0.
+        pivot_angle : float, optional
+            The pivot angle of the entire fin, about its central axis.
+            The default is 0.
+        pivot_point : Vector3, optional
+            The point about which to apply the pivot_angle. The default
+            is Vector3(0,0,0).
+        offset_func : Callable, optional
+            The function to apply when offsetting the fin position.
+            The default is None.
         stl_resolution : int, optional
             The stl resolution to use when creating the mesh for this
             component. The default is None.
+        verbosity : int, optional
+            The verbosity of the component. The default is 1.
+        name : str, optional
+            The name tag for the component. The default is None.
         """
 
-        if LE_func is None:
+        if LE_wf is None:
             # Use default LE function
             from hypervehicle.components.common import leading_edge_width_function
 
-            LE_func = leading_edge_width_function
+            LE_wf = leading_edge_width_function
 
         params = {
             "p0": p0,
@@ -77,7 +108,7 @@ class Fin(Component):
             "FIN_ANGLE": fin_angle,
             "FIN_TOP_THICKNESS_FUNC": top_thickness_function,
             "FIN_BOTTOM_THICKNESS_FUNC": bot_thickness_function,
-            "FIN_LEADING_EDGE_FUNC": LE_func,
+            "FIN_LEADING_EDGE_FUNC": LE_wf,
             "MIRROR_NEW_COMPONENT": mirror,
             "rudder_type": rudder_type,
             "rudder_length": rudder_length,
