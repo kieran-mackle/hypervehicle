@@ -146,7 +146,7 @@ def assess_inertial_properties(vehicle, component_densities: Dict[str, float]):
     component_densities : Dict[str, float]
         A dictionary containing the effective densities for each component.
         Note that the keys of the dict must match the keys of
-        vehicle._enumerated_components.
+        vehicle._named_components.
 
     Returns
     -------
@@ -183,7 +183,7 @@ def assess_inertial_properties(vehicle, component_densities: Dict[str, float]):
     total_mass = 0
     total_volume = 0
 
-    for name, component in vehicle._enumerated_components.items():
+    for name, component in vehicle._named_components.items():
         inertia_handle = getattr(component.mesh, "get_mass_properties_with_density")
 
         volume, vmass, cog, inertia = inertia_handle(component_densities[name])
@@ -197,7 +197,7 @@ def assess_inertial_properties(vehicle, component_densities: Dict[str, float]):
 
     # Composite centre of mass
     composite_cog = 0
-    for component in vehicle._enumerated_components:
+    for component in vehicle._named_components:
         m = masses[component]
         composite_cog += m * cgs[component]
 
@@ -206,7 +206,7 @@ def assess_inertial_properties(vehicle, component_densities: Dict[str, float]):
     # Parallel axis theorem
     shifted_inertias = {}
     composite_inertia = 0
-    for component in vehicle._enumerated_components:
+    for component in vehicle._named_components:
         m = masses[component]
         r = cgs[component] - composite_cog
         I_adj = inertias[component] + m * r**2
@@ -298,7 +298,7 @@ class SensitivityStudy:
         nominal_instance.generate()
         nominal_meshes = {
             name: component.mesh
-            for name, component in nominal_instance._enumerated_components.items()
+            for name, component in nominal_instance._named_components.items()
         }
 
         if self.verbosity > 0:
@@ -332,7 +332,7 @@ class SensitivityStudy:
             parameter_instance.generate()
             parameter_meshes = {
                 name: component.mesh
-                for name, component in parameter_instance._enumerated_components.items()
+                for name, component in parameter_instance._named_components.items()
             }
 
             # Generate sensitivities
@@ -444,7 +444,7 @@ class SensitivityStudy:
     @staticmethod
     def _combine(nominal_instance, sensitivities):
         """Combines the sensitivity information for multiple parameters."""
-        component_names = nominal_instance._enumerated_components.keys()
+        component_names = nominal_instance._named_components.keys()
         params = list(sensitivities.keys())
 
         allsens = {}
