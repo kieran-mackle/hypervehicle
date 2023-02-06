@@ -1,3 +1,36 @@
+## v0.2.0 (2023-02-02)
+
+### Feat
+
+- **polygon.py**: updated polygon to standard component type
+- **SensitivityStudy**: allow passing nominal stl prefix
+- **Vehicle**: improved verbosity of to_stl and prefix control
+- **Vehicle**: component name tags will be used when writing to stl
+- **Component**: improved repr
+- **SensitivityStudy**: allow passing outdir when saving to csv
+- **hangar**: expose all vehicles in hangar to package
+- **Vehicle**: allow specifying vehicle transformations prior to generate()
+- **CompositeComponent**: added new component type
+- **append_sensitivities_to_tri**: added control of matching tolerances
+- **append_sensitivities_to_tri**: write csv of combined sensitivity data
+- **append_sensitivities_to_tri**: capability for multiple parameters
+- **Vehicle**: allow chained transformations of components
+- **common.py**: added circle patch function
+- ability to cluster stl meshing
+
+### Fix
+
+- **hangar**: updated vehicles to migrate to general components
+- **hangar**: call super()
+- **hangar**: inherit Generator instead of AbstractGenerator
+- **hangar**: attributes for vehicle parameters
+- **append_sensitivities_to_tri**: do not write index to csv
+
+### Refactor
+
+- **Fuselage**: split fuselage component into more general revolved and swept components
+- **scripts**: deleted redundant scripts directory
+
 ## v0.1.0 (2023-01-24)
 
 ### Feat
