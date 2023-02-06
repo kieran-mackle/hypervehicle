@@ -1,7 +1,7 @@
 from copy import copy, deepcopy
 from hypervehicle import Vehicle
 from hypervehicle.generator import Generator
-from hypervehicle.geometry import Vector3, Line, Polyline, Arc, CoonsPatch
+from hypervehicle.geometry import Vector3, Line, CoonsPatch
 from hypervehicle.components import (
     RevolvedComponent,
     SweptComponent,
