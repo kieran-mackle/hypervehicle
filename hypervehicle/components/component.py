@@ -1,8 +1,10 @@
 import numpy as np
 from stl import mesh
+from copy import deepcopy
+from typing import Callable, Union
 from abc import ABC, abstractmethod
+from hypervehicle.geometry import Vector3
 from gdtk.geom.sgrid import StructuredGrid
-from typing import List, Callable, Dict, Any
 from hypervehicle.geometry import (
     CurvedPatch,
     RotatedPatch,
@@ -133,6 +135,20 @@ class Component(AbstractComponent):
         else:
             return f"{self.componenttype} component"
 
+    def __copy__(self):
+        cls = self.__class__
+        result = cls.__new__(cls)
+        result.__dict__.update(self.__dict__)
+        return result
+
+    def __deepcopy__(self, memo):
+        cls = self.__class__
+        result = cls.__new__(cls)
+        memo[id(self)] = result
+        for k, v in self.__dict__.items():
+            setattr(result, k, deepcopy(v, memo))
+        return result
+
     def curve(self):
         if self._curvatures is not None:
             for curvature in self._curvatures:
@@ -170,8 +186,13 @@ class Component(AbstractComponent):
         for key, patch in self.patches.items():
             self.patches[key] = RotatedPatch(patch, np.deg2rad(angle), axis=axis)
 
-    def translate(self, offset_function: Callable):
-        # TODO - allow passing Vector3 object
+    def translate(self, offset: Union[Callable, Vector3]):
+        if isinstance(offset, Vector3):
+            # Translate vector into lambda function
+            offset_function = lambda x, y, z: offset
+        else:
+            offset_function = offset
+
         # Could wrap it in a lambda if provided
         for key, patch in self.patches.items():
             self.patches[key] = OffsetPatchFunction(patch, offset_function)
