@@ -1,3 +1,11 @@
+## v0.2.1 (2023-02-06)
+
+### Fix
+
+- **Component**: overload copy and deepcopy dunders
+- **utilities.py**: use component name tags where possible
+- **README.md**: broken link to x43a example docs
+
 ## v0.2.0 (2023-02-02)
 
 ### Feat
