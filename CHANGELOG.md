@@ -1,3 +1,9 @@
+## v0.2.2 (2023-02-06)
+
+### Fix
+
+- **hangar**: add finner to hangar namespace import
+
 ## v0.2.1 (2023-02-06)
 
 ### Fix
