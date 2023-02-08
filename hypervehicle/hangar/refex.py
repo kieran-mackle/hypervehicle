@@ -114,7 +114,7 @@ class ParametricReFEX(Generator):
                         self.fin_thickness, "bot"
                     ),
                     LE_wf=leading_edge_width_function,
-                    pivot_angle=np.deg2rad(self.canard_angle),
+                    pivot_angle=np.deg2rad((-1) ** i * self.canard_angle),
                     pivot_point=pivot_point,
                     rudder_type="sharp",
                     rudder_length=self.fin_thickness,
