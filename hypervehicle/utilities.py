@@ -241,6 +241,7 @@ class SensitivityStudy:
         # Parameter sensitivities
         self.parameter_sensitivities = None
         self.component_sensitivities = None
+        self.scalar_sensitivities = None
 
     def __repr__(self):
         return "HyperVehicle sensitivity study"
@@ -313,8 +314,10 @@ class SensitivityStudy:
             print("Generating perturbed geometries...")
 
         sensitivities = {}
+        analysis_sens = {}
         for parameter, value in parameter_dict.items():
             sensitivities[parameter] = {}
+            analysis_sens[parameter] = {}
 
             # Create copy
             adjusted_parameters = parameter_dict.copy()
@@ -335,18 +338,20 @@ class SensitivityStudy:
                 for name, component in parameter_instance._named_components.items()
             }
 
-            # TODO - also generate sensitivities for geometric analysis
-            # results, if present.
+            # Generate sensitivities for geometric analysis results
+            if nominal_instance.analysis_results:
+                for r, v in nominal_instance.analysis_results.items():
+                    analysis_sens[parameter][r] = (
+                        parameter_instance.analysis_results[r] - v
+                    ) / dp
 
             # Generate sensitivities
             for component, nominal_mesh in nominal_meshes.items():
                 parameter_mesh = parameter_meshes[component]
-                component_mesh_name = f"{component}"
                 sensitivity_df = self._compare_meshes(
                     nominal_mesh,
                     parameter_mesh,
                     dp,
-                    component_mesh_name,
                     parameter,
                 )
 
@@ -357,6 +362,7 @@ class SensitivityStudy:
 
         # Return output
         self.parameter_sensitivities = sensitivities
+        self.scalar_sensitivities = analysis_sens
         self.component_sensitivities = self._combine(nominal_instance, sensitivities)
 
         return sensitivities
@@ -377,15 +383,32 @@ class SensitivityStudy:
             if outdir is None:
                 outdir = os.getcwd()
 
+            if not os.path.exists(outdir):
+                # Make the directory
+                os.mkdir(outdir)
+
             for component, df in self.component_sensitivities.items():
                 df.to_csv(
                     os.path.join(outdir, f"{component}_sensitivity.csv"), index=False
                 )
 
+            # Also save analysis sensitivities
+            vm = {
+                p: {k: self.scalar_sensitivities[p][k] for k in ["volume", "mass"]}
+                for p in self.scalar_sensitivities
+            }
+            pd.DataFrame(vm).to_csv(os.path.join(outdir, "volmass_sensitivity.csv"))
+
+            for param in self.scalar_sensitivities:
+                self.scalar_sensitivities[param]["cog"].tofile(
+                    os.path.join(outdir, f"{param}_cog_sensitivity.txt"), sep=", "
+                )
+                self.scalar_sensitivities[param]["moi"].tofile(
+                    os.path.join(outdir, f"{param}_moi_sensitivity.txt"), sep=", "
+                )
+
     @staticmethod
-    def _compare_meshes(
-        mesh1, mesh2, dp, component: str, parameter_name: str
-    ) -> pd.DataFrame:
+    def _compare_meshes(mesh1, mesh2, dp, parameter_name: str) -> pd.DataFrame:
         """Compares two meshes with each other and applies finite differencing
         to quantify their differences.
 
@@ -396,8 +419,6 @@ class SensitivityStudy:
         mesh1 : None
             The perturbed mesh.
         dp : None
-        component : str
-            The component name.
         parameter_name : str
             The name of the parameter.
 

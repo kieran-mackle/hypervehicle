@@ -276,16 +276,19 @@ class Vehicle:
 
         # Write geometric analysis results to csv too
         if self.analysis_results:
+            if not prefix:
+                prefix = self.name
+
             # Write volume and mass to file
             pd.Series({k: self.analysis_results[k] for k in ["volume", "mass"]}).to_csv(
-                "volmass.csv"
+                f"{prefix}_volmass.csv"
             )
 
             # Write c.o.g. to file
-            self.analysis_results["cog"].tofile("cog.txt", sep=", ")
+            self.analysis_results["cog"].tofile(f"{prefix}_cog.txt", sep=", ")
 
             # Write M.O.I. to file
-            self.analysis_results["moi"].tofile("moi.txt", sep=", ")
+            self.analysis_results["moi"].tofile(f"{prefix}_moi.txt", sep=", ")
 
         if self.verbosity > 0:
             print("\rAll components written to STL file format.", end="\n")
