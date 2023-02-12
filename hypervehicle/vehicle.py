@@ -1,3 +1,4 @@
+import pandas as pd
 from art import tprint, art
 from typing import List, Tuple, Callable, Dict, Any
 from hypervehicle.components.component import Component
@@ -25,6 +26,7 @@ class Vehicle:
         self.name = "vehicle"
         self.vehicle_angle_offset: float = 0
         self.verbosity = 1
+        self.analysis_results = None
 
         # Internal attributes
         self._generated = False
@@ -32,6 +34,7 @@ class Vehicle:
         self._enumerated_components = {}
         self._named_components = {}
         self._vehicle_transformations = None
+        self._analyse_on_generation = None
 
     def __repr__(self):
         basestr = self.__str__()
@@ -177,14 +180,38 @@ class Vehicle:
         if self._vehicle_transformations:
             self.transform(self._vehicle_transformations)
 
+        # Run analysis
+        if self._analyse_on_generation:
+            analysis_results = self.analyse(self._analyse_on_generation)
+            self.analysis_results = dict(
+                zip(("volume", "mass", "cog", "moi"), analysis_results)
+            )
+
         if self.verbosity > 0:
             print("All component patches generated.")
 
-    def add_vehicle_transformations(self, transformations: List[Tuple[str, float]]):
+    def add_vehicle_transformations(
+        self, transformations: List[Tuple[str, float]]
+    ) -> None:
         """Add transformations to apply to the vehicle after running generate()."""
         self._vehicle_transformations = transformations
 
-    def transform(self, transformations: List[Tuple[str, float]]):
+    def analyse_after_generating(self, densities: dict) -> None:
+        """Run the vehicle analysis method immediately after generating
+        patches. Results will be saved to the analysis_results attribute of
+        the vehicle.
+
+        Parameters
+        ----------
+        densities : Dict[str, float]
+            A dictionary containing the effective densities for each component.
+            Note that the keys of the dict must match the keys of
+            vehicle._named_components. These keys will be consistent with any
+            name tags assigned to components.
+        """
+        self._analyse_on_generation = densities
+
+    def transform(self, transformations: List[Tuple[str, float]]) -> None:
         """Transform vehicle by applying the tranformations. Currently
         only supports rotations.
 
@@ -203,8 +230,10 @@ class Vehicle:
             component.surfaces = None
             component.mesh = None
 
-    def to_stl(self, prefix: str = None):
-        """Writes the vehicle components to STL file.
+    def to_stl(self, prefix: str = None) -> None:
+        """Writes the vehicle components to STL file. If analysis results are
+        present, they will also be written to file, either as CSV, or using
+        the Numpy tofile method.
 
         Parameters
         ----------
@@ -245,10 +274,23 @@ class Vehicle:
             # Update component count
             types_generated[component.componenttype] = no + 1
 
+        # Write geometric analysis results to csv too
+        if self.analysis_results:
+            # Write volume and mass to file
+            pd.Series({k: self.analysis_results[k] for k in ["volume", "mass"]}).to_csv(
+                "volmass.csv"
+            )
+
+            # Write c.o.g. to file
+            self.analysis_results["cog"].tofile("cog.txt", sep=", ")
+
+            # Write M.O.I. to file
+            self.analysis_results["moi"].tofile("moi.txt", sep=", ")
+
         if self.verbosity > 0:
             print("\rAll components written to STL file format.", end="\n")
 
-    def analyse(self, densities: dict):
+    def analyse(self, densities: dict) -> Tuple:
         """Evaluates the mesh properties of the vehicle instance.
 
         Parameters
@@ -256,7 +298,8 @@ class Vehicle:
         densities : Dict[str, float]
             A dictionary containing the effective densities for each component.
             Note that the keys of the dict must match the keys of
-            vehicle._named_components.
+            vehicle._named_components. These keys will be consistent with any
+            name tags assigned to components.
 
         Returns
         -------
