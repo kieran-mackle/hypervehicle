@@ -335,6 +335,9 @@ class SensitivityStudy:
                 for name, component in parameter_instance._named_components.items()
             }
 
+            # TODO - also generate sensitivities for geometric analysis
+            # results, if present.
+
             # Generate sensitivities
             for component, nominal_mesh in nominal_meshes.items():
                 parameter_mesh = parameter_meshes[component]
