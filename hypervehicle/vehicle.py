@@ -249,7 +249,26 @@ class Vehicle:
             print("\rAll components written to STL file format.", end="\n")
 
     def analyse(self, densities: dict):
-        """Evaluates the mesh properties."""
+        """Evaluates the mesh properties of the vehicle instance.
+
+        Parameters
+        ----------
+        densities : Dict[str, float]
+            A dictionary containing the effective densities for each component.
+            Note that the keys of the dict must match the keys of
+            vehicle._named_components.
+
+        Returns
+        -------
+        total_volume : float
+            The total volume.
+        total_mass : float
+            The toal mass.
+        composite_cog : np.array
+            The composite center of gravity.
+        composite_inertia : np.array
+            The composite mass moment of inertia.
+        """
         from hypervehicle.utilities import assess_inertial_properties
 
         self.volume, self.mass, self.cog, self.inertia = assess_inertial_properties(
