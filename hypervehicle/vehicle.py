@@ -34,7 +34,7 @@ class Vehicle:
         self._component_counts = {}
         self._enumerated_components = {}
         self._named_components = {}
-        self._vehicle_transformations = None
+        self._vehicle_transformations = []
         self._analyse_on_generation = None
 
     def __repr__(self):
@@ -95,7 +95,7 @@ class Vehicle:
             default is None.
         transformations : List[Tuple[str, Any]], optional
             A list of transformations to apply to the nominal component. The
-            default is None
+            default is None.
         """
         if component.componenttype in Vehicle.ALLOWABLE_COMPONENTS:
             # Overload component verbosity
@@ -192,19 +192,27 @@ class Vehicle:
             print("All component patches generated.")
 
     def add_vehicle_transformations(
-        self, transformations: List[Tuple[str, float]]
+        self, transformations: List[Tuple[str, Any]]
     ) -> None:
-        """Add transformations to apply to the vehicle after running generate()."""
-        self._vehicle_transformations = transformations
+        """Add transformations to apply to the vehicle after running generate().
+        Each transformation in the list should be of the form (type, *args), where
+        type can be "rotate" or "translate". The *args for rotate are angle: float
+        and axis: str. The *args for translate are offset: Union[Callable, Vector3].
+        """
+        # Check input
+        if isinstance(transformations, tuple):
+            # Coerce into list
+            transformations = [transformations]
+        self._vehicle_transformations += transformations
 
-    def analyse_after_generating(self, densities: dict) -> None:
+    def analyse_after_generating(self, densities: Dict[str, Any]) -> None:
         """Run the vehicle analysis method immediately after generating
         patches. Results will be saved to the analysis_results attribute of
         the vehicle.
 
         Parameters
         ----------
-        densities : Dict[str, float]
+        densities : Dict[str, Any]
             A dictionary containing the effective densities for each component.
             Note that the keys of the dict must match the keys of
             vehicle._named_components. These keys will be consistent with any
@@ -212,20 +220,27 @@ class Vehicle:
         """
         self._analyse_on_generation = densities
 
-    def transform(self, transformations: List[Tuple[str, float]]) -> None:
+    def transform(self, transformations: List[Tuple[str, Any]]) -> None:
         """Transform vehicle by applying the tranformations. Currently
         only supports rotations.
 
         To rotate 180 degrees about the x axis, followed by 90 degrees
-        about the y axis, transformations = [(180, "x"), (90, "y")]"""
-        # TODO - specify transform type (eg. rotate) in the Tuple
+        about the y axis, transformations = [("rotate", 180, "x"),
+        ("rotate", 90, "y")].
+        """
         if not self._generated:
             raise Exception("Vehicle has not been generated yet.")
 
-        # Rotate to frame
+        # Check input
+        if isinstance(transformations, tuple):
+            # Coerce into list
+            transformations = [transformations]
+
+        # Apply transformations
         for component in self.components:
             for transform in transformations:
-                component.rotate(angle=transform[0], axis=transform[1])
+                func = getattr(component, transform[0])
+                func(*transform[1:])
 
             # Reset any meshes generated from un-transformed patches
             component.surfaces = None
