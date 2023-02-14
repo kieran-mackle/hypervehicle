@@ -1,3 +1,4 @@
+import os
 import pandas as pd
 from art import tprint, art
 from typing import List, Tuple, Callable, Dict, Any
@@ -279,16 +280,25 @@ class Vehicle:
             if not prefix:
                 prefix = self.name
 
+            # Make analysis results directory
+            properties_dir = f"{prefix}_properties"
+            if not os.path.exists(properties_dir):
+                os.mkdir(properties_dir)
+
             # Write volume and mass to file
             pd.Series({k: self.analysis_results[k] for k in ["volume", "mass"]}).to_csv(
-                f"{prefix}_volmass.csv"
+                os.path.join(properties_dir, f"{prefix}_volmass.csv")
             )
 
             # Write c.o.g. to file
-            self.analysis_results["cog"].tofile(f"{prefix}_cog.txt", sep=", ")
+            self.analysis_results["cog"].tofile(
+                os.path.join(properties_dir, f"{prefix}_cog.txt"), sep=", "
+            )
 
             # Write M.O.I. to file
-            self.analysis_results["moi"].tofile(f"{prefix}_moi.txt", sep=", ")
+            self.analysis_results["moi"].tofile(
+                os.path.join(properties_dir, f"{prefix}_moi.txt"), sep=", "
+            )
 
         if self.verbosity > 0:
             print("\rAll components written to STL file format.", end="\n")

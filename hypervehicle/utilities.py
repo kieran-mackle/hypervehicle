@@ -387,6 +387,11 @@ class SensitivityStudy:
                 # Make the directory
                 os.mkdir(outdir)
 
+            # Make analysis results directory
+            properties_dir = os.path.join(outdir, f"scalar_sensitivities")
+            if not os.path.exists(properties_dir):
+                os.mkdir(properties_dir)
+
             for component, df in self.component_sensitivities.items():
                 df.to_csv(
                     os.path.join(outdir, f"{component}_sensitivity.csv"), index=False
@@ -397,14 +402,18 @@ class SensitivityStudy:
                 p: {k: self.scalar_sensitivities[p][k] for k in ["volume", "mass"]}
                 for p in self.scalar_sensitivities
             }
-            pd.DataFrame(vm).to_csv(os.path.join(outdir, "volmass_sensitivity.csv"))
+            pd.DataFrame(vm).to_csv(
+                os.path.join(properties_dir, "volmass_sensitivity.csv")
+            )
 
             for param in self.scalar_sensitivities:
                 self.scalar_sensitivities[param]["cog"].tofile(
-                    os.path.join(outdir, f"{param}_cog_sensitivity.txt"), sep=", "
+                    os.path.join(properties_dir, f"{param}_cog_sensitivity.txt"),
+                    sep=", ",
                 )
                 self.scalar_sensitivities[param]["moi"].tofile(
-                    os.path.join(outdir, f"{param}_moi_sensitivity.txt"), sep=", "
+                    os.path.join(properties_dir, f"{param}_moi_sensitivity.txt"),
+                    sep=", ",
                 )
 
     @staticmethod
