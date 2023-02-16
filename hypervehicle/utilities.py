@@ -6,8 +6,8 @@ import numpy as np
 import pandas as pd
 from stl import mesh
 from tqdm import tqdm
-from typing import Dict, List
 import xml.etree.ElementTree as ET
+from typing import Dict, List, Optional
 
 
 def parametricSurfce2stl(
@@ -367,7 +367,7 @@ class SensitivityStudy:
 
         return sensitivities
 
-    def to_csv(self, outdir: str = None):
+    def to_csv(self, outdir: Optional[str] = None):
         """Writes the sensitivity information to CSV file.
 
         Parameters
@@ -500,6 +500,7 @@ def append_sensitivities_to_tri(
     match_tolerance: float = 1e-5,
     rounding_tolerance: float = 1e-8,
     verbosity: int = 1,
+    outdir: Optional[str] = None,
 ) -> float:
     """Appends shape sensitivity data to .i.tri file.
 
@@ -515,6 +516,10 @@ def append_sensitivities_to_tri(
         default is 1e-5.
     rounding_tolerance : float, optional
         The tolerance to round data off to. The default is 1e-8.
+    outdir : str, optional
+        The output directory to write the combined sensitivity file to. If
+        None, the current working directory will be used. The default
+        is None.
 
     Returns
     ---------
@@ -526,8 +531,17 @@ def append_sensitivities_to_tri(
     ---------
     >>> dp_files = ['wing_0_body_width_sensitivity.csv',
                     'wing_1_body_width_sensitivity.csv']
-
     """
+    # Check outdir
+    if outdir is None:
+        outdir = os.getcwd()
+
+    else:
+        # Desired outdir provided, check it exists
+        if not os.path.exists(outdir):
+            # Make the directory
+            os.mkdir(outdir)
+
     # TODO - rename to 'combine sensitivity' or "combine_comp_sens"
     # Parse .tri file
     tree = ET.parse(components_filepath)
@@ -627,7 +641,9 @@ def append_sensitivities_to_tri(
         left_index=True,
         right_index=True,
     ).drop("index", axis=1)
-    combined_sense.to_csv("all_components_sensitivity.csv", index=False)
+    combined_sense.to_csv(
+        os.path.join(outdir, "all_components_sensitivity.csv"), index=False
+    )
 
     # Write the matched sensitivity df to i.tri file as new xml element
     # NumberOfComponents is how many sensitivity components there are (3 for x,y,z)
