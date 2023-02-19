@@ -177,6 +177,7 @@ class ParametricX43(Generator):
             flap_length=self.flap_length,
             flap_angle=self.flap_angle,
             LE_wf=leading_edge_width_function,
+            close_wing=True,
         )
 
         # WING 3 (Inlet/exit)
