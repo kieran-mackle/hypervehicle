@@ -317,7 +317,6 @@ class SensitivityStudy:
         analysis_sens = {}
         for parameter, value in parameter_dict.items():
             sensitivities[parameter] = {}
-            analysis_sens[parameter] = {}
 
             # Create copy
             adjusted_parameters = parameter_dict.copy()
@@ -340,6 +339,7 @@ class SensitivityStudy:
 
             # Generate sensitivities for geometric analysis results
             if nominal_instance.analysis_results:
+                analysis_sens[parameter] = {}
                 for r, v in nominal_instance.analysis_results.items():
                     analysis_sens[parameter][r] = (
                         parameter_instance.analysis_results[r] - v
@@ -387,34 +387,35 @@ class SensitivityStudy:
                 # Make the directory
                 os.mkdir(outdir)
 
-            # Make analysis results directory
-            properties_dir = os.path.join(outdir, f"scalar_sensitivities")
-            if not os.path.exists(properties_dir):
-                os.mkdir(properties_dir)
-
             for component, df in self.component_sensitivities.items():
                 df.to_csv(
                     os.path.join(outdir, f"{component}_sensitivity.csv"), index=False
                 )
 
             # Also save analysis sensitivities
-            vm = {
-                p: {k: self.scalar_sensitivities[p][k] for k in ["volume", "mass"]}
-                for p in self.scalar_sensitivities
-            }
-            pd.DataFrame(vm).to_csv(
-                os.path.join(properties_dir, "volmass_sensitivity.csv")
-            )
+            if self.scalar_sensitivities:
+                # Make analysis results directory
+                properties_dir = os.path.join(outdir, f"scalar_sensitivities")
+                if not os.path.exists(properties_dir):
+                    os.mkdir(properties_dir)
 
-            for param in self.scalar_sensitivities:
-                self.scalar_sensitivities[param]["cog"].tofile(
-                    os.path.join(properties_dir, f"{param}_cog_sensitivity.txt"),
-                    sep=", ",
+                vm = {
+                    p: {k: self.scalar_sensitivities[p][k] for k in ["volume", "mass"]}
+                    for p in self.scalar_sensitivities
+                }
+                pd.DataFrame(vm).to_csv(
+                    os.path.join(properties_dir, "volmass_sensitivity.csv")
                 )
-                self.scalar_sensitivities[param]["moi"].tofile(
-                    os.path.join(properties_dir, f"{param}_moi_sensitivity.txt"),
-                    sep=", ",
-                )
+
+                for param in self.scalar_sensitivities:
+                    self.scalar_sensitivities[param]["cog"].tofile(
+                        os.path.join(properties_dir, f"{param}_cog_sensitivity.txt"),
+                        sep=", ",
+                    )
+                    self.scalar_sensitivities[param]["moi"].tofile(
+                        os.path.join(properties_dir, f"{param}_moi_sensitivity.txt"),
+                        sep=", ",
+                    )
 
     @staticmethod
     def _compare_meshes(mesh1, mesh2, dp, parameter_name: str) -> pd.DataFrame:
