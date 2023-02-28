@@ -464,25 +464,57 @@ class Wing(Component):
         )
         TT_mid = 0.5 * (TT_top + TT_bot)
 
-        interior_top = Line(p0=self.TE_top(0), p1=TT_top)
-        interior_bot = Line(p0=self.TE_bot(0), p1=TT_bot)
-        interior_mid = Line(p0=self.TE_mean_line(0), p1=TT_mid)
+        interior_top_0 = Line(p0=self.TE_top(0), p1=self.patches["top_patch_0"](0, 0))
+        interior_top_1 = Line(p0=self.patches["top_patch_0"](0, 0), p1=TT_top)
 
+        interior_bot_0 = Line(p0=self.TE_bot(0), p1=self.patches["bot_patch_0"](1, 0))
+        interior_bot_1 = Line(p0=self.patches["bot_patch_0"](1, 0), p1=TT_bot)
+
+        mid_mid_point = Vector3(
+            x=self.patches["bot_patch_0"](1, 0).x,
+            y=self.patches["bot_patch_0"](1, 0).y,
+            z=(
+                self.patches["bot_patch_0"](1, 0).z
+                + self.patches["top_patch_0"](0, 0).z
+            )
+            / 2,
+        )
+        interior_mid_0 = Line(p0=self.TE_mean_line(0), p1=mid_mid_point)
+        interior_mid_1 = Line(p0=mid_mid_point, p1=TT_mid)
+
+        # Create vertical edges
+        mid_vert_top = Line(p1=mid_mid_point, p0=self.patches["top_patch_0"](0, 0))
+        mid_vert_bot = Line(p0=mid_mid_point, p1=self.patches["bot_patch_0"](1, 0))
+
+        # Vertical edges at TE ('back')
         back_top = Line(p0=self.TE_top(0), p1=self.TE_mean_line(0))
         back_bot = Line(p0=self.TE_mean_line(0), p1=self.TE_bot(0))
 
-        interior_patch1 = CoonsPatch(
-            north=interior_mid,
-            east=Line(p0=TT_top, p1=TT_mid),
-            south=interior_top,
+        # Create patches
+        interior_top_patch0 = CoonsPatch(
+            north=interior_mid_0,
+            east=mid_vert_top,
+            south=interior_top_0,
             west=back_top,
         )
+        interior_top_patch1 = CoonsPatch(
+            north=interior_mid_1,
+            east=Line(p0=TT_top, p1=TT_mid),
+            south=interior_top_1,
+            west=mid_vert_top,
+        )
 
-        interior_patch2 = CoonsPatch(
-            north=interior_bot,
-            east=Line(p0=TT_mid, p1=TT_bot),
-            south=interior_mid,
+        interior_bot_patch0 = CoonsPatch(
+            north=interior_bot_0,
+            east=mid_vert_bot,
+            south=interior_mid_0,
             west=back_bot,
+        )
+        interior_bot_patch1 = CoonsPatch(
+            north=interior_bot_1,
+            east=Line(p0=TT_mid, p1=TT_bot),
+            south=interior_mid_1,
+            west=mid_vert_bot,
         )
 
         elipse_top = ElipsePath(
@@ -516,8 +548,10 @@ class Wing(Component):
         )
 
         # Append to patch_dict
-        self.patches["interior_patch1"] = interior_patch1
-        self.patches["interior_patch2"] = interior_patch2
+        self.patches["wing_close_top_patch0"] = interior_top_patch0
+        self.patches["wing_close_top_patch1"] = interior_top_patch1
+        self.patches["wing_close_bot_patch0"] = interior_bot_patch0
+        self.patches["wing_close_bot_patch1"] = interior_bot_patch1
         self.patches["interior_ellip"] = interior_ellip
 
         # Interior TE
