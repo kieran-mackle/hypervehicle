@@ -1,3 +1,23 @@
+## v0.3.0 (2023-02-28)
+
+### Feat
+
+- **append_sensitivities_to_tri**: allow specifying outdir for combined sens data file
+- **Vehicle**: transformation generalised to accept different transform types
+- **SensitivityStudy**: added scalar sensitivities (vol, mass, etc)
+- **Vehicle**: optionally analyse the vehicle after generation and write results to file
+
+### Fix
+
+- **Wing**: fixed wing closing method to align with planforms
+- **SensitivityStudy**: processing of scalar sensitivities
+- **hangar**: close wing of X43
+- **ParametricReFEX**: canard angle for reflected cannard
+
+### Refactor
+
+- output scalar vehicle properties and sensitivities to dedicated directories
+
 ## v0.2.2 (2023-02-06)
 
 ### Fix
