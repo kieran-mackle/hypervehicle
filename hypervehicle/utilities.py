@@ -6,8 +6,8 @@ import numpy as np
 import pandas as pd
 from stl import mesh
 from tqdm import tqdm
-from typing import Dict, List
 import xml.etree.ElementTree as ET
+from typing import Dict, List, Optional
 
 
 def parametricSurfce2stl(
@@ -241,6 +241,7 @@ class SensitivityStudy:
         # Parameter sensitivities
         self.parameter_sensitivities = None
         self.component_sensitivities = None
+        self.scalar_sensitivities = None
 
     def __repr__(self):
         return "HyperVehicle sensitivity study"
@@ -313,6 +314,7 @@ class SensitivityStudy:
             print("Generating perturbed geometries...")
 
         sensitivities = {}
+        analysis_sens = {}
         for parameter, value in parameter_dict.items():
             sensitivities[parameter] = {}
 
@@ -335,15 +337,21 @@ class SensitivityStudy:
                 for name, component in parameter_instance._named_components.items()
             }
 
+            # Generate sensitivities for geometric analysis results
+            if nominal_instance.analysis_results:
+                analysis_sens[parameter] = {}
+                for r, v in nominal_instance.analysis_results.items():
+                    analysis_sens[parameter][r] = (
+                        parameter_instance.analysis_results[r] - v
+                    ) / dp
+
             # Generate sensitivities
             for component, nominal_mesh in nominal_meshes.items():
                 parameter_mesh = parameter_meshes[component]
-                component_mesh_name = f"{component}"
                 sensitivity_df = self._compare_meshes(
                     nominal_mesh,
                     parameter_mesh,
                     dp,
-                    component_mesh_name,
                     parameter,
                 )
 
@@ -354,11 +362,12 @@ class SensitivityStudy:
 
         # Return output
         self.parameter_sensitivities = sensitivities
+        self.scalar_sensitivities = analysis_sens
         self.component_sensitivities = self._combine(nominal_instance, sensitivities)
 
         return sensitivities
 
-    def to_csv(self, outdir: str = None):
+    def to_csv(self, outdir: Optional[str] = None):
         """Writes the sensitivity information to CSV file.
 
         Parameters
@@ -374,15 +383,42 @@ class SensitivityStudy:
             if outdir is None:
                 outdir = os.getcwd()
 
+            if not os.path.exists(outdir):
+                # Make the directory
+                os.mkdir(outdir)
+
             for component, df in self.component_sensitivities.items():
                 df.to_csv(
                     os.path.join(outdir, f"{component}_sensitivity.csv"), index=False
                 )
 
+            # Also save analysis sensitivities
+            if self.scalar_sensitivities:
+                # Make analysis results directory
+                properties_dir = os.path.join(outdir, f"scalar_sensitivities")
+                if not os.path.exists(properties_dir):
+                    os.mkdir(properties_dir)
+
+                vm = {
+                    p: {k: self.scalar_sensitivities[p][k] for k in ["volume", "mass"]}
+                    for p in self.scalar_sensitivities
+                }
+                pd.DataFrame(vm).to_csv(
+                    os.path.join(properties_dir, "volmass_sensitivity.csv")
+                )
+
+                for param in self.scalar_sensitivities:
+                    self.scalar_sensitivities[param]["cog"].tofile(
+                        os.path.join(properties_dir, f"{param}_cog_sensitivity.txt"),
+                        sep=", ",
+                    )
+                    self.scalar_sensitivities[param]["moi"].tofile(
+                        os.path.join(properties_dir, f"{param}_moi_sensitivity.txt"),
+                        sep=", ",
+                    )
+
     @staticmethod
-    def _compare_meshes(
-        mesh1, mesh2, dp, component: str, parameter_name: str
-    ) -> pd.DataFrame:
+    def _compare_meshes(mesh1, mesh2, dp, parameter_name: str) -> pd.DataFrame:
         """Compares two meshes with each other and applies finite differencing
         to quantify their differences.
 
@@ -393,8 +429,6 @@ class SensitivityStudy:
         mesh1 : None
             The perturbed mesh.
         dp : None
-        component : str
-            The component name.
         parameter_name : str
             The name of the parameter.
 
@@ -467,6 +501,7 @@ def append_sensitivities_to_tri(
     match_tolerance: float = 1e-5,
     rounding_tolerance: float = 1e-8,
     verbosity: int = 1,
+    outdir: Optional[str] = None,
 ) -> float:
     """Appends shape sensitivity data to .i.tri file.
 
@@ -482,6 +517,10 @@ def append_sensitivities_to_tri(
         default is 1e-5.
     rounding_tolerance : float, optional
         The tolerance to round data off to. The default is 1e-8.
+    outdir : str, optional
+        The output directory to write the combined sensitivity file to. If
+        None, the current working directory will be used. The default
+        is None.
 
     Returns
     ---------
@@ -493,8 +532,17 @@ def append_sensitivities_to_tri(
     ---------
     >>> dp_files = ['wing_0_body_width_sensitivity.csv',
                     'wing_1_body_width_sensitivity.csv']
-
     """
+    # Check outdir
+    if outdir is None:
+        outdir = os.getcwd()
+
+    else:
+        # Desired outdir provided, check it exists
+        if not os.path.exists(outdir):
+            # Make the directory
+            os.mkdir(outdir)
+
     # TODO - rename to 'combine sensitivity' or "combine_comp_sens"
     # Parse .tri file
     tree = ET.parse(components_filepath)
@@ -594,7 +642,9 @@ def append_sensitivities_to_tri(
         left_index=True,
         right_index=True,
     ).drop("index", axis=1)
-    combined_sense.to_csv("all_components_sensitivity.csv", index=False)
+    combined_sense.to_csv(
+        os.path.join(outdir, "all_components_sensitivity.csv"), index=False
+    )
 
     # Write the matched sensitivity df to i.tri file as new xml element
     # NumberOfComponents is how many sensitivity components there are (3 for x,y,z)

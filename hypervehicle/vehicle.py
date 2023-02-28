@@ -1,3 +1,5 @@
+import os
+import pandas as pd
 from art import tprint, art
 from typing import List, Tuple, Callable, Dict, Any
 from hypervehicle.components.component import Component
@@ -25,13 +27,15 @@ class Vehicle:
         self.name = "vehicle"
         self.vehicle_angle_offset: float = 0
         self.verbosity = 1
+        self.analysis_results = None
 
         # Internal attributes
         self._generated = False
         self._component_counts = {}
         self._enumerated_components = {}
         self._named_components = {}
-        self._vehicle_transformations = None
+        self._vehicle_transformations = []
+        self._analyse_on_generation = None
 
     def __repr__(self):
         basestr = self.__str__()
@@ -91,7 +95,7 @@ class Vehicle:
             default is None.
         transformations : List[Tuple[str, Any]], optional
             A list of transformations to apply to the nominal component. The
-            default is None
+            default is None.
         """
         if component.componenttype in Vehicle.ALLOWABLE_COMPONENTS:
             # Overload component verbosity
@@ -177,34 +181,75 @@ class Vehicle:
         if self._vehicle_transformations:
             self.transform(self._vehicle_transformations)
 
+        # Run analysis
+        if self._analyse_on_generation:
+            analysis_results = self.analyse(self._analyse_on_generation)
+            self.analysis_results = dict(
+                zip(("volume", "mass", "cog", "moi"), analysis_results)
+            )
+
         if self.verbosity > 0:
             print("All component patches generated.")
 
-    def add_vehicle_transformations(self, transformations: List[Tuple[str, float]]):
-        """Add transformations to apply to the vehicle after running generate()."""
-        self._vehicle_transformations = transformations
+    def add_vehicle_transformations(
+        self, transformations: List[Tuple[str, Any]]
+    ) -> None:
+        """Add transformations to apply to the vehicle after running generate().
+        Each transformation in the list should be of the form (type, *args), where
+        type can be "rotate" or "translate". The *args for rotate are angle: float
+        and axis: str. The *args for translate are offset: Union[Callable, Vector3].
+        """
+        # Check input
+        if isinstance(transformations, tuple):
+            # Coerce into list
+            transformations = [transformations]
+        self._vehicle_transformations += transformations
 
-    def transform(self, transformations: List[Tuple[str, float]]):
+    def analyse_after_generating(self, densities: Dict[str, Any]) -> None:
+        """Run the vehicle analysis method immediately after generating
+        patches. Results will be saved to the analysis_results attribute of
+        the vehicle.
+
+        Parameters
+        ----------
+        densities : Dict[str, Any]
+            A dictionary containing the effective densities for each component.
+            Note that the keys of the dict must match the keys of
+            vehicle._named_components. These keys will be consistent with any
+            name tags assigned to components.
+        """
+        self._analyse_on_generation = densities
+
+    def transform(self, transformations: List[Tuple[str, Any]]) -> None:
         """Transform vehicle by applying the tranformations. Currently
         only supports rotations.
 
         To rotate 180 degrees about the x axis, followed by 90 degrees
-        about the y axis, transformations = [(180, "x"), (90, "y")]"""
-        # TODO - specify transform type (eg. rotate) in the Tuple
+        about the y axis, transformations = [("rotate", 180, "x"),
+        ("rotate", 90, "y")].
+        """
         if not self._generated:
             raise Exception("Vehicle has not been generated yet.")
 
-        # Rotate to frame
+        # Check input
+        if isinstance(transformations, tuple):
+            # Coerce into list
+            transformations = [transformations]
+
+        # Apply transformations
         for component in self.components:
             for transform in transformations:
-                component.rotate(angle=transform[0], axis=transform[1])
+                func = getattr(component, transform[0])
+                func(*transform[1:])
 
             # Reset any meshes generated from un-transformed patches
             component.surfaces = None
             component.mesh = None
 
-    def to_stl(self, prefix: str = None):
-        """Writes the vehicle components to STL file.
+    def to_stl(self, prefix: str = None) -> None:
+        """Writes the vehicle components to STL file. If analysis results are
+        present, they will also be written to file, either as CSV, or using
+        the Numpy tofile method.
 
         Parameters
         ----------
@@ -245,11 +290,56 @@ class Vehicle:
             # Update component count
             types_generated[component.componenttype] = no + 1
 
+        # Write geometric analysis results to csv too
+        if self.analysis_results:
+            if not prefix:
+                prefix = self.name
+
+            # Make analysis results directory
+            properties_dir = f"{prefix}_properties"
+            if not os.path.exists(properties_dir):
+                os.mkdir(properties_dir)
+
+            # Write volume and mass to file
+            pd.Series({k: self.analysis_results[k] for k in ["volume", "mass"]}).to_csv(
+                os.path.join(properties_dir, f"{prefix}_volmass.csv")
+            )
+
+            # Write c.o.g. to file
+            self.analysis_results["cog"].tofile(
+                os.path.join(properties_dir, f"{prefix}_cog.txt"), sep=", "
+            )
+
+            # Write M.O.I. to file
+            self.analysis_results["moi"].tofile(
+                os.path.join(properties_dir, f"{prefix}_moi.txt"), sep=", "
+            )
+
         if self.verbosity > 0:
             print("\rAll components written to STL file format.", end="\n")
 
-    def analyse(self, densities: dict):
-        """Evaluates the mesh properties."""
+    def analyse(self, densities: dict) -> Tuple:
+        """Evaluates the mesh properties of the vehicle instance.
+
+        Parameters
+        ----------
+        densities : Dict[str, float]
+            A dictionary containing the effective densities for each component.
+            Note that the keys of the dict must match the keys of
+            vehicle._named_components. These keys will be consistent with any
+            name tags assigned to components.
+
+        Returns
+        -------
+        total_volume : float
+            The total volume.
+        total_mass : float
+            The toal mass.
+        composite_cog : np.array
+            The composite center of gravity.
+        composite_inertia : np.array
+            The composite mass moment of inertia.
+        """
         from hypervehicle.utilities import assess_inertial_properties
 
         self.volume, self.mass, self.cog, self.inertia = assess_inertial_properties(

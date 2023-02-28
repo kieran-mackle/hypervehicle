@@ -244,7 +244,7 @@ class Component(AbstractComponent):
             res = stl_resolution
 
             if "swept" in key:
-                # Sweptt fuselage component
+                # Swept fuselage component
                 res = (
                     int(stl_resolution / 4)
                     if "end" in key

@@ -1,13 +1,15 @@
 <a name="readme-top"></a>
 
-# HYPERVEHICLE: Parametric Vehicle Geometry Generation
+<h1 align="center"><em>HyperVehicle</em></h1>
 
-A suite of tools to rapidly generate parametric geometry 
-for hypersonic vehicles. 
-Check out the [hypervehicle hangar](docs/source/hangar.md)
-for some examples.
+A Python package to rapidly generate parametric geometries
+defined by hyperpatches. Check out the 
+[hangar](docs/source/hangar.md) for some examples.
 
 [![x43](docs/source/images/x43.gif)](docs/hangar.md)
+
+
+# 
 
 
 <!-- TABLE OF CONTENTS -->
