@@ -1,8 +1,9 @@
 import numpy as np
 from stl import mesh
+import multiprocess as mp
 from copy import deepcopy
 from typing import Callable, Union
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 from hypervehicle.geometry import Vector3
 from gdtk.geom.sgrid import StructuredGrid
 from hypervehicle.geometry import (
@@ -14,7 +15,7 @@ from hypervehicle.geometry import (
 from hypervehicle.utilities import parametricSurfce2stl
 
 
-class AbstractComponent(ABC):
+class AbstractComponent:
     componenttype = None
 
     @abstractmethod
@@ -235,11 +236,8 @@ class Component(AbstractComponent):
                 "No patches have been generated. " + "Please call .generate_patches()."
             )
 
-        # Initialise surfaces
-        self.surfaces = {}
-
-        # Generate surfaces
-        for key, patch in self.patches.items():
+        # Prepare multiprocessing arguments iterable
+        def wrapper(key: str, patch):
             flip = True if key.split("_")[-1] == "mirrored" else False
             res = stl_resolution
 
@@ -252,10 +250,18 @@ class Component(AbstractComponent):
                 )
                 flip = True if "1" in key else False
 
-            # Append surface
-            self.surfaces[key] = parametricSurfce2stl(
+            surface = parametricSurfce2stl(
                 patch, res, flip_faces=flip, **self._clustering
             )
+            return (key, surface)
+
+        # Initialise surfaces and pool
+        self.surfaces = {}
+        pool = mp.Pool()
+
+        # Submit tasks
+        for result in pool.starmap(wrapper, self.patches.items()):
+            self.surfaces[result[0]] = result[1]
 
     def to_vtk(self):
         raise NotImplementedError("This method has not been implemented yet.")
