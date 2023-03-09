@@ -53,6 +53,7 @@ setuptools.setup(
         "pandas >= 1.5.2",
         "art >= 5.8",
         "tqdm >= 4.64.1",
+        "multiprocess >= 0.70.14",
     ],
     extras_require={
         "dev": dev,

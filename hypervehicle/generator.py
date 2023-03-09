@@ -1,8 +1,8 @@
+from abc import abstractmethod
 from hypervehicle import Vehicle
-from abc import ABC, abstractmethod
 
 
-class AbstractGenerator(ABC):
+class AbstractGenerator:
     """Abstract Generator Interface."""
 
     @abstractmethod
