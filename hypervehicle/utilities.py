@@ -242,6 +242,7 @@ class SensitivityStudy:
         self.parameter_sensitivities = None
         self.component_sensitivities = None
         self.scalar_sensitivities = None
+        self.property_sensitivities = None
 
     def __repr__(self):
         return "HyperVehicle sensitivity study"
@@ -315,6 +316,7 @@ class SensitivityStudy:
 
         sensitivities = {}
         analysis_sens = {}
+        property_sens = {}
         for parameter, value in parameter_dict.items():
             sensitivities[parameter] = {}
 
@@ -345,6 +347,14 @@ class SensitivityStudy:
                         parameter_instance.analysis_results[r] - v
                     ) / dp
 
+            # Generate sensitivities for vehicle properties
+            if nominal_instance.properties:
+                property_sens[parameter] = {}
+                for property, v in nominal_instance.properties.items():
+                    property_sens[parameter][property] = (
+                        parameter_instance.properties[property] - v
+                    ) / dp
+
             # Generate sensitivities
             for component, nominal_mesh in nominal_meshes.items():
                 parameter_mesh = parameter_meshes[component]
@@ -363,6 +373,7 @@ class SensitivityStudy:
         # Return output
         self.parameter_sensitivities = sensitivities
         self.scalar_sensitivities = analysis_sens
+        self.property_sensitivities = property_sens
         self.component_sensitivities = self._combine(nominal_instance, sensitivities)
 
         return sensitivities
@@ -416,6 +427,16 @@ class SensitivityStudy:
                         os.path.join(properties_dir, f"{param}_moi_sensitivity.txt"),
                         sep=", ",
                     )
+
+            # Also save user-defined property sensitivities
+            if self.property_sensitivities:
+                properties_dir = os.path.join(outdir, f"scalar_sensitivities")
+                if not os.path.exists(properties_dir):
+                    os.mkdir(properties_dir)
+
+                pd.DataFrame(self.property_sensitivities).to_csv(
+                    os.path.join(properties_dir, "property_sensitivity.csv")
+                )
 
     @staticmethod
     def _compare_meshes(mesh1, mesh2, dp, parameter_name: str) -> pd.DataFrame:

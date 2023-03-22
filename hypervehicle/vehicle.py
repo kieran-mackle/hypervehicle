@@ -28,6 +28,7 @@ class Vehicle:
         self.vehicle_angle_offset: float = 0
         self.verbosity = 1
         self.analysis_results = None
+        self.properties = {}  # user-defined vehicle properties
 
         # Internal attributes
         self._generated = False
@@ -315,6 +316,21 @@ class Vehicle:
                 os.path.join(properties_dir, f"{prefix}_moi.txt"), sep=", "
             )
 
+        # Write user-defined vehicle properties
+        if self.properties:
+            if not prefix:
+                prefix = self.name
+
+            # Make analysis results directory
+            properties_dir = f"{prefix}_properties"
+            if not os.path.exists(properties_dir):
+                os.mkdir(properties_dir)
+
+            # Write properties to file
+            pd.Series(self.properties).to_csv(
+                os.path.join(properties_dir, f"{prefix}_properties.csv")
+            )
+
         if self.verbosity > 0:
             print("\rAll components written to STL file format.", end="\n")
 
@@ -347,3 +363,9 @@ class Vehicle:
         )
 
         return self.volume, self.mass, self.cog, self.inertia
+
+    def add_property(self, name: str, value: float):
+        """Add a named property to the vehicle. Currently only supports
+        float property types.
+        """
+        self.properties[name] = value
