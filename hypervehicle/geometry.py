@@ -1,9 +1,10 @@
 import numpy as np
+from typing import Optional
 from gdtk.geom.vector3 import Vector3
-from gdtk.geom.path import Line, Path, ArcLengthParameterizedPath
 from gdtk.geom.surface import CoonsPatch, ParametricSurface
+from gdtk.geom.path import Line, Path, ArcLengthParameterizedPath
 
-# Import gdtk geometry objects to namespace
+# Import gdtk geometry objects to namespace for convenience
 from gdtk.geom.vector3 import Vector3
 from gdtk.geom.path import Bezier, Line, Polyline, Arc, Spline
 
@@ -903,3 +904,164 @@ class SurfacePerimeter(Path):
             s = 0.0
 
         return self.underlying_surf(r, s)
+
+
+class RoughnessElement:
+    """A roughness element."""
+
+    def __init__(
+        self,
+        patch_range_x: float,
+        patch_range_y: float,
+        height: float,
+        lambda_0: float,
+        Nx: Optional[float] = 0,
+        Ny: Optional[float] = 0,
+        data: Optional[list] = None,
+        ramp_x: Optional[float] = 0.1,
+        ramp_y: Optional[float] = 0.1,
+    ):
+        self.patch_range_x = patch_range_x
+        self.patch_range_y = patch_range_y
+        self.height = height
+        self.lambda_0 = lambda_0
+        self.Nx = Nx
+        self.Ny = Ny
+        self.data = data
+        self.ramp_x = ramp_x
+        self.ramp_y = ramp_y
+
+        self.create_amp_phase_table()
+
+    def create_amp_phase_table(self):
+        if self.Nx == 0 and self.Ny == 0 and not self.data:
+            self.Nx = 3
+            self.Ny = 3
+            self.data = np.array(
+                [
+                    [0.23858489823e00, 0.76882559458e00],
+                    [0.13405469344e00, 0.32250873843e01],
+                    [0.37001241020e00, 0.39367026114e01],
+                    [0.77008101266e-01, 0.13989718680e01],
+                    [0.36533620243e00, 0.37127829101e01],
+                    [0.00000000000e00, 0.13001876919e01],
+                    [0.28378862436e00, 0.21209129392e00],
+                    [0.00000000000e00, 0.44289617133e01],
+                    [0.00000000000e00, 0.55468162808e01],
+                ]
+            )
+
+        else:
+            if self.Nx < 1:
+                raise Exception(
+                    f"Value of 'Nx'= {self.Nx} cannot be less than 1. Bailing Out!"
+                )
+            if self.Ny < 1:
+                raise Exception(
+                    f"Value of 'Ny'= {self.Ny} cannot be less than 1. Bailing Out!"
+                )
+            if self.data.shape[1] != 2:
+                raise Exception(
+                    f"'data' needs to have exactly two columns.\n data.shape={self.data.shape()}.\nBailing Out!"
+                )
+            if self.data.shape[0] != self.Nx * self.Ny:
+                raise Exception(
+                    f"'data' needs to have exactly Nx*Ny={self.Nx*self.Ny} rows.\n data.shape={self.data.shape()}.\nBailing Out!"
+                )
+
+        # Populate tables
+        self.Amp = np.empty([self.Ny, self.Nx])
+        self.Phase = np.empty([self.Ny, self.Nx])
+        p = 0
+        for n in range(self.Ny):
+            for m in range(self.Nx):
+                self.Amp[n, m] = self.data[p, 0]
+                self.Phase[n, m] = self.data[p, 1]
+                p = p + 1
+
+    def g_2(self, r, s):
+        """Weighting function to smoothly integrate roughness into flat
+        surface.
+
+        r, s - parameterised
+        ramp_x, ramp_y - fraction in parameterised spaced to ramp up/down weihting function
+        """
+
+        def g(t):
+            """Polynomial used to transition regions."""
+            return 3 * t**2 - 2 * t**3
+
+        gr = np.nan
+        if r <= -0.5:  # towards -inf
+            gr = 0
+        elif r >= 0.5:  # towards + inf
+            gr = 0
+        elif r > -0.5 and r < -0.5 + self.ramp_x:
+            gr = g((r - (-0.5)) * 1 / self.ramp_x)
+        elif r > 0.5 - self.ramp_x and r < 0.5:
+            gr = 1 - g((r - (0.5 - self.ramp_x)) * 1 / self.ramp_x)
+        else:
+            gr = 1
+
+        gs = np.nan
+        if s <= -0.5:  # towards -inf
+            gs = 0
+        elif s >= 0.5:  # towards + inf
+            gs = 0
+        elif s > -0.5 and s < -0.5 + self.ramp_y:
+            gs = g((s - (-0.5)) * 1 / self.ramp_y)
+        elif s > 0.5 - self.ramp_y and s < 0.5:
+            gs = 1 - g((s - (0.5 - self.ramp_y)) * 1 / self.ramp_y)
+        else:
+            gs = 1
+
+        return gs * gr
+
+    def eval(self, x, y, centre=np.array([0, 0])):
+        r = (x - centre[0]) / self.patch_range_x
+        s = (y - centre[1]) / self.patch_range_y
+        g2 = self.g_2(r, s)
+        h = 0
+        for n in range(self.Ny):
+            for m in range(self.Nx):
+                h = h + self.Amp[n, m] * np.cos(
+                    2 * np.pi * m * x / self.lambda_0
+                    + 2 * np.pi * n * y / self.lambda_0
+                    + self.Phase[n, m]
+                )
+        h_final = h * g2 * self.height
+        return g2, h, h_final
+
+
+class RoughnessPatch(ParametricSurface):
+    """Creates a roughness patch defined by an instance
+    of the class RoughnessElement. The roughness element is
+    embossed on a patch with dimensions defined by
+    x_range = [x_start, x_end], y_range = [y_start, y_end],
+    and z_pos = z_height. The roughness element is centred at
+    the middle of the surface.
+
+    The function is designed to place Roughness Patch on a
+    "top" surface.
+    """
+
+    __slots__ = ["roughnessElement", "x_range", "y_range", "z_height"]
+
+    def __init__(
+        self, roughnessElement: RoughnessElement, x_range, y_range, z_height=0.0
+    ):
+        self.roughnessElement = roughnessElement
+        self.x_range = x_range
+        self.y_range = y_range
+        self.z_height = z_height
+
+    def __repr__(self):
+        return f"Roughness Patch with L={self.x_length} and W={self.y_length}"
+
+    def __call__(self, r, s):
+        x = (1 - r) * self.x_range[0] + r * self.x_range[1]
+        y = (1 - s) * self.y_range[0] + s * self.y_range[1]
+
+        _, _, h_final = self.roughnessElement.eval(x, y)
+
+        return Vector3(x=x, y=y, z=h_final + self.z_height)
