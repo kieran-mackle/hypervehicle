@@ -1,3 +1,9 @@
+## v0.4.0 (2023-03-10)
+
+### Feat
+
+- **Component**: generate patch surfaces concurrently
+
 ## v0.3.0 (2023-02-28)
 
 ### Feat
