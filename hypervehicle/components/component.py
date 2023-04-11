@@ -116,6 +116,9 @@ class Component(AbstractComponent):
         # Transformations
         self._transformations = []
 
+        # Modifier function
+        self._modifier_function = None
+
         # Component reflection
         self._reflection_axis = None
         self._append_reflection = True
@@ -202,6 +205,11 @@ class Component(AbstractComponent):
         for transform in self._transformations:
             func = getattr(self, transform[0])
             func(*transform[1:])
+
+    def apply_modifier(self):
+        if self._modifier_function:
+            for key, patch in self.patches.items():
+                self.patches[key] = OffsetPatchFunction(patch, self._modifier_function)
 
     def reflect(self, axis: str = None):
         axis = self._reflection_axis if self._reflection_axis is not None else axis

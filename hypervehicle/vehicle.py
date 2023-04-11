@@ -1,8 +1,8 @@
 import os
 import pandas as pd
 from art import tprint, art
-from typing import List, Tuple, Callable, Dict, Any
 from hypervehicle.components.component import Component
+from typing import List, Tuple, Callable, Dict, Any, Optional
 from hypervehicle.components.constants import (
     FIN_COMPONENT,
     WING_COMPONENT,
@@ -70,6 +70,7 @@ class Vehicle:
         curvatures: List[Tuple[str, Callable, Callable]] = None,
         clustering: Dict[str, float] = None,
         transformations: List[Tuple[str, Any]] = None,
+        modifier_function: Optional[Callable] = None,
     ) -> None:
         """Adds a new component to the vehicle.
 
@@ -97,6 +98,10 @@ class Vehicle:
         transformations : List[Tuple[str, Any]], optional
             A list of transformations to apply to the nominal component. The
             default is None.
+        modifier_function : Callable, optional
+            A function which accepts x,y,z coordinates and returns a Vector3
+            object with a positional offset. This function is used with an
+            OffsetPatchFunction. The default is None.
         """
         if component.componenttype in Vehicle.ALLOWABLE_COMPONENTS:
             # Overload component verbosity
@@ -123,6 +128,10 @@ class Vehicle:
             # Add transformations
             if transformations is not None:
                 component._transformations = transformations
+
+            # Add modifier function
+            if modifier_function is not None:
+                component._modifier_function = modifier_function
 
             # Add component
             self.components.append(component)
@@ -162,6 +171,9 @@ class Vehicle:
 
             # Generate component patches
             component.generate_patches()
+
+            # Apply the modifier function
+            component.apply_modifier()
 
             # Add curvature
             component.curve()
