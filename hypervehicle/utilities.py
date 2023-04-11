@@ -17,6 +17,8 @@ def parametricSurfce2stl(
     sj: float = 1.0,
     mirror_y=False,
     flip_faces=False,
+    i_clustering_func: callable = None,
+    j_clustering_func: callable = None,
 ) -> mesh.Mesh:
     """
     Function to convert parametric_surface generated using the Eilmer Geometry
@@ -34,6 +36,12 @@ def parametricSurfce2stl(
             The resolution for the stl object.
         mirror_y : bool, optional
             Create mirror image about x-z plane. The default is False.
+        i_clustering_func : callable, optional
+            A custom clustering function to apply in the i direction.
+            The default is None.
+        j_clustering_func : callable, optional
+            A custom clustering function to apply in the j direction.
+            The default is None.
 
     Returns
     ----------
@@ -45,14 +53,16 @@ def parametricSurfce2stl(
     ni = triangles_per_edge
     nj = triangles_per_edge
 
-    def gen_points(lb, ub, steps, spacing=1.0):
-        span = ub - lb
-        dx = 1.0 / (steps - 1)
-        return np.array([lb + (i * dx) ** spacing * span for i in range(steps)])
-
     # Create list of vertices
-    r_list = gen_points(lb=0.0, ub=1.0, steps=ni + 1, spacing=si)
-    s_list = gen_points(lb=0.0, ub=1.0, steps=nj + 1, spacing=sj)
+    if i_clustering_func:
+        r_list = [i_clustering_func(i) for i in np.linspace(0, 1, ni + 1)]
+    else:
+        r_list = default_vertex_func(lb=0.0, ub=1.0, steps=ni + 1, spacing=si)
+
+    if j_clustering_func:
+        s_list = [j_clustering_func(i) for i in np.linspace(0, 1, ni + 1)]
+    else:
+        s_list = default_vertex_func(lb=0.0, ub=1.0, steps=nj + 1, spacing=sj)
 
     y_mult: int = -1 if mirror_y else 1
 
@@ -134,6 +144,12 @@ def parametricSurfce2stl(
             stl_mesh.vectors[ix][c] = vertices[face[c], :]
 
     return stl_mesh
+
+
+def default_vertex_func(lb, ub, steps, spacing=1.0):
+    span = ub - lb
+    dx = 1.0 / (steps - 1)
+    return np.array([lb + (i * dx) ** spacing * span for i in range(steps)])
 
 
 def assess_inertial_properties(vehicle, component_densities: Dict[str, float]):

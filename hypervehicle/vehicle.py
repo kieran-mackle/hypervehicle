@@ -92,8 +92,8 @@ class Vehicle:
             is defined by (axis, curve_func, curve_func_derivative).
             The default is None.
         clustering : Dict[str, float], optional
-            Optionally provide clustering options for the stl meshes. The
-            default is None.
+            Optionally provide clustering options for the stl meshes. See
+            parametricSurfce2stl for more information. The default is None.
         transformations : List[Tuple[str, Any]], optional
             A list of transformations to apply to the nominal component. The
             default is None.
