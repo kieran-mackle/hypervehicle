@@ -32,6 +32,7 @@ class Vehicle:
         # Analysis attributes
         self.analysis_results = None
         self.component_properties = None
+        self._volmass = None
         self.volume = None
         self.mass = None
         self.cog = None
@@ -327,21 +328,7 @@ class Vehicle:
                 os.mkdir(properties_dir)
 
             # Write volume and mass to file
-            component_vm = pd.DataFrame(
-                {k: self.component_properties[k] for k in ["mass", "volume"]}
-            )
-            pd.concat(
-                [
-                    component_vm,
-                    pd.DataFrame(
-                        data={
-                            "mass": self.analysis_results["mass"],
-                            "volume": self.analysis_results["volume"],
-                        },
-                        index=["vehicle"],
-                    ),
-                ]
-            ).to_csv(os.path.join(properties_dir, f"{prefix}_volmass.csv"))
+            self._volmass.to_csv(os.path.join(properties_dir, f"{prefix}_volmass.csv"))
 
             # Write c.o.g. to file
             self.analysis_results["cog"].tofile(
@@ -404,6 +391,23 @@ class Vehicle:
 
         # Save component properties
         self.component_properties = component_properties
+
+        # Save summary of volume and mass results
+        component_vm = pd.DataFrame(
+            {k: component_properties[k] for k in ["mass", "volume"]}
+        )
+        self._volmass = pd.concat(
+            [
+                component_vm,
+                pd.DataFrame(
+                    data={
+                        "mass": self.mass,
+                        "volume": self.volume,
+                    },
+                    index=["vehicle"],
+                ),
+            ]
+        )
 
         return self.volume, self.mass, self.cog, self.inertia
 

@@ -258,6 +258,7 @@ class SensitivityStudy:
         # Parameter sensitivities
         self.parameter_sensitivities = None
         self.component_sensitivities = None
+        self.component_scalar_sensitivities = None
         self.scalar_sensitivities = None
         self.property_sensitivities = None
 
@@ -333,6 +334,7 @@ class SensitivityStudy:
 
         sensitivities = {}
         analysis_sens = {}
+        component_analysis_sens = {}
         property_sens = {}
         for parameter, value in parameter_dict.items():
             sensitivities[parameter] = {}
@@ -364,6 +366,11 @@ class SensitivityStudy:
                         parameter_instance.analysis_results[r] - v
                     ) / dp
 
+                # Repeat for components
+                component_analysis_sens[parameter] = (
+                    parameter_instance._volmass - nominal_instance._volmass
+                ) / dp
+
             # Generate sensitivities for vehicle properties
             if nominal_instance.properties:
                 property_sens[parameter] = {}
@@ -390,6 +397,7 @@ class SensitivityStudy:
         # Return output
         self.parameter_sensitivities = sensitivities
         self.scalar_sensitivities = analysis_sens
+        self.component_scalar_sensitivities = component_analysis_sens
         self.property_sensitivities = property_sens
         self.component_sensitivities = self._combine(nominal_instance, sensitivities)
 
@@ -427,6 +435,7 @@ class SensitivityStudy:
                 if not os.path.exists(properties_dir):
                     os.mkdir(properties_dir)
 
+                # Save volume and mass
                 vm = {
                     p: {k: self.scalar_sensitivities[p][k] for k in ["volume", "mass"]}
                     for p in self.scalar_sensitivities
@@ -435,6 +444,27 @@ class SensitivityStudy:
                     os.path.join(properties_dir, "volmass_sensitivity.csv")
                 )
 
+                # Save component analysis sensitivities
+                reformatted_results = {}
+                for p, s in self.component_scalar_sensitivities.items():
+                    labels = []
+                    values = []
+                    s: pd.DataFrame
+                    for component, comp_sens in s.iterrows():
+                        comp_sens: pd.Series
+                        for i, j in comp_sens.items():
+                            labels.append(f"{component}_{i}")
+                            values.append(j)
+
+                    reformatted_results[p] = values
+
+                # Convert to DataFrame and save
+                comp_sens = pd.DataFrame(data=reformatted_results, index=labels)
+                comp_sens.to_csv(
+                    os.path.join(properties_dir, "component_volmass_sensitivity.csv")
+                )
+
+                # Save others
                 for param in self.scalar_sensitivities:
                     self.scalar_sensitivities[param]["cog"].tofile(
                         os.path.join(properties_dir, f"{param}_cog_sensitivity.txt"),
