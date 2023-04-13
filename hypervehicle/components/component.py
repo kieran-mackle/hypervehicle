@@ -1,3 +1,5 @@
+import os
+import time
 import pymeshfix
 import numpy as np
 from stl import mesh
@@ -168,19 +170,27 @@ class Component(AbstractComponent):
 
     @property
     def mesh(self):
-        # Check for processed surfaces
-        if self.surfaces is None:
-            if self.verbosity > 1:
-                print(" Generating surfaces for component.")
+        if not self._mesh:
+            # Check for processed surfaces
+            if self.surfaces is None:
+                if self.verbosity > 1:
+                    print(" Generating surfaces for component.")
 
-            # Generate surfaces
-            self.surface()
+                # Generate surfaces
+                self.surface()
 
-        # Combine all surface data
-        surface_data = np.concatenate([s[1].data for s in self.surfaces.items()])
+            # Combine all surface data
+            surface_data = np.concatenate([s[1].data for s in self.surfaces.items()])
 
-        # Create STL mesh
-        self._mesh = mesh.Mesh(surface_data)
+            # Create nominal STL mesh
+            nominal_mesh = mesh.Mesh(surface_data)
+
+            # Clean mesh and save it
+            temp_file = f".{time.time()}.stl"
+            nominal_mesh.save(temp_file)
+            pymeshfix.clean_from_file(temp_file, temp_file)
+            self._mesh = mesh.Mesh.from_file(temp_file)
+            os.remove(temp_file)
 
         return self._mesh
 
@@ -291,9 +301,6 @@ class Component(AbstractComponent):
         if outfile is not None:
             # Write STL to file
             stl_mesh.save(outfile)
-
-            # Clean the resulting STL file
-            pymeshfix.clean_from_file(outfile, outfile)
 
     def analyse(self):
         # Get mass properties
