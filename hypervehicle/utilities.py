@@ -159,6 +159,7 @@ def assess_inertial_properties(vehicle, component_densities: Dict[str, float]):
     ----------
     vehicle : Vehicle
         A hypervehicle Vehicle instance.
+
     component_densities : Dict[str, float]
         A dictionary containing the effective densities for each component.
         Note that the keys of the dict must match the keys of
@@ -166,27 +167,13 @@ def assess_inertial_properties(vehicle, component_densities: Dict[str, float]):
 
     Returns
     -------
-    total_volume : float
-        The total volume.
-    total_mass : float
-        The toal mass.
-    composite_cog : np.array
-        The composite center of gravity.
-    composite_inertia : np.array
-        The composite mass moment of inertia.
+    vehicle_properties : dict
+        A dictionary containing the vehicle's mass, volume, location of
+        CoG and moment of inertia matrix.
 
-    Examples
-    --------
-    >>> components = {'body': {'type': 'body', 'mesh': body},
-                      'wings': {'type': 'wing', 'mesh': wings},
-                      'inlet': {'type': 'inlet', 'mesh': inlet},
-                      'fin1': {'type': 'fin', 'mesh': fin1},
-                      'fin2': {'type': 'fin', 'mesh': fin2}}
-
-    >>> component_densities = {'wing': 5590, 'body': 1680, 'inlet': 1680, 'fin': 5590}
-
-    >>> volume, mass, cog, inertia = utils.assess_inertial_properties(components,
-                                                             component_densities)
+    component_properties : dict
+        A dictionary containing the same keys as vehicle_properties, but
+        the values are now dictionaries for each component of the vehicle.
     """
     # Check if vehicle has been generated
     if not vehicle._generated:
@@ -230,7 +217,21 @@ def assess_inertial_properties(vehicle, component_densities: Dict[str, float]):
         shifted_inertias[component] = I_adj
         composite_inertia += I_adj
 
-    return total_volume, total_mass, composite_cog, composite_inertia
+    # Prepare output
+    vehicle_properties = {
+        "mass": total_mass,
+        "volume": total_volume,
+        "cog": composite_cog,
+        "moi": composite_inertia,
+    }
+    component_properties = {
+        "mass": masses,
+        "volume": volumes,
+        "cog": cgs,
+        "moi": inertias,
+    }
+
+    return vehicle_properties, component_properties
 
 
 class SensitivityStudy:
