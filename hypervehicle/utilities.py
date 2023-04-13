@@ -436,15 +436,6 @@ class SensitivityStudy:
                     os.mkdir(properties_dir)
 
                 # Save volume and mass
-                vm = {
-                    p: {k: self.scalar_sensitivities[p][k] for k in ["volume", "mass"]}
-                    for p in self.scalar_sensitivities
-                }
-                pd.DataFrame(vm).to_csv(
-                    os.path.join(properties_dir, "volmass_sensitivity.csv")
-                )
-
-                # Save component analysis sensitivities
                 reformatted_results = {}
                 for p, s in self.component_scalar_sensitivities.items():
                     labels = []
@@ -461,7 +452,7 @@ class SensitivityStudy:
                 # Convert to DataFrame and save
                 comp_sens = pd.DataFrame(data=reformatted_results, index=labels)
                 comp_sens.to_csv(
-                    os.path.join(properties_dir, "component_volmass_sensitivity.csv")
+                    os.path.join(properties_dir, "volmass_sensitivity.csv")
                 )
 
                 # Save others
