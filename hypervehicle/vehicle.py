@@ -86,7 +86,13 @@ class Vehicle:
             (eg. 'x', 'y' or 'z'). The default is None.
         append_reflection : bool, optional
             When reflecting a new component, add the reflection to the existing
-            component, rather than making it a new component. The default is True.
+            component, rather than making it a new component. This is recommended
+            when the combined components will form a closed mesh, but if the
+            components will remain as two isolated bodies, a new component should
+            be created (ie. append_reflection=False). In this case, you can use
+            copy.deepcopy to make a copy of the reflected component when adding it
+            to the vehicle. See the finner example in the hypervehicle hangar.
+            The default is True.
         curvatures : List[Tuple[str, Callable, Callable]], optional
             A list of the curvatures to apply to the component being added.
             This list contains a tuple for each curvature. Each curvatue
