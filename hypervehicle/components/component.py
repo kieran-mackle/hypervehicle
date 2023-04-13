@@ -1,3 +1,4 @@
+import pymeshfix
 import numpy as np
 from stl import mesh
 import multiprocess as mp
@@ -63,7 +64,8 @@ class AbstractComponent:
 
     @abstractmethod
     def surface(self):
-        """Creates a surface from the parametric patches."""
+        """Creates the discretised surface data from the
+        parametric patches."""
         pass
 
     @abstractmethod
@@ -289,6 +291,9 @@ class Component(AbstractComponent):
         if outfile is not None:
             # Write STL to file
             stl_mesh.save(outfile)
+
+            # Clean the resulting STL file
+            pymeshfix.clean_from_file(outfile, outfile)
 
     def analyse(self):
         # Get mass properties

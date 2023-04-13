@@ -54,6 +54,7 @@ setuptools.setup(
         "art >= 5.8",
         "tqdm >= 4.64.1",
         "multiprocess >= 0.70.14",
+        "pymeshfix >= 0.16.2",
     ],
     extras_require={
         "dev": dev,
