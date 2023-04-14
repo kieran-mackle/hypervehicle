@@ -8,3 +8,4 @@ testing*
 # Miscellaneous
 *.stl
 *.csv
+build/
