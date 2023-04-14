@@ -183,14 +183,7 @@ class Component(AbstractComponent):
             surface_data = np.concatenate([s[1].data for s in self.surfaces.items()])
 
             # Create nominal STL mesh
-            nominal_mesh = mesh.Mesh(surface_data)
-
-            # Clean mesh and save it
-            temp_file = f".{time.time()}.stl"
-            nominal_mesh.save(temp_file)
-            pymeshfix.clean_from_file(temp_file, temp_file)
-            self._mesh = mesh.Mesh.from_file(temp_file)
-            os.remove(temp_file)
+            self._mesh = mesh.Mesh(surface_data)
 
         return self._mesh
 
@@ -301,6 +294,9 @@ class Component(AbstractComponent):
         if outfile is not None:
             # Write STL to file
             stl_mesh.save(outfile)
+
+            # Clean it
+            pymeshfix.clean_from_file(outfile, outfile)
 
     def analyse(self):
         # Get mass properties
