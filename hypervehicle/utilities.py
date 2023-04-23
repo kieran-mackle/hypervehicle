@@ -770,3 +770,42 @@ def convert_all_csv_to_delaunay(directory: str = ""):
 
     for file in files:
         csv_to_delaunay(file)
+
+
+def merge_stls(stl_files: List[str], name: Optional[str] = "combined_mesh"):
+    """Merge STL files into a single file. Note that this function
+    depends on having PyMesh installed.
+    """
+    # Import PyMesh
+    try:
+        import pymesh
+    except ModuleNotFoundError:
+        raise Exception(
+            "Could not find pymesh. Please follow the "
+            + "installation instructions at "
+            + "https://pymesh.readthedocs.io/en/latest/installation.html"
+        )
+
+    # Load STL files
+    meshes = [pymesh.meshio.load_mesh(f) for f in stl_files]
+
+    # Merge meshes
+    merged = pymesh.merge_meshes(meshes)
+
+    # Resolve self-intersections
+    merged = pymesh.resolve_self_intersection(merged)
+
+    # Remove degenerate triangles
+    merged, info = pymesh.remove_degenerated_triangles(merged)
+
+    # Remove duplicate faces
+    merged, info = pymesh.remove_duplicated_faces(merged)
+
+    # Remove isolated vertices
+    merged, info = pymesh.remove_isolated_vertices(merged)
+
+    # Remove obtuse triangles
+    merged, info = pymesh.remove_obtuse_triangles(merged)
+
+    # Write to file
+    pymesh.meshio.save_mesh(f"{name}.stl", merged)
