@@ -19,6 +19,7 @@ class Cube(Component):
         -----------
         a : float
             The cube side half-length.
+
         centre : Vector3, optional
             The centre point of the cube. The default is Vector3(0,0,0).
         """
@@ -48,6 +49,7 @@ class Sphere(Component):
         -----------
         r : float
             The radius of the sphere.
+
         centre : Vector3
             The centre point of the sphere. The default is Vector3(0,0,0).
         """

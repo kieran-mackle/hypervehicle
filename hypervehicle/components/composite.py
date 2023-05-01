@@ -59,20 +59,25 @@ class CompositeComponent(Component):
         ----------
         component : Component
             The component to add.
+
         reflection_axis : str, optional
             Include a reflection of the component about the axis specified
             (eg. 'x', 'y' or 'z'). The default is None.
+
         append_reflection : bool, optional
             When reflecting a new component, add the reflection to the existing
             component, rather than making it a new component. The default is True.
+
         curvatures : List[Tuple[str, Callable, Callable]], optional
             A list of the curvatures to apply to the component being added.
             This list contains a tuple for each curvature. Each curvatue
             is defined by (axis, curve_func, curve_func_derivative).
             The default is None.
+
         clustering : Dict[str, float], optional
             Optionally provide clustering options for the stl meshes. The
             default is None.
+
         transformations : List[Tuple[str, Any]], optional
             A list of transformations to apply to the nominal component. The
             default is None

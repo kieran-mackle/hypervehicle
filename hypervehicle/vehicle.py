@@ -124,6 +124,10 @@ class Vehicle:
             A function which accepts x,y,z coordinates and returns a Vector3
             object with a positional offset. This function is used with an
             OffsetPatchFunction. The default is None.
+
+        See Also
+        --------
+        Vehicle.add_vehicle_transformations
         """
         if component.componenttype in Vehicle.ALLOWABLE_COMPONENTS:
             # Overload component verbosity
