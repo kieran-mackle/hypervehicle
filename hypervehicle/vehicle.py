@@ -1,8 +1,9 @@
 import os
 import pandas as pd
 from art import tprint, art
+from hypervehicle import utilities
 from hypervehicle.components.component import Component
-from typing import List, Tuple, Callable, Dict, Any, Optional
+from typing import List, Tuple, Callable, Dict, Any, Optional, Union
 from hypervehicle.components.constants import (
     FIN_COMPONENT,
     WING_COMPONENT,
@@ -86,12 +87,15 @@ class Vehicle:
         ----------
         component : Component
             The component to add.
+
         name : str, optional
             The name to assign to this component. If provided, it will be used when
             writing to STL. The default is None.
+
         reflection_axis : str, optional
             Include a reflection of the component about the axis specified
             (eg. 'x', 'y' or 'z'). The default is None.
+
         append_reflection : bool, optional
             When reflecting a new component, add the reflection to the existing
             component, rather than making it a new component. This is recommended
@@ -101,17 +105,21 @@ class Vehicle:
             copy.deepcopy to make a copy of the reflected component when adding it
             to the vehicle. See the finner example in the hypervehicle hangar.
             The default is True.
+
         curvatures : List[Tuple[str, Callable, Callable]], optional
             A list of the curvatures to apply to the component being added.
             This list contains a tuple for each curvature. Each curvatue
             is defined by (axis, curve_func, curve_func_derivative).
             The default is None.
+
         clustering : Dict[str, float], optional
             Optionally provide clustering options for the stl meshes. See
             parametricSurfce2stl for more information. The default is None.
+
         transformations : List[Tuple[str, Any]], optional
             A list of transformations to apply to the nominal component. The
             default is None.
+
         modifier_function : Callable, optional
             A function which accepts x,y,z coordinates and returns a Vector3
             object with a positional offset. This function is used with an
@@ -162,11 +170,17 @@ class Vehicle:
                 # Assign component name
                 component.name = name
             else:
-                name = f"{component.componenttype}_{component_count}"
+                # No name provided, check component name
+                if component.name:
+                    # Use component name
+                    name = component.name
+                else:
+                    # Generate default name
+                    name = f"{component.componenttype}_{component_count}"
             self._named_components[name] = component
 
             if self.verbosity > 1:
-                print(f"Added new {component.componenttype} component.")
+                print(f"Added new {component.componenttype} component ({name}).")
 
         else:
             raise Exception(f"Unrecognised component type: {component.componenttype}")
@@ -222,9 +236,19 @@ class Vehicle:
         self, transformations: List[Tuple[str, Any]]
     ) -> None:
         """Add transformations to apply to the vehicle after running generate().
-        Each transformation in the list should be of the form (type, *args), where
-        type can be "rotate" or "translate". The *args for rotate are angle: float
-        and axis: str. The *args for translate are offset: Union[Callable, Vector3].
+        Each transformation in the list should be a tuple of the form
+        (transform_type, *args), where transform_type can be "rotate", or
+        "translate". Note that transformations can be chained.
+
+        Extended Summary
+        ----------------
+        - "rotate" : rotate the entire vehicle. The *args for rotate are
+        angle (float) and axis (str). For example: `[("rotate", 180, "x"),
+        ("rotate", 90, "y")]`.
+
+        - "translate" : translate the entire vehicle. The *args for translate
+        includes the translational offset, specified either as a function (Callable),
+        or as Vector3 object.
         """
         # Check input
         if isinstance(transformations, tuple):
@@ -248,13 +272,7 @@ class Vehicle:
         self._analyse_on_generation = densities
 
     def transform(self, transformations: List[Tuple[str, Any]]) -> None:
-        """Transform vehicle by applying the tranformations. Currently
-        only supports rotations.
-
-        To rotate 180 degrees about the x axis, followed by 90 degrees
-        about the y axis, transformations = [("rotate", 180, "x"),
-        ("rotate", 90, "y")].
-        """
+        """Transform vehicle by applying the tranformations."""
         if not self._generated:
             raise Exception("Vehicle has not been generated yet.")
 
@@ -273,7 +291,7 @@ class Vehicle:
             component.surfaces = None
             component.mesh = None
 
-    def to_stl(self, prefix: str = None) -> None:
+    def to_stl(self, prefix: str = None, merge: Union[bool, List[str]] = False) -> None:
         """Writes the vehicle components to STL file. If analysis results are
         present, they will also be written to file, either as CSV, or using
         the Numpy tofile method.
@@ -286,7 +304,18 @@ class Vehicle:
             provided will take precedence. If no prefix is specified, and no
             component name tag is available, the Vehicle name will be used.
             The default is None.
+
+        merge : [bool, list[str]], optional
+            Merge components of the vehicle into a single STL file. The merge
+            argument can either be a boolean (with True indicating to merge all
+            components of the vehicle), or a list of the component names to
+            merge. This functionality depends on PyMesh. The default is False.
+
+        See Also
+        --------
+        utilities.merge_stls
         """
+
         if self.verbosity > 0:
             s = "Writing vehicle components to STL"
             if prefix:
@@ -355,6 +384,21 @@ class Vehicle:
                 os.path.join(properties_dir, f"{prefix}_properties.csv")
             )
 
+        # Merge STL components
+        if merge:
+            if isinstance(merge, list):
+                # Merge specified components
+                raise NotImplementedError(
+                    "Merging components by name not yet implemented."
+                )
+
+            else:
+                # Merge all components
+                if not prefix:
+                    prefix = self.name
+                filenames = [f"{n}.stl" for n in self._named_components.keys()]
+                utilities.merge_stls(stl_files=filenames, name=prefix)
+
         if self.verbosity > 0:
             print("\rAll components written to STL file format.", end="\n")
 
@@ -373,10 +417,13 @@ class Vehicle:
         -------
         total_volume : float
             The total volume.
+
         total_mass : float
             The toal mass.
+
         composite_cog : np.array
             The composite center of gravity.
+
         composite_inertia : np.array
             The composite mass moment of inertia.
         """
