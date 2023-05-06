@@ -127,6 +127,9 @@ class Component(AbstractComponent):
         self._reflection_axis = None
         self._append_reflection = True
 
+        # Ghost component
+        self._ghost = False
+
         # Component name
         self.name = name
 
@@ -283,20 +286,21 @@ class Component(AbstractComponent):
             grid.write_to_vtk_file(f"{self.vtk_filename}-wing_{key}.vtk")
 
     def to_stl(self, outfile: str = None):
-        if self.verbosity > 1:
-            print("Writing patches to STL format. ")
+        if not self._ghost:
+            if self.verbosity > 1:
+                print("Writing patches to STL format. ")
+                if outfile is not None:
+                    print(f"Output file = {outfile}.")
+
+            # Get mesh
+            stl_mesh = self.mesh
+
             if outfile is not None:
-                print(f"Output file = {outfile}.")
+                # Write STL to file
+                stl_mesh.save(outfile)
 
-        # Get mesh
-        stl_mesh = self.mesh
-
-        if outfile is not None:
-            # Write STL to file
-            stl_mesh.save(outfile)
-
-            # Clean it
-            pymeshfix.clean_from_file(outfile, outfile)
+                # Clean it
+                pymeshfix.clean_from_file(outfile, outfile)
 
     def analyse(self):
         # Get mass properties

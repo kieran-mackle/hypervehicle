@@ -80,6 +80,7 @@ class Vehicle:
         clustering: Dict[str, float] = None,
         transformations: List[Tuple[str, Any]] = None,
         modifier_function: Optional[Callable] = None,
+        ghost: Optional[bool] = False,
     ) -> None:
         """Adds a new component to the vehicle.
 
@@ -125,6 +126,10 @@ class Vehicle:
             object with a positional offset. This function is used with an
             OffsetPatchFunction. The default is None.
 
+        ghost : bool, optional
+            Add a ghost component. When True, this component will be excluded
+            from the files written to STL.
+
         See Also
         --------
         Vehicle.add_vehicle_transformations
@@ -158,6 +163,9 @@ class Vehicle:
             # Add modifier function
             if modifier_function is not None:
                 component._modifier_function = modifier_function
+
+            # Ghost component
+            component._ghost = ghost
 
             # Add component
             self.components.append(component)
