@@ -28,17 +28,23 @@ def parametricSurfce2stl(
     ----------
         parametric_surface : Any
             The parametric surface object.
+
         si : float, optional
             The clustering in the i-direction. The default is 1.0.
+
         sj : float, optional
             The clustering in the j-direction. The default is 1.0.
+
         triangles_per_edge : int
             The resolution for the stl object.
+
         mirror_y : bool, optional
             Create mirror image about x-z plane. The default is False.
+
         i_clustering_func : callable, optional
             A custom clustering function to apply in the i direction.
             The default is None.
+
         j_clustering_func : callable, optional
             A custom clustering function to apply in the j direction.
             The default is None.
@@ -280,25 +286,28 @@ class SensitivityStudy:
         parameter_dict : dict
             A dictionary of the design parameters to perturb, and their
             nominal values.
+
         perturbation : float, optional
             The design parameter perturbation amount, specified as percentage.
             The default is 20.
+
         vehicle_creator_method : str, optional
             The name of the method which returns a hypervehicle.Vehicle
             instance, ready for generation. The default is 'create_instance'.
+
         write_nominal_stl : bool, optional
             A boolean flag to write the nominal geometry STL(s) to file. The
             default is True.
+
         nominal_stl_prefix : str, optional
             The prefix to append when writing STL files for the nominal geometry.
             If None, no prefix will be used. The default is None.
 
         Returns
         -------
-        sensitivities : TYPE
+        sensitivities : dict
             A dictionary containing the sensitivity information for all
             components of the geometry, relative to the nominal geometry.
-
         """
         # TODO - return perturbed instances? After generatation to allow
         # quickly writing to STL
@@ -483,11 +492,15 @@ class SensitivityStudy:
 
         Parameters
         ----------
-        mesh1 : None
+        mesh1 : Mesh
             The reference mesh.
-        mesh1 : None
+
+        mesh1 : Mesh
             The perturbed mesh.
-        dp : None
+
+        dp : float
+            The parameter perturbation.
+
         parameter_name : str
             The name of the parameter.
 
@@ -568,14 +581,18 @@ def append_sensitivities_to_tri(
     ----------
     dp_files : list[str]
         A list of the file names of the sensitivity data.
+
     components_filepath : str, optional
         The filepath to the .tri file to be appended to. The default is
         'Components.i.tri'.
+
     match_tolerance : float, optional
         The precision tolerance for matching point coordinates. The
         default is 1e-5.
+
     rounding_tolerance : float, optional
         The tolerance to round data off to. The default is 1e-8.
+
     outdir : str, optional
         The output directory to write the combined sensitivity file to. If
         None, the current working directory will be used. The default
