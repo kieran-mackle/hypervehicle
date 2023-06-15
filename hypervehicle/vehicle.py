@@ -1,6 +1,5 @@
 import os
 import pandas as pd
-from art import tprint, art
 from hypervehicle import utilities
 from hypervehicle.components.component import Component
 from typing import List, Tuple, Callable, Dict, Any, Optional, Union
@@ -43,7 +42,7 @@ class Vehicle:
         self._generated = False
         self._component_counts = {}
         self._enumerated_components = {}
-        self._named_components = {}
+        self._named_components: dict[str, Component] = {}
         self._vehicle_transformations = []
         self._analyse_on_generation = None
 
@@ -200,9 +199,7 @@ class Vehicle:
     def generate(self):
         """Generate all components of the vehicle."""
         if self.verbosity > 0:
-            tprint("Hypervehicle", "tarty4")
-            p = art("airplane2")
-            print(f" {p}               {p}               {p}               {p}")
+            utilities.print_banner()
             print("Generating component patches.")
 
         for component in self.components:
@@ -481,3 +478,12 @@ class Vehicle:
         float property types.
         """
         self.properties[name] = value
+
+    def get_non_ghost_components(self) -> dict[str, Component]:
+        """Returns all non-ghost components."""
+        non_ghost = {}
+        for name, comp in self._named_components.items():
+            if not comp._ghost:
+                # Append
+                non_ghost[name] = comp
+        return non_ghost
