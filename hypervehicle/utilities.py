@@ -812,7 +812,7 @@ def convert_all_csv_to_delaunay(directory: str = ""):
 
 def merge_stls(
     stl_files: List[str], name: Optional[str] = None, verbosity: Optional[int] = 1
-):
+) -> str:
     """Merge STL files into a single file. Note that this function
     depends on having PyMesh installed.
 
@@ -826,6 +826,11 @@ def merge_stls(
 
     verbosity : int, optional
         The function verbosity. The default is 1.
+
+    Returns
+    -------
+    outfile : str
+        The filename of the merged STL.
     """
     # Import PyMesh
     try:
@@ -876,10 +881,13 @@ def merge_stls(
     if verbosity > 1:
         print("Saving merged STL mesh...")
     name = "combined_mesh" if name is None else name
-    pymesh.meshio.save_mesh(f"{name}.stl", merged)
+    outfile = f"{name}.stl"
+    pymesh.meshio.save_mesh(outfile, merged)
 
     if verbosity > 0:
-        print(f"Done. Merged STLs written to '{name}.stl'.")
+        print(f"Done. Merged STLs written to '{outfile}'.")
+
+    return outfile
 
 
 def print_banner():
