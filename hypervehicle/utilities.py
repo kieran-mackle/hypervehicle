@@ -810,7 +810,9 @@ def convert_all_csv_to_delaunay(directory: str = ""):
         csv_to_delaunay(file)
 
 
-def merge_stls(stl_files: List[str], name: Optional[str] = None):
+def merge_stls(
+    stl_files: List[str], name: Optional[str] = None, verbosity: Optional[int] = 1
+):
     """Merge STL files into a single file. Note that this function
     depends on having PyMesh installed.
 
@@ -821,6 +823,9 @@ def merge_stls(stl_files: List[str], name: Optional[str] = None):
 
     name : str, optional
         The prefix of the combined STL filename output.
+
+    verbosity : int, optional
+        The function verbosity. The default is 1.
     """
     # Import PyMesh
     try:
@@ -833,29 +838,48 @@ def merge_stls(stl_files: List[str], name: Optional[str] = None):
         )
 
     # Load STL files
+    if verbosity > 1:
+        print("Loading STLs...")
     meshes = [pymesh.meshio.load_mesh(f) for f in stl_files]
 
     # Merge meshes
+    if verbosity > 0:
+        print("Merging STLs...")
     merged = pymesh.merge_meshes(meshes)
 
     # Resolve self-intersections
+    if verbosity > 1:
+        print("Resolving self intersections...")
     merged = pymesh.resolve_self_intersection(merged)
 
     # Remove degenerate triangles
+    if verbosity > 1:
+        print("Removing degenerate triangles...")
     merged, info = pymesh.remove_degenerated_triangles(merged)
 
     # Remove duplicate faces
+    if verbosity > 1:
+        print("Removing duplicated faces...")
     merged, info = pymesh.remove_duplicated_faces(merged)
 
     # Remove isolated vertices
+    if verbosity > 1:
+        print("Removing isolated vertices...")
     merged, info = pymesh.remove_isolated_vertices(merged)
 
     # Remove obtuse triangles
+    if verbosity > 1:
+        print("Removing obtuse triangles...")
     merged, info = pymesh.remove_obtuse_triangles(merged)
 
     # Write to file
+    if verbosity > 1:
+        print("Saving merged STL mesh...")
     name = "combined_mesh" if name is None else name
     pymesh.meshio.save_mesh(f"{name}.stl", merged)
+
+    if verbosity > 0:
+        print(f"Done. Merged STLs written to '{name}.stl'.")
 
 
 def print_banner():
