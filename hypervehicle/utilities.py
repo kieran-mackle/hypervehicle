@@ -6,6 +6,7 @@ import numpy as np
 import pandas as pd
 from stl import mesh
 from tqdm import tqdm
+from art import tprint, art
 import xml.etree.ElementTree as ET
 from typing import Dict, List, Optional
 
@@ -245,7 +246,7 @@ class SensitivityStudy:
     Computes the geometric sensitivities using finite differencing.
     """
 
-    def __init__(self, vehicle_constructor, verbosity: int = 1):
+    def __init__(self, vehicle_constructor, verbosity: Optional[int] = 1):
         """Vehicle geometry sensitivity constructor.
 
         Parameters
@@ -253,10 +254,12 @@ class SensitivityStudy:
         vehicle_constructor : AbstractGenerator
             The Vehicle instance constructor.
 
+        verbosity : int, optional
+            The code verbosity. The default is 1.
+
         Returns
         -------
         VehicleSensitivity object.
-
         """
         self.vehicle_constructor = vehicle_constructor
         self.verbosity = verbosity
@@ -267,6 +270,9 @@ class SensitivityStudy:
         self.component_scalar_sensitivities = None
         self.scalar_sensitivities = None
         self.property_sensitivities = None
+
+        # Nominal vehicle instance
+        self.nominal_vehicle_instance = None
 
     def __repr__(self):
         return "HyperVehicle sensitivity study"
@@ -309,6 +315,9 @@ class SensitivityStudy:
             A dictionary containing the sensitivity information for all
             components of the geometry, relative to the nominal geometry.
         """
+        # Print banner
+        print_banner()
+
         # TODO - return perturbed instances? After generatation to allow
         # quickly writing to STL
         from hypervehicle.generator import AbstractGenerator
@@ -409,6 +418,7 @@ class SensitivityStudy:
         self.component_scalar_sensitivities = component_analysis_sens
         self.property_sensitivities = property_sens
         self.component_sensitivities = self._combine(nominal_instance, sensitivities)
+        self.nominal_vehicle_instance = nominal_instance
 
         return sensitivities
 
@@ -422,9 +432,12 @@ class SensitivityStudy:
             None, the current working directory will be used. The default
             is None.
         """
+        # Check if sensitivities have been generated
         if self.component_sensitivities is None:
             raise Exception("Sensitivities have not yet been generated.")
+
         else:
+            # Check output directory
             if outdir is None:
                 outdir = os.getcwd()
 
@@ -432,10 +445,18 @@ class SensitivityStudy:
                 # Make the directory
                 os.mkdir(outdir)
 
+            # Save sensitivity data for each component
+            all_sens_data = pd.DataFrame()
             for component, df in self.component_sensitivities.items():
                 df.to_csv(
                     os.path.join(outdir, f"{component}_sensitivity.csv"), index=False
                 )
+                all_sens_data = pd.concat([all_sens_data, df])
+
+            # Also save the combined sensitivity data
+            all_sens_data.to_csv(
+                os.path.join(outdir, "all_components_sensitivity.csv"), index=False
+            )
 
             # Also save analysis sensitivities
             if self.scalar_sensitivities:
@@ -835,3 +856,10 @@ def merge_stls(stl_files: List[str], name: Optional[str] = None):
     # Write to file
     name = "combined_mesh" if name is None else name
     pymesh.meshio.save_mesh(f"{name}.stl", merged)
+
+
+def print_banner():
+    """Prints the hypervehicle banner"""
+    tprint("Hypervehicle", "tarty4")
+    p = art("airplane2")
+    print(f" {p}               {p}               {p}               {p}")
