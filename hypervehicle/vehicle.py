@@ -408,7 +408,13 @@ class Vehicle:
                 # Merge all components
                 if not prefix:
                     prefix = self.name
-                filenames = [f"{n}.stl" for n in self._named_components.keys()]
+
+                # Get component names (excluding ghost components)
+                filenames = []
+                for name, comp in self._named_components.items():
+                    if not comp._ghost:
+                        # Append
+                        filenames.append(f"{name}.stl")
                 utilities.merge_stls(stl_files=filenames, name=prefix)
 
         if self.verbosity > 0:
