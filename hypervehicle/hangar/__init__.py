@@ -7,3 +7,4 @@ from .refex import ParametricReFEX
 from .wedge import ParametricWedge
 from .x43 import ParametricX43
 from .finner import ParametricFinner
+from .waverider import ParametricWaverider

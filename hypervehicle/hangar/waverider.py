@@ -23,6 +23,25 @@ class ParametricWaverider(Generator):
 
         Parameters
         ----------
+        length : float, optional
+            The vehicle length. The default is 1.
+
+        width : float, optional
+            The vehicle width. The default is 0.35.
+
+        aoa : float, optional
+            The vehicle angle of attack, specified in degrees. The default is
+            3.0.
+
+        fuse_stl_res : float, optional
+            The STL resolution of the fuselage. The default is 30.
+
+        wing_stl_res : float, optional
+            The STL resolution of the wings. The default is 5.
+
+        fin_stl_res : float, optional
+            The STL resolution of the fins. The default is 4.
+
         f1x : float, optional
             Fuselage control point.
 
@@ -98,9 +117,9 @@ class ParametricWaverider(Generator):
         self.le_width = 0.003  # width of LE
         self.LE_thickness = 0.003
         self.aoa = 3.0
-        self.fuse_stl_res = 20
-        self.wing_stl_res = 3
-        self.fin_stl_res = 2
+        self.fuse_stl_res = 30
+        self.wing_stl_res = 5
+        self.fin_stl_res = 4
 
         # Fuselage control points
         body_radius = 0.075  # For manual control/development
