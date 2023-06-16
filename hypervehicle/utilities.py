@@ -319,7 +319,9 @@ class SensitivityStudy:
             components of the geometry, relative to the nominal geometry.
         """
         # Print banner
-        print_banner()
+        if self.verbosity > 0:
+            print_banner()
+            print("Running geometric sensitivity study.")
 
         # TODO - return perturbed instances? After generatation to allow
         # quickly writing to STL
@@ -327,7 +329,7 @@ class SensitivityStudy:
 
         # Create Vehicle instance with nominal parameters
         if self.verbosity > 0:
-            print("Generating nominal geometry...")
+            print("  Generating nominal geometry...")
 
         constructor_instance: AbstractGenerator = self.vehicle_constructor(
             **parameter_dict
@@ -343,7 +345,7 @@ class SensitivityStudy:
         }
 
         if self.verbosity > 0:
-            print("  Done.")
+            print("    Done.")
 
         if write_nominal_stl:
             # Write nominal instance to STL files
@@ -351,7 +353,7 @@ class SensitivityStudy:
 
         # Generate meshes for each parameter
         if self.verbosity > 0:
-            print("Generating perturbed geometries...")
+            print("  Generating perturbed geometries...")
 
         sensitivities = {}
         analysis_sens = {}
@@ -413,7 +415,7 @@ class SensitivityStudy:
                 sensitivities[parameter][component] = sensitivity_df
 
         if self.verbosity > 0:
-            print("  Done.")
+            print("    Done.")
 
         # Return output
         self.parameter_sensitivities = sensitivities
@@ -422,6 +424,9 @@ class SensitivityStudy:
         self.property_sensitivities = property_sens
         self.component_sensitivities = self._combine(nominal_instance, sensitivities)
         self.nominal_vehicle_instance = nominal_instance
+
+        if self.verbosity > 0:
+            print("Sensitivity study complete.")
 
         return sensitivities
 
@@ -856,6 +861,9 @@ def merge_stls(
             + "installation instructions at "
             + "https://pymesh.readthedocs.io/en/latest/installation.html"
         )
+
+    if verbosity > 0:
+        print("")
 
     # Load STL files
     if verbosity > 1:
