@@ -274,6 +274,9 @@ class SensitivityStudy:
         # Nominal vehicle instance
         self.nominal_vehicle_instance = None
 
+        # Combined data file name
+        self.combined_fn = "all_components_sensitivity.csv"
+
     def __repr__(self):
         return "HyperVehicle sensitivity study"
 
@@ -431,6 +434,11 @@ class SensitivityStudy:
             The output directory to write the sensitivity files to. If
             None, the current working directory will be used. The default
             is None.
+
+        Returns
+        -------
+        combined_data_filepath : str
+            The filepath to the combined sensitivity data.
         """
         # Check if sensitivities have been generated
         if self.component_sensitivities is None:
@@ -454,9 +462,8 @@ class SensitivityStudy:
                 all_sens_data = pd.concat([all_sens_data, df])
 
             # Also save the combined sensitivity data
-            all_sens_data.to_csv(
-                os.path.join(outdir, "all_components_sensitivity.csv"), index=False
-            )
+            combined_data_path = os.path.join(outdir, self.combined_fn)
+            all_sens_data.to_csv(combined_data_path, index=False)
 
             # Also save analysis sensitivities
             if self.scalar_sensitivities:
@@ -505,6 +512,8 @@ class SensitivityStudy:
                 pd.DataFrame(self.property_sensitivities).to_csv(
                     os.path.join(properties_dir, "property_sensitivity.csv")
                 )
+
+            return combined_data_path
 
     @staticmethod
     def _compare_meshes(mesh1, mesh2, dp, parameter_name: str) -> pd.DataFrame:
@@ -590,11 +599,12 @@ class SensitivityStudy:
 
 def append_sensitivities_to_tri(
     dp_filenames: List[str],
-    components_filepath: str = "Components.i.tri",
-    match_tolerance: float = 1e-5,
-    rounding_tolerance: float = 1e-8,
-    verbosity: int = 1,
+    components_filepath: Optional[str] = "Components.i.tri",
+    match_tolerance: Optional[float] = 1e-5,
+    rounding_tolerance: Optional[float] = 1e-8,
+    combined_sens_fn: Optional[str] = "all_components_sensitivity.csv",
     outdir: Optional[str] = None,
+    verbosity: Optional[int] = 1,
 ) -> float:
     """Appends shape sensitivity data to .i.tri file.
 
@@ -614,10 +624,17 @@ def append_sensitivities_to_tri(
     rounding_tolerance : float, optional
         The tolerance to round data off to. The default is 1e-8.
 
+    combined_sens_fn : str, optional
+        The filename of the combined geometry sensitivity data. The default
+        is "all_components_sensitivity.csv".
+
     outdir : str, optional
         The output directory to write the combined sensitivity file to. If
         None, the current working directory will be used. The default
         is None.
+
+    verbosity : int, optional
+        The verbosity of the code. The defualt is 1.
 
     Returns
     ---------
@@ -657,7 +674,7 @@ def append_sensitivities_to_tri(
 
     # Ensure previous components sensitivity file is not included
     try:
-        del dp_filenames[dp_filenames.index("all_components_sensitivity.csv")]
+        del dp_filenames[dp_filenames.index(combined_sens_fn)]
     except ValueError:
         # It is not in there
         pass
@@ -739,9 +756,7 @@ def append_sensitivities_to_tri(
         left_index=True,
         right_index=True,
     ).drop("index", axis=1)
-    combined_sense.to_csv(
-        os.path.join(outdir, "all_components_sensitivity.csv"), index=False
-    )
+    combined_sense.to_csv(os.path.join(outdir, combined_sens_fn), index=False)
 
     # Write the matched sensitivity df to i.tri file as new xml element
     # NumberOfComponents is how many sensitivity components there are (3 for x,y,z)
