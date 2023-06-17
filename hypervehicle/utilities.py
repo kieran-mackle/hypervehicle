@@ -282,10 +282,11 @@ class SensitivityStudy:
 
     def dvdp(
         self,
-        parameter_dict: dict,
-        perturbation: float = 5,
-        write_nominal_stl: bool = True,
-        nominal_stl_prefix: str = None,
+        parameter_dict: dict[str, any],
+        overrides: Optional[dict[str, any]] = None,
+        perturbation: Optional[float] = 5,
+        write_nominal_stl: Optional[bool] = True,
+        nominal_stl_prefix: Optional[str] = None,
     ):
         """Computes the sensitivity of the geometry with respect to the
         parameters.
@@ -295,6 +296,10 @@ class SensitivityStudy:
         parameter_dict : dict
             A dictionary of the design parameters to perturb, and their
             nominal values.
+
+        overrides : dict, optional
+            Optional vehicle generator overrides to provide along with the
+            parameter dictionary without variation. The default is None.
 
         perturbation : float, optional
             The design parameter perturbation amount, specified as percentage.
@@ -327,12 +332,15 @@ class SensitivityStudy:
         # quickly writing to STL
         from hypervehicle.generator import AbstractGenerator
 
+        # Check overrides
+        overrides = overrides if overrides else {}
+
         # Create Vehicle instance with nominal parameters
         if self.verbosity > 0:
             print("  Generating nominal geometry...")
 
         constructor_instance: AbstractGenerator = self.vehicle_constructor(
-            **parameter_dict
+            **parameter_dict, **overrides
         )
         nominal_instance = constructor_instance.create_instance()
         nominal_instance.verbosity = 0
@@ -370,7 +378,9 @@ class SensitivityStudy:
             dp = adjusted_parameters[parameter] - value
 
             # Create Vehicle instance with perturbed parameter
-            constructor_instance = self.vehicle_constructor(**adjusted_parameters)
+            constructor_instance = self.vehicle_constructor(
+                **adjusted_parameters, **overrides
+            )
             parameter_instance = constructor_instance.create_instance()
             parameter_instance.verbosity = 0
 
