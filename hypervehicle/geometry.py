@@ -805,7 +805,7 @@ class CuboidPatch(ParametricSurface):
         z_cube = z * self.c + self.centre.z
 
         return Vector3(x=x_cube, y=y_cube, z=z_cube)
-    
+
 
 class CubePatch(CuboidPatch):
     """Creates a cube face patch for a cube of length
@@ -843,8 +843,8 @@ class FacePatchRough(ParametricSurface):
         "roughnessData",
         "lambda_0",
         "roughness_height",
-        "roll_off" 
-    ] # TODO: Add roughness information.
+        "roll_off",
+    ]  # TODO: Add roughness information.
 
     def __init__(
         self, a, b, c, centre, face, roughnessData, lambda_0, roughness_height, roll_off
@@ -871,7 +871,7 @@ class FacePatchRough(ParametricSurface):
         row = 0
         for m in range(self.ny):
             for n in range(self.nx):
-                row=row+1
+                row = row + 1
                 self.amp[n, m] = roughnessData[row, 0]
                 self.phase[n, m] = roughnessData[row, 1]
 
@@ -891,8 +891,8 @@ class FacePatchRough(ParametricSurface):
         for n in range(self.ny):
             for m in range(self.nx):
                 h = h + self.amp[n, m] * np.cos(
-                    2*np.pi*m * x/self.lambda_0
-                    + 2*np.pi*n * y/self.lambda_0
+                    2 * np.pi * m * x / self.lambda_0
+                    + 2 * np.pi * n * y / self.lambda_0
                     + self.phase[n, m]
                 )
         return h

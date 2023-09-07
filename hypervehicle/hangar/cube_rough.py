@@ -68,10 +68,8 @@ class CuboidRough(Component):
             self.roughness_data,
             self.lambda_0,
             self.roughness_height,
-            self.roll_off
+            self.roll_off,
         )
-
-
 
 
 if __name__ == "__main__":
@@ -99,28 +97,28 @@ if __name__ == "__main__":
 
         case "cuboid_rough":
             print(f"    Example - Cuboid with 'rough' top surface")
-            a = 0.08/2
-            b = 0.08/2
+            a = 0.08 / 2
+            b = 0.08 / 2
             c = 0.005
             print(f"    Cuboid Dimensions a={a}, b={b}, c={c}")
             body = CuboidRough(a=a, b=b, c=c, stl_resolution=30)
-            
+
             roughness_height = 0.005
             lambda_0 = 0.04  # [m] - length of longest frequency to be included
-            roll_off = 0.01  # [m] - distance over which stencil rolls off 
- 
+            roll_off = 0.01  # [m] - distance over which stencil rolls off
+
             roughness_data = np.array(
                 [
                     [3, 3],
-                    [0.23858489823E+00, 0.76882559458E+00],
-                    [0.13405469344E+00, 0.32250873843E+01],
-                    [0.37001241020E+00, 0.39367026114E+01],
-                    [0.77008101266E-01, 0.13989718680E+01],
-                    [0.36533620243E+00, 0.37127829101E+01],
-                    [0.00000000000E+00, 0.13001876919E+01],
-                    [0.28378862436E+00, 0.21209129392E+00],
-                    [0.00000000000E+00, 0.44289617133E+01],
-                    [0.00000000000E+00, 0.55468162808E+01]
+                    [0.23858489823e+00, 0.76882559458e+00],
+                    [0.13405469344e+00, 0.32250873843e+01],
+                    [0.37001241020e+00, 0.39367026114e+01],
+                    [0.77008101266e-01, 0.13989718680e+01],
+                    [0.36533620243e+00, 0.37127829101e+01],
+                    [0.00000000000e+00, 0.13001876919e+01],
+                    [0.28378862436e+00, 0.21209129392e+00],
+                    [0.00000000000e+00, 0.44289617133e+01],
+                    [0.00000000000e+00, 0.55468162808e+01],
                 ]
             )
 
