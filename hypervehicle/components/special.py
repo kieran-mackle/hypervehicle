@@ -61,7 +61,7 @@ class Cuboid(Component):
         b : float
             The cuboid y-side half-length.
         c : float
-            The cuboid z-side half-length.    
+            The cuboid z-side half-length.
         centre : Vector3, optional
             The centre point of the cube. The default is Vector3(0,0,0).
         """
