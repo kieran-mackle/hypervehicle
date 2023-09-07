@@ -749,21 +749,23 @@ class MirroredPatch(ParametricSurface):
         return Vector3(x=x, y=y, z=z)
 
 
-class CubePatch(ParametricSurface):
-    """Creates a cube face patch for a cube of length
-    2a about the Vector3 centre.
+class CuboidPatch(ParametricSurface):
+    """Creates a face patch for a rectangualr Cuboid with
+    (l x w x h) 2a * 2b * 2c about the Vector3 centre.
     """
 
-    __slots__ = ["a", "centre", "face"]
+    __slots__ = ["a", "b", "c", "centre", "face"]
 
-    def __init__(self, a, centre, face):
+    def __init__(self, a, b, c, centre, face):
         self.a = a
+        self.b = b
+        self.c = c
         self.face = face
         self.centre = centre
 
     def __repr__(self):
-        return "Cube: a = {}, centre = {}".format(
-            self.r, self.centre
+        return "Cuboid: a = {}, b ={}, c = {}, centre = {}".format(
+            self.a, self.b, self.c, self.centre
         ) + "face = {}".format(self.face)
 
     def __call__(self, r, s):
@@ -799,10 +801,141 @@ class CubePatch(ParametricSurface):
             )
 
         x_cube = x * self.a + self.centre.x
-        y_cube = y * self.a + self.centre.y
-        z_cube = z * self.a + self.centre.z
+        y_cube = y * self.b + self.centre.y
+        z_cube = z * self.c + self.centre.z
 
         return Vector3(x=x_cube, y=y_cube, z=z_cube)
+    
+
+class CubePatch(CuboidPatch):
+    """Creates a cube face patch for a cube of length
+    2a about the Vector3 centre.
+    """
+
+    __slots__ = ["a", "centre", "face"]
+
+    def __init__(self, a, centre, face):
+        self.a = a
+        self.b = a
+        self.c = a
+        self.face = face
+        self.centre = centre
+
+    def __repr__(self):
+        return "Cube: a = {}, centre = {}".format(
+            self.a, self.centre
+        ) + "face = {}".format(self.face)
+
+
+class FacePatchRough(ParametricSurface):
+    """Creates a face patch for a cube/rectangle with dimensions 
+    (l x w x h) 2a x 2b x 2c about the Vector3 centre. 
+    Adds a prescribed (designed) roughness to the patch.
+    Only supports 'top' patch option.
+    """
+
+    __slots__ = ["a", "b", "c", "centre", "face", "roughnessData", "lambda_0", "roughness_height", "roll_off" ] # TODO: Add roughness information.
+
+    def __init__(self, a, b, c, centre, face, roughnessData, lambda_0, roughness_height, roll_off):
+        self.a = a
+        self.b = b
+        self.c = c
+        self.centre = centre
+        self.face = face
+        self.roughnessData = roughnessData
+        self.lambda_0 = lambda_0
+        self.roughness_height = roughness_height
+        self.roll_off = roll_off
+        if not self.face == "top":
+            raise Exception("CubePatchRough is only supported for 'top' patches on a cube. Bailing Out!")
+
+        # load amp and phase values from roughnessData table  
+        self.nx = int(roughnessData[0, 0])
+        self.ny = int(roughnessData[0, 1])
+        self.amp = np.zeros([self.nx, self.ny])
+        self.phase = np.zeros([self.nx, self.ny])
+        row=0
+        for m in range(self.ny):
+            for n in range(self.nx):
+                row=row+1
+                self.amp[n, m] = roughnessData[row, 0]
+                self.phase[n, m] = roughnessData[row, 1]
+
+    def __repr__(self):
+        return "Face: a = {}, b = {}, centre = {}".format(
+            self.a, self.b, self.centre) \
+            + "face = {}".format(self.face) \
+            + "roughnessData = {}".format(self.roughnessData) \
+            + "lambda_0 = {}, roughness_height = {}, roll_off = {}".format(
+            self.lambda_0, self.roughness_height, self.roll_off)
+
+    def roughnessFunction(self, x, y):
+        # function to return local roughness
+        h = 0
+        for n in range(self.ny):
+            for m in range(self.nx):
+                h = h + self.amp[n, m] * np.cos(2*np.pi*m * x/self.lambda_0
+                                        + 2*np.pi*n * y/self.lambda_0
+                                        + self.phase[n, m])
+        return h
+
+    def stencilFunction(self, x, y):
+        a = self.a
+        b = self.b
+        roll_off = self.roll_off
+        '''function for masking roughness outside of the patch'''
+        # Check if outside 
+        if x <= -a or x >= a:
+            g = 0
+            return g
+        if y <= -b or y >= b:
+            g = 0
+            return g
+        '''
+        # dimensionless boundaries
+        xf = a/lambda_0
+        yf = b/lambda_0
+        if abs(x)/lambda_0 > xf - roll_off:
+            gx = (xf - abs(x)/lambda_0)/roll_off
+        else:
+            gx = 1
+        if abs(y)/lambda_0 > yf - roll_off:
+            gy = (yf - abs(y)/lambda_0)/roll_off
+        else:
+            gy = 1
+        '''
+        if a - abs(x) < roll_off:
+            gx = (a-abs(x))/roll_off
+        else:
+            gx = 1
+        if b - abs(y) < roll_off:
+            gy = (b-abs(y))/roll_off
+        else:
+            gy = 1
+        return gx*gy
+
+    def __call__(self, r, s):
+        if self.face == "top":
+
+            x = (-1.0 + 2.0 * r) * self.a
+            y = (-1.0 + 2.0 * s) * self.b
+
+            h = self.roughnessFunction(x, y)
+            g2 = self.stencilFunction(x, y)
+            h_final = self.roughness_height * h * g2
+            z = h_final + self.c
+            #print(f"here - r={r}, s={s}, z={z}")
+        else:
+            raise ValueError(
+                "Incorrect face name."
+                + "Allowable faces are: top."
+            )
+
+        x_face = x + self.centre.x
+        y_face = y + self.centre.y
+        z_face = z + self.centre.z
+
+        return Vector3(x=x_face, y=y_face, z=z_face)
 
 
 class SpherePatch(ParametricSurface):
