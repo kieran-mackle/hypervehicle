@@ -4,6 +4,7 @@ from hypervehicle.components.constants import CUBE, SPHERE, CUBOID, HEXAHEDRON
 from hypervehicle.geometry import (
     Vector3,
     CubePatch,
+    CuboidPatch,
     SpherePatch,
     RoughnessPatch,
     RoughnessElement,
