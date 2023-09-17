@@ -621,7 +621,12 @@ def append_sensitivities_to_tri(
     outdir: Optional[str] = None,
     verbosity: Optional[int] = 1,
 ) -> float:
-    """Appends shape sensitivity data to .i.tri file.
+    """Appends shape sensitivity data to .i.tri file, and writes the sensitivity
+    data to csv file too. This step is required for geometries with multiple
+    components. The .tri file is used to match individual sensitivity files
+    (dp_filenames) to the geometry. The combined sensitivity file is required
+    to calculate flow sensitivities with the .plt file, which has local flow
+    conditions attached.
 
     Parameters
     ----------
