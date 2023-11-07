@@ -3,6 +3,7 @@ from hypervehicle.components.component import Component
 from hypervehicle.components.constants import (
     FIN_COMPONENT,
     WING_COMPONENT,
+    CANARD_COMPONENT,
     SWEPT_COMPONENT,
     REVOLVED_COMPONENT,
     COMPOSITE_COMPONENT,

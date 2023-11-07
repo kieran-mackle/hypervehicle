@@ -355,10 +355,10 @@ if __name__ == "__main__":
 
     # Assess inertial properties
     densities = {
-        "wing_1": 1680,
-        "wing_2": 5590,
-        "wing_3": 1680,
-        "fin_1": 5590,
-        "fin_2": 5590,
+        "body": 1680,
+        "wing": 5590,
+        "inlet": 1680,
+        "fin1": 5590,
+        "fin2": 5590,
     }
     volume, mass, cog, inertia = x43.analyse(densities)

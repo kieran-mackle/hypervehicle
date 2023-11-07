@@ -1,6 +1,8 @@
 FIN_COMPONENT = "fin"
 WING_COMPONENT = "wing"
+CANARD_COMPONEN = "canard"
 COMPOSITE_COMPONENT = "composite"
+CANARD_COMPONENT = "canard"
 SWEPT_COMPONENT = "swept"
 REVOLVED_COMPONENT = "revolved"
 CUBE = "cube"
