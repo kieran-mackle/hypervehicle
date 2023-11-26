@@ -362,12 +362,16 @@ class SensitivityStudy:
         # Generate meshes for each parameter
         if self.verbosity > 0:
             print("  Generating perturbed geometries...")
+            print("    Parameters: ", parameter_dict.keys())
 
         sensitivities = {}
         analysis_sens = {}
         component_analysis_sens = {}
         property_sens = {}
         for parameter, value in parameter_dict.items():
+            if self.verbosity > 0:
+                print(f"    Generating for {parameter}.")
+
             sensitivities[parameter] = {}
 
             # Create copy
