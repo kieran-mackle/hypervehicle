@@ -14,6 +14,10 @@ x43.generate()
 x43.to_stl()
 ```
 
+## Generic Hypersonic Waverider
+
+![Generic Hypersonic Waverider](images/hangar/waverider.png)
+
 
 ## [X-43A](https://en.wikipedia.org/wiki/NASA_X-43)
 
