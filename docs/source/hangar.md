@@ -22,6 +22,7 @@ x43.to_stl()
 ## [X-43A](https://en.wikipedia.org/wiki/NASA_X-43)
 
 ![X-43A](images/hangar/x43a.png)
+<!-- ![X43](images/x43-flipped.gif) -->
 
 
 ## [HiFIRE4](https://www.dst.defence.gov.au/partnership/hifire-program)

@@ -1,15 +1,14 @@
 <a name="readme-top"></a>
 
-<h1 align="center"><em>HyperVehicle</em></h1>
+<!-- <h1 align="center"><em>HyperVehicle</em></h1> -->
+[![x43](docs/source/images/logo-dark.png)](docs/hangar.md)
 
 A Python package to rapidly generate parametric geometries
 defined by hyperpatches. Check out the 
 [hangar](docs/source/hangar.md) for some examples.
 
-[![x43](docs/source/images/x43.gif)](docs/hangar.md)
 
-
-# 
+<!-- [![x43](docs/source/images/x43.gif)](docs/hangar.md) -->
 
 
 <!-- TABLE OF CONTENTS -->

@@ -1,12 +1,16 @@
-# hypervehicle documentation
+<!-- # HyperVehicle documentation -->
 
+
+```{figure} images/logo-light.png
+:align: center
+:figclass: only-light
 ```
 
-▒█░▒█ █░░█ █▀▀█ █▀▀ █▀▀█ ▀█░█▀ █▀▀ █░░█ ░▀░ █▀▀ █░░ █▀▀ 
-▒█▀▀█ █▄▄█ █░░█ █▀▀ █▄▄▀ ░█▄█░ █▀▀ █▀▀█ ▀█▀ █░░ █░░ █▀▀ 
-▒█░▒█ ▄▄▄█ █▀▀▀ ▀▀▀ ▀░▀▀ ░░▀░░ ▀▀▀ ▀░░▀ ▀▀▀ ▀▀▀ ▀▀▀ ▀▀▀ 
- ✈                ✈                ✈                ✈ 
+```{figure} images/logo-dark.png
+:align: center
+:figclass: only-dark
 ```
+
 
 The *Hypervehicle* Python package provides a versatile tool to 
 rapidly generate parametric vehicle geometries following a 
@@ -15,7 +19,7 @@ component build-up approach. Take a look at the
 then have a look at the [examples](examples/x43).
 
 
-![X43](images/x43.gif)
+<!-- ![X43](images/x43.gif) -->
 
 
 ```{toctree}
