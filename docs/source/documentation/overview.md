@@ -1,17 +1,17 @@
 (overview)=
 # Overview of HyperVehicle
 
-The *hypervehicle* package employs a component build up approach. 
+The <tt>HyperVehicle</tt> package employs a component build up approach. 
 Using the core component types, a wide range of geometries can 
 be constructed. While there is an upfront cost associated with 
 constructing a good parametric model, the generalised nature of 
-*hypervehicle* allows you to programmatically define relationships 
+<tt>HyperVehicle</tt> allows you to programmatically define relationships 
 between geometric components.
 
 
-## The *HyperVehicle* Workflow
+## The HyperVehicle Workflow
 Before diving into the component definitions, this section provides
-an overview of the *hypervehicle* workflow, and how geometries are
+an overview of the <tt>HyperVehicle</tt> workflow, and how geometries are
 created from arbitrary definitions.
 
 A vehicle is constructed by stacking a collection of *components* 

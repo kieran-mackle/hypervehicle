@@ -1,6 +1,6 @@
 # HyperVehicle Hangar
 
-This page is a showcase of vehicle geometries possible using *hypervehicle*.
+This page is a showcase of vehicle geometries possible using <tt>HyperVehicle</tt>.
 Note that all of these vehicles can be accessed via the `hypervehicle.hangar`
 namespace. For example, to generate the X-43A geometry shown below, the following
 code can be used.

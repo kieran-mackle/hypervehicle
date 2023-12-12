@@ -12,11 +12,11 @@
 ```
 
 
-The *Hypervehicle* Python package provides a versatile tool to 
+<tt>HyperVehicle</tt> provides a versatile tool to 
 rapidly generate parametric vehicle geometries following a 
 component build-up approach. Take a look at the 
 [Getting Started](getting-started) guide to get set up, 
-then have a look at the [examples](examples/x43).
+then have a look at the [Examples](examples/index).
 
 
 <!-- ![X43](images/x43.gif) -->
@@ -28,6 +28,7 @@ then have a look at the [examples](examples/x43).
 :caption: SHOWCASE
 
 Hangar <hangar>
+Publications <other/publications/index>
 ```
 
 
@@ -38,7 +39,7 @@ Hangar <hangar>
 
 Getting Started <getting-started>
 Overview <documentation/overview>
-Components <documentation/components>
+Components <documentation/components/index>
 Vehicles <documentation/vehicle>
 Parametric Sensitivities <documentation/sensitivity>
 ```
@@ -49,11 +50,9 @@ Parametric Sensitivities <documentation/sensitivity>
 :hidden:
 :caption: TUTORIALS
 
-Sharp Wedge <examples/wedge>
-NASA X-43A <examples/x43>
+Geometry Generation <examples/index>
 Extracting Sensitivities <examples/sensitivity>
 ```
-
 
 
 ```{toctree}
@@ -65,8 +64,15 @@ Vehicle <apiref/vehicle>
 Components <apiref/components/index>
 Utilities <apiref/utilities>
 Generator <apiref/generator>
-Contributing <documentation/contributing>
-Changelog <apiref/changelog>
 ```
 
 
+```{toctree}
+:maxdepth: 2
+:hidden:
+:caption: Other Information
+
+Contributing <other/contributing>
+Citing HyperVehicle <other/citing>
+Changelog <other/changelog>
+```

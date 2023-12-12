@@ -1,13 +1,21 @@
 # Generating Geometry Sensitivities
 
-The *hypervehicle* tool also features the generation of 
+<tt>HyperVehicle</tt> also features the generation of 
 geometry sensitivities via method of finite differences.
 This page outlines how to use this capability.
+
+## Nomenclature
+
+| Symbol | Description |
+| ------ | ----------- |
+| $\theta$ | The set of design parameters defining a geometry |
+| $\mathcal{G}$ | The geometry |
+
 
 
 ## Theory
 
-1. A *hypervehicle* parameterised geometry generator is 
+1. A <tt>HyperVehicle</tt> parameterised geometry {py:class}`.Generator` is 
 supplied, along with the parameters to be varied.
 2. STL files for the nominal geometry $G_{nominal}$ are generated.
 3. For each parameter to be varied:
