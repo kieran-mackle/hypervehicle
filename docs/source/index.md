@@ -27,7 +27,7 @@ then have a look at the [examples](examples/x43).
 :hidden:
 :caption: SHOWCASE
 
-Vehicle Hangar <hangar>
+Hangar <hangar>
 ```
 
 
@@ -37,9 +37,10 @@ Vehicle Hangar <hangar>
 :caption: DOCUMENTATION
 
 Getting Started <getting-started>
-Building Components <documentation/components>
-Building Vehicles <documentation/vehicle>
-Extracting Sensitivities <documentation/sensitivity>
+Overview <documentation/overview>
+Components <documentation/components>
+Vehicles <documentation/vehicle>
+Parametric Sensitivities <documentation/sensitivity>
 ```
 
 
@@ -50,7 +51,7 @@ Extracting Sensitivities <documentation/sensitivity>
 
 Sharp Wedge <examples/wedge>
 NASA X-43A <examples/x43>
-Parameter Sensitivities <examples/sensitivity>
+Extracting Sensitivities <examples/sensitivity>
 ```
 
 

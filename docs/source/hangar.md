@@ -1,4 +1,4 @@
-# Vehicle Hangar
+# HyperVehicle Hangar
 
 This page is a showcase of vehicle geometries possible using *hypervehicle*.
 Note that all of these vehicles can be accessed via the `hypervehicle.hangar`

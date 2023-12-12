@@ -1,4 +1,4 @@
-# Building a Vehicle with *hypervehicle*
+# Building a Vehicle with *HyperVehicle*
 
 Docs coming soon! The following will be addressed:
 - creating a vehicle instance
