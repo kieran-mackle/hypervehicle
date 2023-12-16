@@ -9,9 +9,10 @@ from tqdm import tqdm
 from art import tprint, art
 import xml.etree.ElementTree as ET
 from typing import Dict, List, Optional
+from pysagas.geometry import Cell, Vector
 
 
-def parametricSurfce2stl(
+def create_cells(
     parametric_surface,
     triangles_per_edge: int,
     si: float = 1.0,
@@ -20,10 +21,9 @@ def parametricSurfce2stl(
     flip_faces=False,
     i_clustering_func: callable = None,
     j_clustering_func: callable = None,
-) -> mesh.Mesh:
+):
     """
-    Function to convert parametric_surface generated using the Eilmer Geometry
-    Package into a stl mesh object.
+    Generates a list of vertices and a corrosponding list of index triplets, each pinting the vertices of a single cell 
 
     Parameters
     ----------
@@ -52,8 +52,9 @@ def parametricSurfce2stl(
 
     Returns
     ----------
-    stl_mesh : Mesh
-        The numpy-stl mesh.
+    vertices: numpy 2D array, each row contains (x,y,z) coordinates of one vertex
+    cell_ids: numpy 2D array, each row contains 3 indecies (row number in vertices) of a single cell
+
     """
     # TODO - allow different ni and nj discretisation
 
@@ -118,8 +119,8 @@ def parametricSurfce2stl(
                 # Index out of bounds
                 pass
 
-    # Create list of faces, defining the face vertices
-    faces = []
+    # Create list of cell_ids, defining the face vertices
+    cell_ids = []
     for i in range(ni):
         for j in range(nj):
             p00 = j * (nj + 1) + i  # bottom left
@@ -130,33 +131,128 @@ def parametricSurfce2stl(
             pc = centre_ix + j * min(ni, nj) + i  # vertex at centre of cell
 
             if mirror_y or flip_faces:
-                faces.append([p00, pc, p10])
-                faces.append([p10, pc, p11])
-                faces.append([p11, pc, p01])
-                faces.append([p01, pc, p00])
+                cell_ids.append([p00, pc, p10])
+                cell_ids.append([p10, pc, p11])
+                cell_ids.append([p11, pc, p01])
+                cell_ids.append([p01, pc, p00])
             else:
-                faces.append([p00, p10, pc])
-                faces.append([p10, p11, pc])
-                faces.append([p11, p01, pc])
-                faces.append([p01, p00, pc])
+                cell_ids.append([p00, p10, pc])
+                cell_ids.append([p10, p11, pc])
+                cell_ids.append([p11, p01, pc])
+                cell_ids.append([p01, p00, pc])
 
-    faces = np.array(faces)
+    cell_ids = np.array(cell_ids)
 
-    # Create the STL mesh object
-    stl_mesh = mesh.Mesh(np.zeros(faces.shape[0], dtype=mesh.Mesh.dtype))
-    for ix, face in enumerate(faces):
-        # For each face
-        for c in range(3):
-            # For each coordinate x/y/z
-            stl_mesh.vectors[ix][c] = vertices[face[c], :]
-
-    return stl_mesh
-
+    return (vertices, cell_ids)
 
 def default_vertex_func(lb, ub, steps, spacing=1.0):
     span = ub - lb
     dx = 1.0 / (steps - 1)
     return np.array([lb + (i * dx) ** spacing * span for i in range(steps)])
+
+
+def parametricSurfce2stl(
+    parametric_surface,
+    triangles_per_edge: int,
+    si: float = 1.0,
+    sj: float = 1.0,
+    mirror_y=False,
+    flip_faces=False,
+    i_clustering_func: callable = None,
+    j_clustering_func: callable = None,
+) -> mesh.Mesh:
+    """
+    Function to convert parametric_surface generated using the Eilmer Geometry
+    Package into a stl mesh object.
+
+    Parameters
+    ----------
+        parametric_surface : Any
+            The parametric surface object.
+        si : float, optional
+            The clustering in the i-direction. The default is 1.0.
+        sj : float, optional
+            The clustering in the j-direction. The default is 1.0.
+        triangles_per_edge : int
+            The resolution for the stl object.
+        mirror_y : bool, optional
+            Create mirror image about x-z plane. The default is False.
+        i_clustering_func : callable, optional
+            A custom clustering function to apply in the i direction.
+            The default is None.
+        j_clustering_func : callable, optional
+            A custom clustering function to apply in the j direction.
+            The default is None.
+
+    Returns
+    ----------
+    stl_mesh : Mesh
+        The numpy-stl mesh.
+    """
+
+    vertices, cell_ids = create_cells(parametric_surface, triangles_per_edge,
+                                      si, sj, mirror_y, flip_faces, i_clustering_func,
+                                      j_clustering_func)
+
+    # Create the STL mesh object
+    stl_mesh = mesh.Mesh(np.zeros(cell_ids.shape[0], dtype=mesh.Mesh.dtype))
+    for ix, cell_id in enumerate(cell_ids):
+        # For each face
+        for c in range(3):
+            # For each coordinate x/y/z
+            stl_mesh.vectors[ix][c] = vertices[cell_id[c], :]
+
+    return stl_mesh
+
+
+def parametricSurfce2vtk(
+    parametric_surface,
+    triangles_per_edge: int,
+    si: float = 1.0,
+    sj: float = 1.0,
+    mirror_y=False,
+    flip_faces=False,
+):
+    """
+    Function to convert parametric_surface generated using the Eilmer Geometry
+    Package into a vtk cell format.
+
+    Parameters
+    ----------
+        parametric_surface : Any
+            The parametric surface object.
+        si : float, optional
+            The clustering in the i-direction. The default is 1.0.
+        sj : float, optional
+            The clustering in the j-direction. The default is 1.0.
+        triangles_per_edge : int
+            The resolution for the stl object.
+        mirror_y : bool, optional
+            Create mirror image about x-z plane. The default is False.
+
+    Returns
+    ----------
+    cells
+    """
+    # Generate the mesh vertices and cell index list
+    vertices, cell_ids = create_cells(parametric_surface, triangles_per_edge,
+                                      si, sj, mirror_y, flip_faces)
+
+    # Create the vtk cells format and add patch_tag to each cell
+    # cells = []
+    # for cell_id in cell_ids:
+    #     cells.append(Cell(
+    #         p0=Vector(x=vertices[cell_id[0]][0],
+    #                   y=vertices[cell_id[0]][1], z=vertices[cell_id[0]][2]),
+    #         p1=Vector(x=vertices[cell_id[1]][0],
+    #                   y=vertices[cell_id[1]][1], z=vertices[cell_id[1]][2]),
+    #         p2=Vector(x=vertices[cell_id[2]][0],
+    #                   y=vertices[cell_id[2]][1], z=vertices[cell_id[2]][2]),
+    #         face_ids=cell_id
+    #     ))
+        # cells.attributes[-1] = {'cell_tag': 1}
+
+    return (vertices, cell_ids)
 
 
 def assess_inertial_properties(vehicle, component_densities: Dict[str, float]):
