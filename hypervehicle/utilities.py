@@ -8,6 +8,127 @@ from stl import mesh
 from tqdm import tqdm
 import xml.etree.ElementTree as ET
 from typing import Dict, List, Optional
+from pysagas.geometry import Cell, Vector
+
+
+def create_cells(
+    parametric_surface,
+    triangles_per_edge: int,
+    si: float = 1.0,
+    sj: float = 1.0,
+    mirror_y=False,
+    flip_faces=False,
+):
+    """
+    Generates a list of vertices and a corrosponding list of index triplets, each pinting the vertices of a single cell 
+
+    Parameters
+    ----------
+        parametric_surface : Any
+            The parametric surface object.
+        si : float, optional
+            The clustering in the i-direction. The default is 1.0.
+        sj : float, optional
+            The clustering in the j-direction. The default is 1.0.
+        triangles_per_edge : int
+            The resolution for the stl object.
+        mirror_y : bool, optional
+            Create mirror image about x-z plane. The default is False.
+
+
+    Returns
+    ----------
+    vertices: numpy 2D array, each row contains (x,y,z) coordinates of one vertex
+    cell_ids: numpy 2D array, each row contains 3 indecies (row number in vertices) of a single cell
+
+    """
+    # TODO - allow different ni and nj discretisation
+
+    ni = triangles_per_edge
+    nj = triangles_per_edge
+
+    def gen_points(lb, ub, steps, spacing=1.0):
+        span = ub - lb
+        dx = 1.0 / (steps - 1)
+        return np.array([lb + (i * dx) ** spacing * span for i in range(steps)])
+
+    # Create list of vertices
+    r_list = gen_points(lb=0.0, ub=1.0, steps=ni + 1, spacing=si)
+    s_list = gen_points(lb=0.0, ub=1.0, steps=nj + 1, spacing=sj)
+
+    y_mult: int = -1 if mirror_y else 1
+
+    # Create vertices for corner points of each quad cell
+    # columns x, y, z for each vertex row
+    # quad exterior vertices + quad centres
+    vertices: np.ndarray = np.zeros(((ni + 1) * (nj + 1) + ni * nj, 3))
+    centre_ix: int = (ni + 1) * (nj + 1)
+
+    # For vertices along the x direction (i)
+    for i, r in enumerate(r_list):
+        # For vertices along the y direction (j)
+        for j, s in enumerate(s_list):
+            # Evaluate position
+            pos = parametric_surface(r, s)
+
+            # Assign vertex
+            vertices[j * (ni + 1) + i] = np.array([pos.x,
+                                                   y_mult * pos.y, pos.z])
+
+            # Create vertices for centre point of each quad cell
+            try:
+                # Try index to bail before calling surface
+                vertices[centre_ix + (j * ni + i)]
+
+                r0 = r_list[i]
+                r1 = r_list[i + 1]
+                s0 = s_list[j]
+                s1 = s_list[j + 1]
+
+                # Get corner points
+                pos00 = parametric_surface(r0, s0)
+                pos10 = parametric_surface(r1, s0)
+                pos01 = parametric_surface(r0, s1)
+                pos11 = parametric_surface(r1, s1)
+
+                # Evaluate quad centre coordinate
+                pos_x = 0.25 * (pos00.x + pos10.x + pos01.x + pos11.x)
+                pos_y = 0.25 * (pos00.y + pos10.y + pos01.y + pos11.y)
+                pos_z = 0.25 * (pos00.z + pos10.z + pos01.z + pos11.z)
+
+                # Assign quad centre vertices
+                vc = np.array([pos_x, y_mult * pos_y, pos_z])
+                vertices[centre_ix + (j * ni + i)] = vc
+
+            except IndexError:
+                # Index out of bounds
+                pass
+
+    # Create list of cell_ids, defining the face vertices
+    cell_ids = []
+    for i in range(ni):
+        for j in range(nj):
+            p00 = j * (nj + 1) + i  # bottom left
+            p10 = j * (nj + 1) + i + 1  # bottom right
+            p01 = (j + 1) * (ni + 1) + i  # top left
+            p11 = (j + 1) * (ni + 1) + i + 1  # top right
+
+            pc = centre_ix + j * min(ni, nj) + i  # vertex at centre of cell
+
+            if mirror_y or flip_faces:
+                cell_ids.append([p00, pc, p10])
+                cell_ids.append([p10, pc, p11])
+                cell_ids.append([p11, pc, p01])
+                cell_ids.append([p01, pc, p00])
+            else:
+                cell_ids.append([p00, p10, pc])
+                cell_ids.append([p10, p11, pc])
+                cell_ids.append([p11, p01, pc])
+                cell_ids.append([p01, p00, pc])
+
+    cell_ids = np.array(cell_ids)
+
+    return (vertices, cell_ids)
 
 
 def parametricSurfce2stl(
@@ -40,100 +161,69 @@ def parametricSurfce2stl(
     stl_mesh : Mesh
         The numpy-stl mesh.
     """
-    # TODO - allow different ni and nj discretisation
 
-    ni = triangles_per_edge
-    nj = triangles_per_edge
-
-    def gen_points(lb, ub, steps, spacing=1.0):
-        span = ub - lb
-        dx = 1.0 / (steps - 1)
-        return np.array([lb + (i * dx) ** spacing * span for i in range(steps)])
-
-    # Create list of vertices
-    r_list = gen_points(lb=0.0, ub=1.0, steps=ni + 1, spacing=si)
-    s_list = gen_points(lb=0.0, ub=1.0, steps=nj + 1, spacing=sj)
-
-    y_mult: int = -1 if mirror_y else 1
-
-    # Create vertices for corner points of each quad cell
-    # columns x, y, z for each vertex row
-    # quad exterior vertices + quad centres
-    vertices: np.ndarray = np.zeros(((ni + 1) * (nj + 1) + ni * nj, 3))
-    centre_ix: int = (ni + 1) * (nj + 1)
-
-    # For vertices along the x direction (i)
-    for i, r in enumerate(r_list):
-        # For vertices along the y direction (j)
-        for j, s in enumerate(s_list):
-            # Evaluate position
-            pos = parametric_surface(r, s)
-
-            # Assign vertex
-            vertices[j * (ni + 1) + i] = np.array([pos.x, y_mult * pos.y, pos.z])
-
-            # Create vertices for centre point of each quad cell
-            try:
-                # Try index to bail before calling surface
-                vertices[centre_ix + (j * ni + i)]
-
-                r0 = r_list[i]
-                r1 = r_list[i + 1]
-                s0 = s_list[j]
-                s1 = s_list[j + 1]
-
-                # Get corner points
-                pos00 = parametric_surface(r0, s0)
-                pos10 = parametric_surface(r1, s0)
-                pos01 = parametric_surface(r0, s1)
-                pos11 = parametric_surface(r1, s1)
-
-                # Evaluate quad centre coordinate
-                pos_x = 0.25 * (pos00.x + pos10.x + pos01.x + pos11.x)
-                pos_y = 0.25 * (pos00.y + pos10.y + pos01.y + pos11.y)
-                pos_z = 0.25 * (pos00.z + pos10.z + pos01.z + pos11.z)
-
-                # Assign quad centre vertices
-                vc = np.array([pos_x, y_mult * pos_y, pos_z])
-                vertices[centre_ix + (j * ni + i)] = vc
-
-            except IndexError:
-                # Index out of bounds
-                pass
-
-    # Create list of faces, defining the face vertices
-    faces = []
-    for i in range(ni):
-        for j in range(nj):
-            p00 = j * (nj + 1) + i  # bottom left
-            p10 = j * (nj + 1) + i + 1  # bottom right
-            p01 = (j + 1) * (ni + 1) + i  # top left
-            p11 = (j + 1) * (ni + 1) + i + 1  # top right
-
-            pc = centre_ix + j * min(ni, nj) + i  # vertex at centre of cell
-
-            if mirror_y or flip_faces:
-                faces.append([p00, pc, p10])
-                faces.append([p10, pc, p11])
-                faces.append([p11, pc, p01])
-                faces.append([p01, pc, p00])
-            else:
-                faces.append([p00, p10, pc])
-                faces.append([p10, p11, pc])
-                faces.append([p11, p01, pc])
-                faces.append([p01, p00, pc])
-
-    faces = np.array(faces)
+    vertices, cell_ids = create_cells(parametric_surface, triangles_per_edge,
+                                      si, sj, mirror_y, flip_faces)
 
     # Create the STL mesh object
-    stl_mesh = mesh.Mesh(np.zeros(faces.shape[0], dtype=mesh.Mesh.dtype))
-    for ix, face in enumerate(faces):
+    stl_mesh = mesh.Mesh(np.zeros(cell_ids.shape[0], dtype=mesh.Mesh.dtype))
+    for ix, cell_id in enumerate(cell_ids):
         # For each face
         for c in range(3):
             # For each coordinate x/y/z
-            stl_mesh.vectors[ix][c] = vertices[face[c], :]
+            stl_mesh.vectors[ix][c] = vertices[cell_id[c], :]
 
     return stl_mesh
+
+
+def parametricSurfce2vtk(
+    parametric_surface,
+    triangles_per_edge: int,
+    si: float = 1.0,
+    sj: float = 1.0,
+    mirror_y=False,
+    flip_faces=False,
+):
+    """
+    Function to convert parametric_surface generated using the Eilmer Geometry
+    Package into a vtk cell format. 
+
+    Parameters
+    ----------
+        parametric_surface : Any
+            The parametric surface object.
+        si : float, optional
+            The clustering in the i-direction. The default is 1.0.
+        sj : float, optional
+            The clustering in the j-direction. The default is 1.0.
+        triangles_per_edge : int
+            The resolution for the stl object.
+        mirror_y : bool, optional
+            Create mirror image about x-z plane. The default is False.
+
+    Returns
+    ----------
+    cells
+    """
+    # Generate the mesh vertices and cell index list
+    vertices, cell_ids = create_cells(parametric_surface, triangles_per_edge,
+                                      si, sj, mirror_y, flip_faces)
+
+    # Create the vtk cells format and add patch_tag to each cell
+    # cells = []
+    # for cell_id in cell_ids:
+    #     cells.append(Cell(
+    #         p0=Vector(x=vertices[cell_id[0]][0],
+    #                   y=vertices[cell_id[0]][1], z=vertices[cell_id[0]][2]),
+    #         p1=Vector(x=vertices[cell_id[1]][0],
+    #                   y=vertices[cell_id[1]][1], z=vertices[cell_id[1]][2]),
+    #         p2=Vector(x=vertices[cell_id[2]][0],
+    #                   y=vertices[cell_id[2]][1], z=vertices[cell_id[2]][2]),
+    #         face_ids=cell_id
+    #     ))
+        # cells.attributes[-1] = {'cell_tag': 1}
+
+    return (vertices, cell_ids)
 
 
 def assess_inertial_properties(vehicle, component_densities: Dict[str, float]):
@@ -184,7 +274,8 @@ def assess_inertial_properties(vehicle, component_densities: Dict[str, float]):
     total_volume = 0
 
     for name, component in vehicle._named_components.items():
-        inertia_handle = getattr(component.mesh, "get_mass_properties_with_density")
+        inertia_handle = getattr(
+            component.mesh, "get_mass_properties_with_density")
 
         volume, vmass, cog, inertia = inertia_handle(component_densities[name])
 
@@ -326,7 +417,8 @@ class SensitivityStudy:
             dp = adjusted_parameters[parameter] - value
 
             # Create Vehicle instance with perturbed parameter
-            constructor_instance = self.vehicle_constructor(**adjusted_parameters)
+            constructor_instance = self.vehicle_constructor(
+                **adjusted_parameters)
             parameter_instance = constructor_instance.create_instance()
             parameter_instance.verbosity = 0
 
@@ -363,7 +455,8 @@ class SensitivityStudy:
         # Return output
         self.parameter_sensitivities = sensitivities
         self.scalar_sensitivities = analysis_sens
-        self.component_sensitivities = self._combine(nominal_instance, sensitivities)
+        self.component_sensitivities = self._combine(
+            nominal_instance, sensitivities)
 
         return sensitivities
 
@@ -400,7 +493,8 @@ class SensitivityStudy:
                     os.mkdir(properties_dir)
 
                 vm = {
-                    p: {k: self.scalar_sensitivities[p][k] for k in ["volume", "mass"]}
+                    p: {k: self.scalar_sensitivities[p][k]
+                        for k in ["volume", "mass"]}
                     for p in self.scalar_sensitivities
                 }
                 pd.DataFrame(vm).to_csv(
@@ -409,11 +503,13 @@ class SensitivityStudy:
 
                 for param in self.scalar_sensitivities:
                     self.scalar_sensitivities[param]["cog"].tofile(
-                        os.path.join(properties_dir, f"{param}_cog_sensitivity.txt"),
+                        os.path.join(properties_dir,
+                                     f"{param}_cog_sensitivity.txt"),
                         sep=", ",
                     )
                     self.scalar_sensitivities[param]["moi"].tofile(
-                        os.path.join(properties_dir, f"{param}_moi_sensitivity.txt"),
+                        os.path.join(properties_dir,
+                                     f"{param}_moi_sensitivity.txt"),
                         sep=", ",
                     )
 
@@ -453,8 +549,10 @@ class SensitivityStudy:
         all_data[:, 3:6] = flat_diff  # Location deltas
 
         # Create DataFrame
-        df = pd.DataFrame(data=all_data, columns=["x", "y", "z", "dx", "dy", "dz"])
-        df["magnitude"] = np.sqrt(np.square(df[["dx", "dy", "dz"]]).sum(axis=1))
+        df = pd.DataFrame(data=all_data, columns=[
+                          "x", "y", "z", "dx", "dy", "dz"])
+        df["magnitude"] = np.sqrt(
+            np.square(df[["dx", "dy", "dz"]]).sum(axis=1))
 
         # Sensitivity calculations
         sensitivities = df[["dx", "dy", "dz"]] / dp
@@ -556,7 +654,8 @@ def append_sensitivities_to_tri(
     points_data_list = [el.split() for el in points_data.splitlines()]
     points_data_list = [[float(j) for j in i] for i in points_data_list]
 
-    points_df = pd.DataFrame(points_data_list, columns=["x", "y", "z"]).dropna()
+    points_df = pd.DataFrame(points_data_list, columns=[
+                             "x", "y", "z"]).dropna()
 
     # Ensure previous components sensitivity file is not included
     try:

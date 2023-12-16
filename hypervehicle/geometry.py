@@ -693,6 +693,7 @@ class RotatedPatch(ParametricSurface):
         self.angle = angle
         self.axis = axis.lower()
         self.point = point
+        self.tag = underlying_surf.tag
 
     def __repr__(self):
         str = f" (rotated by {np.rad2deg(self.angle)} degrees)"
