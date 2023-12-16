@@ -42,7 +42,7 @@ pip install hypervehicle
 ```
 
 ### Installation from source
-First clone the repository, then install via pip.
+To install `hypervehicle` from source, use the command below.
 
 ```
 pip install git+https://github.com/kieran-mackle/hypervehicle
