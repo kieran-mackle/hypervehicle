@@ -6,6 +6,8 @@ from hypervehicle.components.constants import (
     SWEPT_COMPONENT,
     REVOLVED_COMPONENT,
     COMPOSITE_COMPONENT,
+    SPHERE,
+    CUBE,
 )
 
 
@@ -26,6 +28,8 @@ class CompositeComponent(Component):
         WING_COMPONENT,
         SWEPT_COMPONENT,
         REVOLVED_COMPONENT,
+        SPHERE,
+        CUBE,
     ]
 
     def __init__(
