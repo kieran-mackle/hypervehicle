@@ -5,10 +5,10 @@ import numpy as np
 from stl import mesh
 import multiprocess as mp
 from copy import deepcopy
-from typing import Callable, Union
 from abc import abstractmethod
 from hypervehicle.geometry import Vector3
 from gdtk.geom.sgrid import StructuredGrid
+from typing import Callable, Union, Optional
 from hypervehicle.geometry import (
     CurvedPatch,
     RotatedPatch,
@@ -311,3 +311,24 @@ class Component(AbstractComponent):
         print(f"COG location: {cog}")
         print("Moment of intertia metrix at COG:")
         print(inertia)
+
+    def add_clustering_options(
+        self,
+        i_clustering_func: Optional[Callable] = None,
+        j_clustering_func: Optional[Callable] = None,
+    ):
+        """Add a clustering option to this component.
+
+        Parameters
+        -----------
+        i_clustering_func : Callable, optional
+            The clustering function in the i direction. The default is None.
+
+        j_clustering_func : Callable, optional
+            The clustering function in the j direction. The default is None.
+        """
+        if i_clustering_func:
+            self._clustering.update({"i_clustering_func": i_clustering_func})
+
+        if j_clustering_func:
+            self._clustering.update({"j_clustering_func": j_clustering_func})

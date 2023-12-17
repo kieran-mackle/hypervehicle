@@ -76,7 +76,7 @@ class Vehicle:
         reflection_axis: str = None,
         append_reflection: bool = True,
         curvatures: List[Tuple[str, Callable, Callable]] = None,
-        clustering: Dict[str, float] = None,
+        clustering: Dict[str, Callable] = None,
         transformations: List[Tuple[str, Any]] = None,
         modifier_function: Optional[Callable] = None,
         ghost: Optional[bool] = False,
@@ -112,7 +112,7 @@ class Vehicle:
             is defined by (axis, curve_func, curve_func_derivative).
             The default is None.
 
-        clustering : Dict[str, float], optional
+        clustering : Dict[str, Callable], optional
             Optionally provide clustering options for the stl meshes. See
             parametricSurfce2stl for more information. The default is None.
 
@@ -153,7 +153,7 @@ class Vehicle:
 
             # Add component clustering
             if clustering is not None:
-                component._clustering = clustering
+                component.add_clustering_options(**clustering)
 
             # Add transformations
             if transformations is not None:
