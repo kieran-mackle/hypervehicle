@@ -1,4 +1,3 @@
-import re
 import os
 import sys
 import glob
@@ -9,7 +8,6 @@ from tqdm import tqdm
 from art import tprint, art
 import xml.etree.ElementTree as ET
 from typing import Dict, List, Optional
-from pysagas.geometry import Cell, Vector
 
 
 def create_cells(
@@ -23,7 +21,7 @@ def create_cells(
     j_clustering_func: callable = None,
 ):
     """
-    Generates a list of vertices and a corrosponding list of index triplets, each pinting the vertices of a single cell 
+    Generates a list of vertices and a corrosponding list of index triplets, each pinting the vertices of a single cell
 
     Parameters
     ----------
@@ -235,8 +233,9 @@ def parametricSurfce2vtk(
     cells
     """
     # Generate the mesh vertices and cell index list
-    vertices, cell_ids = create_cells(parametric_surface, triangles_per_edge,
-                                      si, sj, mirror_y, flip_faces)
+    vertices, cell_ids = create_cells(
+        parametric_surface, triangles_per_edge, si, sj, mirror_y, flip_faces
+    )
 
     # Create the vtk cells format and add patch_tag to each cell
     # cells = []
@@ -250,7 +249,7 @@ def parametricSurfce2vtk(
     #                   y=vertices[cell_id[2]][1], z=vertices[cell_id[2]][2]),
     #         face_ids=cell_id
     #     ))
-        # cells.attributes[-1] = {'cell_tag': 1}
+    # cells.attributes[-1] = {'cell_tag': 1}
 
     return (vertices, cell_ids)
 

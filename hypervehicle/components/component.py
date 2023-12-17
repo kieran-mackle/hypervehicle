@@ -1,12 +1,13 @@
 import os
 import time
 import pymeshfix
+import meshio
 import numpy as np
 from stl import mesh
 import multiprocess as mp
-import meshio
 from copy import deepcopy
 from abc import abstractmethod
+from typing import Callable, Union
 from hypervehicle.geometry import Vector3
 from gdtk.geom.sgrid import StructuredGrid
 from typing import Callable, Union, Optional
@@ -16,10 +17,7 @@ from hypervehicle.geometry import (
     MirroredPatch,
     OffsetPatchFunction,
 )
-from hypervehicle.utilities import (
-    parametricSurfce2stl,
-    parametricSurfce2vtk
-)
+from hypervehicle.utilities import parametricSurfce2stl, parametricSurfce2vtk
 
 
 class AbstractComponent:
@@ -93,10 +91,7 @@ class AbstractComponent:
 def AssignTags2Celle(patch, length):
     # Creates a tag vector for a given patch
 
-    tags_definition = {'FreeStream': 1,
-                       'Inlet': 2,
-                       'Outlet': 3,
-                       'Nozzle': 4}
+    tags_definition = {"FreeStream": 1, "Inlet": 2, "Outlet": 3, "Nozzle": 4}
 
     tags = np.ones(length) * tags_definition[patch.tag]
     return tags
@@ -109,7 +104,7 @@ class Component(AbstractComponent):
         stl_resolution: int = 2,
         verbosity: int = 1,
         name: str = None,
-        output_file_type: str = 'stl'
+        output_file_type: str = "stl",
     ) -> None:
         # Set verbosity
         self.verbosity = verbosity
@@ -202,8 +197,8 @@ class Component(AbstractComponent):
                 # Generate surfaces
                 self.surface()
 
-            # Combine all surface data
-            surface_data = np.concatenate([s[1].data for s in self.surfaces.items()])
+        # Combine all surface data
+        surface_data = np.concatenate([s[1].data for s in self.surfaces.items()])
 
             # Create nominal STL mesh
             self._mesh = mesh.Mesh(surface_data)
@@ -216,13 +211,14 @@ class Component(AbstractComponent):
 
     def rotate(self, angle: float = 0, axis: str = "y"):
         for key, patch in self.patches.items():
-            self.patches[key] = RotatedPatch(
-                patch, np.deg2rad(angle), axis=axis)
+            self.patches[key] = RotatedPatch(patch, np.deg2rad(angle), axis=axis)
 
     def translate(self, offset: Union[Callable, Vector3]):
         if isinstance(offset, Vector3):
             # Translate vector into lambda function
-            offset_function = lambda x, y, z: offset
+            def offset_function(x, y, z):
+                return offset
+
         else:
             offset_function = offset
 
@@ -306,9 +302,7 @@ class Component(AbstractComponent):
         for result in pool.starmap(wrapper, self.patches.items()):
             self.surfaces[result[0]] = result[1]
 
-
     def cell(self, resolution: int = None):
-
         stl_resolution = self.stl_resolution if resolution is None else resolution
 
         # Check for patches
@@ -393,8 +387,8 @@ class Component(AbstractComponent):
             tags = np.concatenate([tags, sss[1][2]])
 
         # Generate mesh in VTK format
-        cell_ids = [('triangle', cell_ids)]
-        cell_data = {'tag': [tags]}
+        cell_ids = [("triangle", cell_ids)]
+        cell_data = {"tag": [tags]}
         vtk_mesh = meshio.Mesh(vertices, cell_ids, cell_data=cell_data)
 
         # Write VTK to file

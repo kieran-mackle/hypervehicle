@@ -300,7 +300,7 @@ class Vehicle:
             component.surfaces = None
             component.mesh = None
 
-    def to_file(self, prefix: str = None, file_type: str = 'stl') -> None:
+    def to_file(self, prefix: str = None, file_type: str = "stl") -> None:
         """Writes the vehicle components to output file. If analysis results are
         present, they will also be written to file, either as CSV, or using
         the Numpy tofile method.
@@ -316,7 +316,7 @@ class Vehicle:
             The default is None.
 
         file_type: str
-            Defines the output file format to be written to. Can be stl or 
+            Defines the output file format to be written to. Can be stl or
             vtk. Default file_type is 'stl'
 
         merge : [bool, list[str]], optional
@@ -329,10 +329,10 @@ class Vehicle:
         --------
         utilities.merge_stls
         """
-        
+
         file_type = file_type.lower()
-        if file_type not in ['stl', 'vtk']:
-            raise ('Invalid output file type. STL or VTK supported')
+        if file_type not in ["stl", "vtk"]:
+            raise ("Invalid output file type. STL or VTK supported")
 
         if self.verbosity > 0:
             s = "Writing vehicle components to"
@@ -359,7 +359,7 @@ class Vehicle:
             if self.verbosity > 0:
                 print(f"  Writing: {file_name}                 ", end="\r")
 
-            if file_type == 'stl':
+            if file_type == "stl":
                 component.to_stl(file_name)
             else:
                 component.to_vtk(file_name)
@@ -427,7 +427,10 @@ class Vehicle:
                 utilities.merge_stls(stl_files=filenames, name=prefix)
 
         if self.verbosity > 0:
-            print(f"\rAll components written to {file_type.upper()} file format.", end="\n")
+            print(
+                f"\rAll components written to {file_type.upper()} file format.",
+                end="\n",
+            )
 
     def to_stl(self, prefix: str = None) -> None:
         """Writes the vehicle components to STL. If analysis results are
@@ -444,7 +447,7 @@ class Vehicle:
             The default is None.
         """
 
-        self.to_file(prefix, file_type='stl')
+        self.to_file(prefix, file_type="stl")
 
     def to_vtk(self, prefix: str = None) -> None:
         """Writes the vehicle components to VTK. If analysis results are
@@ -461,7 +464,7 @@ class Vehicle:
             The default is None.
         """
 
-        self.to_file(prefix, file_type='vtk')
+        self.to_file(prefix, file_type="vtk")
 
     def analyse(self, densities: dict) -> Tuple:
         """Evaluates the mesh properties of the vehicle instance.

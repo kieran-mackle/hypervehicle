@@ -4,6 +4,7 @@ __pycache__/
 .coverage
 docs/build/
 testing*
+build/
 
 # Miscellaneous
 *.stl
