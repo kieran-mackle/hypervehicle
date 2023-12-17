@@ -1,4 +1,3 @@
-import re
 import os
 import sys
 import glob
@@ -8,7 +7,6 @@ from stl import mesh
 from tqdm import tqdm
 import xml.etree.ElementTree as ET
 from typing import Dict, List, Optional
-from pysagas.geometry import Cell, Vector
 
 
 def create_cells(
@@ -20,7 +18,7 @@ def create_cells(
     flip_faces=False,
 ):
     """
-    Generates a list of vertices and a corrosponding list of index triplets, each pinting the vertices of a single cell 
+    Generates a list of vertices and a corrosponding list of index triplets, each pinting the vertices of a single cell
 
     Parameters
     ----------
@@ -72,8 +70,7 @@ def create_cells(
             pos = parametric_surface(r, s)
 
             # Assign vertex
-            vertices[j * (ni + 1) + i] = np.array([pos.x,
-                                                   y_mult * pos.y, pos.z])
+            vertices[j * (ni + 1) + i] = np.array([pos.x, y_mult * pos.y, pos.z])
 
             # Create vertices for centre point of each quad cell
             try:
@@ -162,8 +159,9 @@ def parametricSurfce2stl(
         The numpy-stl mesh.
     """
 
-    vertices, cell_ids = create_cells(parametric_surface, triangles_per_edge,
-                                      si, sj, mirror_y, flip_faces)
+    vertices, cell_ids = create_cells(
+        parametric_surface, triangles_per_edge, si, sj, mirror_y, flip_faces
+    )
 
     # Create the STL mesh object
     stl_mesh = mesh.Mesh(np.zeros(cell_ids.shape[0], dtype=mesh.Mesh.dtype))
@@ -186,7 +184,7 @@ def parametricSurfce2vtk(
 ):
     """
     Function to convert parametric_surface generated using the Eilmer Geometry
-    Package into a vtk cell format. 
+    Package into a vtk cell format.
 
     Parameters
     ----------
@@ -206,8 +204,9 @@ def parametricSurfce2vtk(
     cells
     """
     # Generate the mesh vertices and cell index list
-    vertices, cell_ids = create_cells(parametric_surface, triangles_per_edge,
-                                      si, sj, mirror_y, flip_faces)
+    vertices, cell_ids = create_cells(
+        parametric_surface, triangles_per_edge, si, sj, mirror_y, flip_faces
+    )
 
     # Create the vtk cells format and add patch_tag to each cell
     # cells = []
@@ -221,7 +220,7 @@ def parametricSurfce2vtk(
     #                   y=vertices[cell_id[2]][1], z=vertices[cell_id[2]][2]),
     #         face_ids=cell_id
     #     ))
-        # cells.attributes[-1] = {'cell_tag': 1}
+    # cells.attributes[-1] = {'cell_tag': 1}
 
     return (vertices, cell_ids)
 
@@ -274,8 +273,7 @@ def assess_inertial_properties(vehicle, component_densities: Dict[str, float]):
     total_volume = 0
 
     for name, component in vehicle._named_components.items():
-        inertia_handle = getattr(
-            component.mesh, "get_mass_properties_with_density")
+        inertia_handle = getattr(component.mesh, "get_mass_properties_with_density")
 
         volume, vmass, cog, inertia = inertia_handle(component_densities[name])
 
@@ -417,8 +415,7 @@ class SensitivityStudy:
             dp = adjusted_parameters[parameter] - value
 
             # Create Vehicle instance with perturbed parameter
-            constructor_instance = self.vehicle_constructor(
-                **adjusted_parameters)
+            constructor_instance = self.vehicle_constructor(**adjusted_parameters)
             parameter_instance = constructor_instance.create_instance()
             parameter_instance.verbosity = 0
 
@@ -455,8 +452,7 @@ class SensitivityStudy:
         # Return output
         self.parameter_sensitivities = sensitivities
         self.scalar_sensitivities = analysis_sens
-        self.component_sensitivities = self._combine(
-            nominal_instance, sensitivities)
+        self.component_sensitivities = self._combine(nominal_instance, sensitivities)
 
         return sensitivities
 
@@ -493,8 +489,7 @@ class SensitivityStudy:
                     os.mkdir(properties_dir)
 
                 vm = {
-                    p: {k: self.scalar_sensitivities[p][k]
-                        for k in ["volume", "mass"]}
+                    p: {k: self.scalar_sensitivities[p][k] for k in ["volume", "mass"]}
                     for p in self.scalar_sensitivities
                 }
                 pd.DataFrame(vm).to_csv(
@@ -503,13 +498,11 @@ class SensitivityStudy:
 
                 for param in self.scalar_sensitivities:
                     self.scalar_sensitivities[param]["cog"].tofile(
-                        os.path.join(properties_dir,
-                                     f"{param}_cog_sensitivity.txt"),
+                        os.path.join(properties_dir, f"{param}_cog_sensitivity.txt"),
                         sep=", ",
                     )
                     self.scalar_sensitivities[param]["moi"].tofile(
-                        os.path.join(properties_dir,
-                                     f"{param}_moi_sensitivity.txt"),
+                        os.path.join(properties_dir, f"{param}_moi_sensitivity.txt"),
                         sep=", ",
                     )
 
@@ -549,10 +542,8 @@ class SensitivityStudy:
         all_data[:, 3:6] = flat_diff  # Location deltas
 
         # Create DataFrame
-        df = pd.DataFrame(data=all_data, columns=[
-                          "x", "y", "z", "dx", "dy", "dz"])
-        df["magnitude"] = np.sqrt(
-            np.square(df[["dx", "dy", "dz"]]).sum(axis=1))
+        df = pd.DataFrame(data=all_data, columns=["x", "y", "z", "dx", "dy", "dz"])
+        df["magnitude"] = np.sqrt(np.square(df[["dx", "dy", "dz"]]).sum(axis=1))
 
         # Sensitivity calculations
         sensitivities = df[["dx", "dy", "dz"]] / dp
@@ -654,8 +645,7 @@ def append_sensitivities_to_tri(
     points_data_list = [el.split() for el in points_data.splitlines()]
     points_data_list = [[float(j) for j in i] for i in points_data_list]
 
-    points_df = pd.DataFrame(points_data_list, columns=[
-                             "x", "y", "z"]).dropna()
+    points_df = pd.DataFrame(points_data_list, columns=["x", "y", "z"]).dropna()
 
     # Ensure previous components sensitivity file is not included
     try:
