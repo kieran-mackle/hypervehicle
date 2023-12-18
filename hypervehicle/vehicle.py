@@ -60,7 +60,6 @@ class Vehicle:
 
         self.verbosity = verbosity
 
-
     def add_component(
         self,
         component: Component,
@@ -128,8 +127,7 @@ class Vehicle:
             self.components.append(component)
 
             # Add component count
-            component_count = self._component_counts.get(
-                component.componenttype, 0) + 1
+            component_count = self._component_counts.get(component.componenttype, 0) + 1
             self._component_counts[component.componenttype] = component_count
             self._enumerated_components[
                 f"{component.componenttype}_{component_count}"
@@ -147,8 +145,7 @@ class Vehicle:
                 print(f"Added new {component.componenttype} component.")
 
         else:
-            raise Exception(
-                f"Unrecognised component type: {component.componenttype}")
+            raise Exception(f"Unrecognised component type: {component.componenttype}")
 
     def generate(self):
         """Generate all components of the vehicle."""
@@ -160,8 +157,7 @@ class Vehicle:
 
         for component in self.components:
             if self.verbosity > 1:
-                print(
-                    f"  Generating patches for {component.componenttype} component.")
+                print(f"  Generating patches for {component.componenttype} component.")
 
             # Generate component patches
             component.generate_patches()
@@ -250,7 +246,7 @@ class Vehicle:
             component.surfaces = None
             component.mesh = None
 
-    def to_file(self, prefix: str = None, file_type: str = 'stl') -> None:
+    def to_file(self, prefix: str = None, file_type: str = "stl") -> None:
         """Writes the vehicle components to output file. If analysis results are
         present, they will also be written to file, either as CSV, or using
         the Numpy tofile method.
@@ -266,12 +262,12 @@ class Vehicle:
             The default is None.
 
         file_type: str
-            Defines the output file format to be written to. Can be stl or 
+            Defines the output file format to be written to. Can be stl or
             vtk. Default file_type is 'stl'
         """
         file_type = file_type.lower()
-        if file_type not in ['stl', 'vtk']:
-            raise ('Invalid output file type. STL or VTK supported')
+        if file_type not in ["stl", "vtk"]:
+            raise ("Invalid output file type. STL or VTK supported")
 
         if self.verbosity > 0:
             s = "Writing vehicle components to"
@@ -298,7 +294,7 @@ class Vehicle:
             if self.verbosity > 0:
                 print(f"  Writing: {file_name}                 ", end="\r")
 
-            if file_type == 'stl':
+            if file_type == "stl":
                 component.to_stl(file_name)
             else:
                 component.to_vtk(file_name)
@@ -333,7 +329,9 @@ class Vehicle:
 
         if self.verbosity > 0:
             print(
-                f"\rAll components written to {file_type.upper()} file format.", end="\n")
+                f"\rAll components written to {file_type.upper()} file format.",
+                end="\n",
+            )
 
     def to_stl(self, prefix: str = None) -> None:
         """Writes the vehicle components to STL. If analysis results are
@@ -350,7 +348,7 @@ class Vehicle:
             The default is None.
         """
 
-        self.to_file(prefix, file_type='stl')
+        self.to_file(prefix, file_type="stl")
 
     def to_vtk(self, prefix: str = None) -> None:
         """Writes the vehicle components to VTK. If analysis results are
@@ -367,7 +365,7 @@ class Vehicle:
             The default is None.
         """
 
-        self.to_file(prefix, file_type='vtk')
+        self.to_file(prefix, file_type="vtk")
 
     def analyse(self, densities: dict) -> Tuple:
         """Evaluates the mesh properties of the vehicle instance.
