@@ -11,15 +11,17 @@ between geometric components.
 
 ## The HyperVehicle Workflow
 Before diving into the component definitions, this section provides
-an overview of the <tt>HyperVehicle</tt> workflow, and how geometries are
-created from arbitrary definitions.
+an overview of the <tt>HyperVehicle</tt> workflow, and how vehicle 
+geometries are created.
 
-A vehicle is constructed by stacking a collection of *components* 
-together. Each component type defined below inherits from the 
-{py:class}`.Component` class.
+A geometry is constructed by combining a collection of *components* together. 
+Each component type of `hypervehicle` inherits from the {py:class}`.Component` 
+class.
 
-Below is a summary of other terminology:
-- Patch: a *patch* is a surface represented by a continuous function
-- Surface: a *surface* is a surface represented by a discrete function
-- Mesh: a *mesh* is a [Numpy STL](https://numpy-stl.readthedocs.io/en/latest/stl.html#stl-mesh) object
-
+Once the components of a geometry are defined, they can be added to an instance
+of the {py:class}`.Vehicle` class, which acts as a container for multiple 
+{py:class}`.Component`s. Components can be added to a `Vehicle` object using the
+{py:meth}`.Vehicle.add_component` method. The {py:class}`.Vehicle` object offers
+many useful features and methods, allowing you to name a vehicle, name individual 
+components, apply transformations, estimate the vehicle's inertial properties, and
+more.
