@@ -21,7 +21,8 @@ def create_cells(
     j_clustering_func: callable = None,
 ):
     """
-    Generates a list of vertices and a corrosponding list of index triplets, each pinting the vertices of a single cell
+    Generates a list of vertices and a corrosponding list of index triplets,
+    each pinting the vertices of a single cell
 
     Parameters
     ----------
@@ -51,7 +52,8 @@ def create_cells(
     Returns
     ----------
     vertices: numpy 2D array, each row contains (x,y,z) coordinates of one vertex
-    cell_ids: numpy 2D array, each row contains 3 indecies (row number in vertices) of a single cell
+    cell_ids: numpy 2D array, each row contains 3 indecies (row number in vertices)
+    of a single cell
 
     """
     # TODO - allow different ni and nj discretisation
@@ -165,6 +167,20 @@ def parametricSurfce2stl(
 
     Parameters
     ----------
+    parametric_surface : Any
+        The parametric surface object.
+
+    si : float, optional
+        The clustering in the i-direction. The default is 1.0.
+
+    sj : float, optional
+        The clustering in the j-direction. The default is 1.0.
+
+    triangles_per_edge : int
+        The resolution for the stl object.
+
+    mirror_y : bool, optional
+        Create mirror image about x-z plane. The default is False.
         parametric_surface : Any
             The parametric surface object.
         si : float, optional
@@ -217,20 +233,24 @@ def parametricSurfce2vtk(
 
     Parameters
     ----------
-        parametric_surface : Any
-            The parametric surface object.
-        si : float, optional
-            The clustering in the i-direction. The default is 1.0.
-        sj : float, optional
-            The clustering in the j-direction. The default is 1.0.
-        triangles_per_edge : int
-            The resolution for the stl object.
-        mirror_y : bool, optional
-            Create mirror image about x-z plane. The default is False.
+    parametric_surface : Any
+        The parametric surface object.
+
+    si : float, optional
+        The clustering in the i-direction. The default is 1.0.
+
+    sj : float, optional
+        The clustering in the j-direction. The default is 1.0.
+
+    triangles_per_edge : int
+        The resolution for the stl object.
+
+    mirror_y : bool, optional
+        Create mirror image about x-z plane. The default is False.
 
     Returns
     ----------
-    cells
+    tuple[vertices, cell_ids]
     """
     # Generate the mesh vertices and cell index list
     vertices, cell_ids = create_cells(
@@ -255,7 +275,7 @@ def parametricSurfce2vtk(
 
 
 def assess_inertial_properties(vehicle, component_densities: Dict[str, float]):
-    """
+    """Return the inertial properties of a vehicle.
 
     Parameters
     ----------
@@ -407,7 +427,6 @@ class SensitivityStudy:
         write_nominal_stl : bool, optional
             A boolean flag to write the nominal geometry STL(s) to file. The
             default is True.
-
         nominal_stl_prefix : str, optional
             The prefix to append when writing STL files for the nominal geometry.
             If None, no prefix will be used. The default is None.
@@ -763,7 +782,7 @@ def append_sensitivities_to_tri(
 
     Examples
     ---------
-    >>> dp_files = ['wing_0_body_width_sensitivity.csv',
+     >>> dp_files = ['wing_0_body_width_sensitivity.csv',
                     'wing_1_body_width_sensitivity.csv']
     """
     # Check outdir
@@ -1032,3 +1051,11 @@ def print_banner():
     tprint("Hypervehicle", "tarty4")
     p = art("airplane2")
     print(f" {p}               {p}               {p}               {p}")
+
+
+def assign_tags_to_cell(patch, length):
+    """Assign tags to cells."""
+    # Creates a tag vector for a given patch
+    tags_definition = {"FreeStream": 1, "Inlet": 2, "Outlet": 3, "Nozzle": 4}
+    tags = np.ones(length) * tags_definition[patch.tag]
+    return tags
