@@ -53,7 +53,11 @@ class ParametricWedge(Generator):
             patch = CoonsPatch(north=N, south=S, east=E, west=W)
             sections.append(patch)
 
-        fuselage_tags = {'swept_tag': 'FreeStream', 'end_0_tag': 'Inlet', 'end_1_tag': 'Outlet'}
+        fuselage_tags = {
+            "swept_tag": "FreeStream",
+            "end_0_tag": "Inlet",
+            "end_1_tag": "Outlet",
+        }
         fuselage = SweptComponent(
             cross_sections=sections,
             sweep_axis="z",
@@ -71,19 +75,4 @@ if __name__ == "__main__":
     parametric_wedge_generator = ParametricWedge()
     wedge_tags = parametric_wedge_generator.create_instance()
     wedge_tags.generate()
-    wedge_tags.to_vtk("wedge_tags")
-
-    # # To run sensitivity study
-    # from hypervehicle.utilities import SensitivityStudy
-
-    # # Construct sensitivity study
-    # ss = SensitivityStudy(ParametricWedge)
-
-    # # Define parameters to get sensitivities to
-    # parameters = {'thickness': 0.1, 'chord': 1, 'wingspan': 1}
-
-    # # Perform study
-    # sensitivities = ss.dvdp(parameters)
-
-    # # Save to CSV
-    # ss.to_csv()
+    wedge_tags.to_vtk(prefix="tagged_wedge")

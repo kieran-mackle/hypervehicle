@@ -9,4 +9,5 @@ build/
 # Miscellaneous
 *.stl
 *.csv
+*.vtk
 build/
