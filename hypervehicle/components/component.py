@@ -7,13 +7,14 @@ from abc import abstractmethod
 from typing import Callable, Union
 from hypervehicle.geometry import Vector3
 from gdtk.geom.sgrid import StructuredGrid
+from hypervehicle.utilities import assign_tags_to_cell
+from hypervehicle.utilities import parametricSurfce2stl, parametricSurfce2vtk
 from hypervehicle.geometry import (
     CurvedPatch,
     RotatedPatch,
     MirroredPatch,
     OffsetPatchFunction,
 )
-from hypervehicle.utilities import parametricSurfce2stl, parametricSurfce2vtk
 
 
 class AbstractComponent:
@@ -81,15 +82,6 @@ class AbstractComponent:
     def analyse(self):
         """Evaluates properties of the STL mesh."""
         pass
-
-
-def AssignTags2Celle(patch, length):
-    # Creates a tag vector for a given patch
-
-    tags_definition = {"FreeStream": 1, "Inlet": 2, "Outlet": 3, "Nozzle": 4}
-
-    tags = np.ones(length) * tags_definition[patch.tag]
-    return tags
 
 
 class Component(AbstractComponent):
@@ -313,7 +305,7 @@ class Component(AbstractComponent):
             )
 
             # Assign tags to the cells
-            tags = AssignTags2Celle(patch, len(cell_ids))
+            tags = assign_tags_to_cell(patch, len(cell_ids))
 
             return (key, vertices, cell_ids, tags)
 

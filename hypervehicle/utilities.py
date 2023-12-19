@@ -18,26 +18,31 @@ def create_cells(
     flip_faces=False,
 ):
     """
-    Generates a list of vertices and a corrosponding list of index triplets, each pinting the vertices of a single cell
+    Generates a list of vertices and a corrosponding list of index triplets,
+    each pinting the vertices of a single cell
 
     Parameters
     ----------
-        parametric_surface : Any
-            The parametric surface object.
-        si : float, optional
-            The clustering in the i-direction. The default is 1.0.
-        sj : float, optional
-            The clustering in the j-direction. The default is 1.0.
-        triangles_per_edge : int
-            The resolution for the stl object.
-        mirror_y : bool, optional
-            Create mirror image about x-z plane. The default is False.
+    parametric_surface : Any
+        The parametric surface object.
 
+    si : float, optional
+        The clustering in the i-direction. The default is 1.0.
+
+    sj : float, optional
+        The clustering in the j-direction. The default is 1.0.
+
+    triangles_per_edge : int
+        The resolution for the stl object.
+
+    mirror_y : bool, optional
+        Create mirror image about x-z plane. The default is False.
 
     Returns
     ----------
     vertices: numpy 2D array, each row contains (x,y,z) coordinates of one vertex
-    cell_ids: numpy 2D array, each row contains 3 indecies (row number in vertices) of a single cell
+    cell_ids: numpy 2D array, each row contains 3 indecies (row number in vertices)
+    of a single cell
 
     """
     # TODO - allow different ni and nj discretisation
@@ -142,16 +147,20 @@ def parametricSurfce2stl(
 
     Parameters
     ----------
-        parametric_surface : Any
-            The parametric surface object.
-        si : float, optional
-            The clustering in the i-direction. The default is 1.0.
-        sj : float, optional
-            The clustering in the j-direction. The default is 1.0.
-        triangles_per_edge : int
-            The resolution for the stl object.
-        mirror_y : bool, optional
-            Create mirror image about x-z plane. The default is False.
+    parametric_surface : Any
+        The parametric surface object.
+
+    si : float, optional
+        The clustering in the i-direction. The default is 1.0.
+
+    sj : float, optional
+        The clustering in the j-direction. The default is 1.0.
+
+    triangles_per_edge : int
+        The resolution for the stl object.
+
+    mirror_y : bool, optional
+        Create mirror image about x-z plane. The default is False.
 
     Returns
     ----------
@@ -188,20 +197,24 @@ def parametricSurfce2vtk(
 
     Parameters
     ----------
-        parametric_surface : Any
-            The parametric surface object.
-        si : float, optional
-            The clustering in the i-direction. The default is 1.0.
-        sj : float, optional
-            The clustering in the j-direction. The default is 1.0.
-        triangles_per_edge : int
-            The resolution for the stl object.
-        mirror_y : bool, optional
-            Create mirror image about x-z plane. The default is False.
+    parametric_surface : Any
+        The parametric surface object.
+
+    si : float, optional
+        The clustering in the i-direction. The default is 1.0.
+
+    sj : float, optional
+        The clustering in the j-direction. The default is 1.0.
+
+    triangles_per_edge : int
+        The resolution for the stl object.
+
+    mirror_y : bool, optional
+        Create mirror image about x-z plane. The default is False.
 
     Returns
     ----------
-    cells
+    tuple[vertices, cell_ids]
     """
     # Generate the mesh vertices and cell index list
     vertices, cell_ids = create_cells(
@@ -226,12 +239,13 @@ def parametricSurfce2vtk(
 
 
 def assess_inertial_properties(vehicle, component_densities: Dict[str, float]):
-    """
+    """Return the inertial properties of a vehicle.
 
     Parameters
     ----------
     vehicle : Vehicle
         A hypervehicle Vehicle instance.
+
     component_densities : Dict[str, float]
         A dictionary containing the effective densities for each component.
         Note that the keys of the dict must match the keys of
@@ -241,10 +255,13 @@ def assess_inertial_properties(vehicle, component_densities: Dict[str, float]):
     -------
     total_volume : float
         The total volume.
+
     total_mass : float
         The toal mass.
+
     composite_cog : np.array
         The composite center of gravity.
+
     composite_inertia : np.array
         The composite mass moment of inertia.
 
@@ -350,15 +367,19 @@ class SensitivityStudy:
         parameter_dict : dict
             A dictionary of the design parameters to perturb, and their
             nominal values.
+
         perturbation : float, optional
             The design parameter perturbation amount, specified as percentage.
             The default is 20.
+
         vehicle_creator_method : str, optional
             The name of the method which returns a hypervehicle.Vehicle
             instance, ready for generation. The default is 'create_instance'.
+
         write_nominal_stl : bool, optional
             A boolean flag to write the nominal geometry STL(s) to file. The
             default is True.
+
         nominal_stl_prefix : str, optional
             The prefix to append when writing STL files for the nominal geometry.
             If None, no prefix will be used. The default is None.
@@ -515,9 +536,12 @@ class SensitivityStudy:
         ----------
         mesh1 : None
             The reference mesh.
+
         mesh1 : None
             The perturbed mesh.
+
         dp : None
+
         parameter_name : str
             The name of the parameter.
 
@@ -598,14 +622,18 @@ def append_sensitivities_to_tri(
     ----------
     dp_files : list[str]
         A list of the file names of the sensitivity data.
+
     components_filepath : str, optional
         The filepath to the .tri file to be appended to. The default is
         'Components.i.tri'.
+
     match_tolerance : float, optional
         The precision tolerance for matching point coordinates. The
         default is 1e-5.
+
     rounding_tolerance : float, optional
         The tolerance to round data off to. The default is 1e-8.
+
     outdir : str, optional
         The output directory to write the combined sensitivity file to. If
         None, the current working directory will be used. The default
@@ -761,7 +789,7 @@ def csv_to_delaunay(filepath: str):
     Parameters
     ------------
     filepath : str
-            The filepath to the CSV file.
+        The filepath to the CSV file.
     """
     # TODO - rename
     from paraview.simple import CSVReader, TableToPoints, Delaunay3D, SaveData
@@ -800,3 +828,11 @@ def convert_all_csv_to_delaunay(directory: str = ""):
 
     for file in files:
         csv_to_delaunay(file)
+
+
+def assign_tags_to_cell(patch, length):
+    """Assign tags to cells."""
+    # Creates a tag vector for a given patch
+    tags_definition = {"FreeStream": 1, "Inlet": 2, "Outlet": 3, "Nozzle": 4}
+    tags = np.ones(length) * tags_definition[patch.tag]
+    return tags
