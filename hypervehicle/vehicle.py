@@ -246,46 +246,58 @@ class Vehicle:
             component.surfaces = None
             component.mesh = None
 
-    def to_stl(self, prefix: str = None) -> None:
-        """Writes the vehicle components to STL file. If analysis results are
+    def to_file(self, prefix: str = None, file_type: str = "stl") -> None:
+        """Writes the vehicle components to output file. If analysis results are
         present, they will also be written to file, either as CSV, or using
         the Numpy tofile method.
+        The output file format is defined in 'file_type' and can be stl or vtk
 
         Parameters
         ----------
         prefix : str, optional
-            The prefix to use when saving components to STL. Note that if
-            components have been individually assigned name tags, the prefix
+            The prefix to use when saving components to output file. Note that
+            if components have been individually assigned name tags, the prefix
             provided will take precedence. If no prefix is specified, and no
             component name tag is available, the Vehicle name will be used.
             The default is None.
+
+        file_type: str
+            Defines the output file format to be written to. Can be stl or
+            vtk. Default file_type is 'stl'
         """
+        file_type = file_type.lower()
+        if file_type not in ["stl", "vtk"]:
+            raise ("Invalid output file type. STL or VTK supported")
+
         if self.verbosity > 0:
-            s = "Writing vehicle components to STL"
+            s = "Writing vehicle components to"
             if prefix:
-                print(f"{s}, with prefix '{prefix}'.")
+                print(f"{s} {file_type.upper()}, with prefix '{prefix}'.")
             else:
-                print(f"{s}.")
+                print(f"{s} {file_type.upper()}.")
 
         types_generated = {}
         for component in self.components:
             # Get component count
             no = types_generated.get(component.componenttype, 0)
 
-            # Write component to stl
+            # Write component to output file
             if prefix:
                 # Use prefix provided
-                stl_name = f"{prefix}-{component.componenttype}-{no}.stl"
+                file_name = f"{prefix}-{component.componenttype}-{no}.{file_type}"
             elif component.name:
-                stl_name = f"{component.name}.stl"
+                file_name = f"{component.name}.{file_type}"
             else:
                 # No prefix or component name, use vehicle name as fallback
-                stl_name = f"{self.name}-{component.componenttype}-{no}.stl"
+                file_name = f"{self.name}-{component.componenttype}-{no}.{file_type}"
 
             if self.verbosity > 0:
-                print(f"  Writing: {stl_name}                 ", end="\r")
+                print(f"  Writing: {file_name}                 ", end="\r")
 
-            component.to_stl(stl_name)
+            if file_type == "stl":
+                component.to_stl(file_name)
+            else:
+                component.to_vtk(file_name)
 
             # Update component count
             types_generated[component.componenttype] = no + 1
@@ -316,7 +328,44 @@ class Vehicle:
             )
 
         if self.verbosity > 0:
-            print("\rAll components written to STL file format.", end="\n")
+            print(
+                f"\rAll components written to {file_type.upper()} file format.",
+                end="\n",
+            )
+
+    def to_stl(self, prefix: str = None) -> None:
+        """Writes the vehicle components to STL. If analysis results are
+        present, they will also be written to file, either as CSV, or using
+        the Numpy tofile method.
+
+        Parameters
+        ----------
+        prefix : str, optional
+            The prefix to use when saving components to STL. Note that if
+            components have been individually assigned name tags, the prefix
+            provided will take precedence. If no prefix is specified, and no
+            component name tag is available, the Vehicle name will be used.
+            The default is None.
+        """
+
+        self.to_file(prefix, file_type="stl")
+
+    def to_vtk(self, prefix: str = None) -> None:
+        """Writes the vehicle components to VTK. If analysis results are
+        present, they will also be written to file, either as CSV, or using
+        the Numpy tofile method.
+
+        Parameters
+        ----------
+        prefix : str, optional
+            The prefix to use when saving components to VTK. Note that if
+            components have been individually assigned name tags, the prefix
+            provided will take precedence. If no prefix is specified, and no
+            component name tag is available, the Vehicle name will be used.
+            The default is None.
+        """
+
+        self.to_file(prefix, file_type="vtk")
 
     def analyse(self, densities: dict) -> Tuple:
         """Evaluates the mesh properties of the vehicle instance.
