@@ -8,6 +8,7 @@ from hypervehicle.components.constants import (
     WING_COMPONENT,
     COMPOSITE_COMPONENT,
     SWEPT_COMPONENT,
+    SWEPT_COMPONENT_MULTI_FACE,
     REVOLVED_COMPONENT,
 )
 
@@ -17,6 +18,7 @@ class Vehicle:
         FIN_COMPONENT,
         WING_COMPONENT,
         SWEPT_COMPONENT,
+        SWEPT_COMPONENT_MULTI_FACE,
         REVOLVED_COMPONENT,
         COMPOSITE_COMPONENT,
     ]

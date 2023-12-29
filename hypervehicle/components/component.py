@@ -7,12 +7,12 @@ from stl import mesh
 import multiprocess as mp
 from copy import deepcopy
 from abc import abstractmethod
-from typing import Callable, Union
 from hypervehicle.geometry import Vector3
 from gdtk.geom.sgrid import StructuredGrid
 from hypervehicle.utilities import assign_tags_to_cell
 from hypervehicle.utilities import parametricSurfce2stl, parametricSurfce2vtk
-from typing import Callable, Union, Optional
+from hypervehicle.utilities import PatchTag
+from typing import Callable, Union, Optional, Dict
 from hypervehicle.geometry import (
     CurvedPatch,
     RotatedPatch,
@@ -92,11 +92,12 @@ class AbstractComponent:
 class Component(AbstractComponent):
     def __init__(
         self,
-        params: dict = None,
+        params: Dict = None,
         stl_resolution: int = 2,
         verbosity: int = 1,
         name: str = None,
         output_file_type: str = "stl",
+        patch_name_to_tags: Dict = None,
     ) -> None:
         # Set verbosity
         self.verbosity = verbosity
@@ -106,6 +107,7 @@ class Component(AbstractComponent):
 
         # Processed objects
         self.patches = {}  # Parametric patches (continuous)
+        self._patch_name_to_tags = patch_name_to_tags or dict()
 
         # VTK Attributes
         self.cells = None  # Mesh cells
@@ -268,22 +270,27 @@ class Component(AbstractComponent):
 
             if "swept" in key:
                 # Swept fuselage component
-                res = (
-                    int(stl_resolution / 4)
-                    if "end" in key
-                    else int(stl_resolution / 4) * 4
-                )
+                if "end" in key:
+                    res_r = res_s = int(stl_resolution / 4)
+                elif any(
+                    direction in key for direction in ("north", "south", "east", "west")
+                ):
+                    res_s = int(stl_resolution / 4)
+                    res_r = res_s * 4
+                else:
+                    res_r = res_s = int(stl_resolution / 4) * 4
                 flip = True if "1" in key else False
+            else:
+                res_r = res_s = res
 
             surface = parametricSurfce2stl(
-                patch, res, flip_faces=flip, **self._clustering
+                patch, res_r, res_s, flip_faces=flip, **self._clustering
             )
 
             return (key, surface)
 
         # Initialise surfaces and pool
         self.surfaces = {}
-        pool = mp.Pool()
 
         # Submit tasks single (debug mode)
         # for a in self.patches.items():
@@ -291,6 +298,7 @@ class Component(AbstractComponent):
         #     self.surfaces[result[0]] = result[1]
 
         # Submit tasks multi
+        pool = mp.Pool()
         for result in pool.starmap(wrapper, self.patches.items()):
             self.surfaces[result[0]] = result[1]
 
@@ -310,15 +318,21 @@ class Component(AbstractComponent):
 
             if "swept" in key:
                 # Swept fuselage component
-                res = (
-                    int(stl_resolution / 4)
-                    if "end" in key
-                    else int(stl_resolution / 4) * 4
-                )
+                if "end" in key:
+                    res_r = res_s = int(stl_resolution / 4)
+                elif any(
+                    direction in key for direction in ("north", "south", "east", "west")
+                ):
+                    res_s = int(stl_resolution / 4)
+                    res_r = res_s * 4
+                else:
+                    res_r = res_s = int(stl_resolution / 4) * 4
                 flip = True if "1" in key else False
+            else:
+                res_r = res_s = res
 
             vertices, cell_ids = parametricSurfce2vtk(
-                patch, res, flip_faces=flip, **self._clustering
+                patch, res_r, res_s, flip_faces=flip, **self._clustering
             )
 
             # Assign tags to the cells
@@ -328,7 +342,6 @@ class Component(AbstractComponent):
 
         # Initialise cells and pool
         self.cells = {}
-        pool = mp.Pool()
 
         # Submit tasks single (debug mode)
         # for a in self.patches.items():
@@ -336,6 +349,7 @@ class Component(AbstractComponent):
         #     self.cells[result[0]] = (result[1], result[2], result[3])
 
         # Submit tasks multi
+        pool = mp.Pool()
         for result in pool.starmap(wrapper, self.patches.items()):
             self.cells[result[0]] = (result[1], result[2], result[3])
 
@@ -373,10 +387,10 @@ class Component(AbstractComponent):
         tags = np.empty(0, dtype=int)
 
         # Combine all Cell data
-        for sss in self.cells.items():
-            cell_ids = np.concatenate([cell_ids, sss[1][1] + len(vertices)])
-            vertices = np.concatenate([vertices, sss[1][0]])
-            tags = np.concatenate([tags, sss[1][2]])
+        for cell in self.cells.items():
+            cell_ids = np.concatenate([cell_ids, cell[1][1] + len(vertices)])
+            vertices = np.concatenate([vertices, cell[1][0]])
+            tags = np.concatenate([tags, cell[1][2]])
 
         # Generate mesh in VTK format
         cell_ids = [("triangle", cell_ids)]
@@ -417,3 +431,14 @@ class Component(AbstractComponent):
 
         if j_clustering_func:
             self._clustering.update({"j_clustering_func": j_clustering_func})
+
+    def add_tag_to_patches(self):
+        if self.patches is None:
+            raise Exception("component has no patches")
+
+        for name, patch in self.patches.items():
+            # default tag is FREE_STREEM
+            if name not in self._patch_name_to_tags:
+                patch.tag = PatchTag.FREE_STREAM
+                continue
+            patch.tag = self._patch_name_to_tags[name]

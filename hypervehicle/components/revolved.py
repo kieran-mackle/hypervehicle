@@ -13,6 +13,7 @@ class RevolvedComponent(Component):
         stl_resolution: int = 4,
         verbosity: int = 1,
         name: str = None,
+        tags: dict = None,
     ) -> None:
         """Create a revolved component.
 
@@ -22,10 +23,18 @@ class RevolvedComponent(Component):
             A line to be revolved about the primary axis.
         """
         self.revolve_line = revolve_line
-        super().__init__(stl_resolution=stl_resolution, verbosity=verbosity, name=name)
+        super().__init__(
+            stl_resolution=stl_resolution,
+            verbosity=verbosity,
+            name=name,
+            patch_name_to_tags=tags,
+        )
 
     def generate_patches(self):
         for i in range(4):
             self.patches[f"revolved_fuse_{i}"] = RevolvedPatch(
                 self.revolve_line, i * np.pi / 2, (i + 1) * np.pi / 2
             )
+
+        # Add tags to patches
+        self.add_tag_to_patches()

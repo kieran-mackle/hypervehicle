@@ -149,6 +149,8 @@ class OffsetPatchFunction(ParametricSurface):
     def __init__(self, underlying_surf, function):
         self.underlying_surf = underlying_surf
         self.function = function
+        if hasattr(underlying_surf, "tag"):
+            self.tag = underlying_surf.tag
 
     def __repr__(self):
         str = " + offset function"
@@ -485,6 +487,8 @@ class CurvedPatch(ParametricSurface):
         self.direction = direction
         self.fun = fun
         self.fun_dash = fun_dash
+        if hasattr(underlying_surf, "tag"):
+            self.tag = underlying_surf.tag
 
     def __repr__(self):
         return self.underlying_surf.__repr__() + " with added curvature"
@@ -682,6 +686,107 @@ class SweptPatch(ParametricSurface):
         return Vector3(**args)
 
 
+class SweptPatchMultiFace(ParametricSurface):
+    """Creates a swept patch from a series of cross sections."""
+
+    __slots__ = ["cross_sections", "section_origins"]
+
+    def __init__(
+        self,
+        cross_sections: list,
+        face_direction: str,
+        sweep_axis: str = "z",
+    ) -> None:
+        """Construct the SweptPatch object.
+
+        Parameters
+        -----------
+        cross_sections : list
+            A list containing the cross sections to be blended. These must
+            be defined in the x-y plane.
+        sweep_axis : str, optional
+            The axis to sweep the cross sections along. Note that each cross
+            section should vary along this axis. The default is "z".
+        face_direction : str
+            which of the four coons_path directions will be generated - 'north, 'east', 'south', 'west'
+        """
+        self.cross_sections = cross_sections
+        self.section_origins = [getattr(cs(0, 0), sweep_axis) for cs in cross_sections]
+        self._sweep_axis = sweep_axis
+        self._other_axes = {"x", "y", "z"} - set(sweep_axis)
+
+        if min(self.section_origins) == max(self.section_origins):
+            raise Exception(
+                "There is no axial variation in the cross " + "sections provided!"
+            )
+
+        self.perimeters = [SurfacePerimeter(s) for s in cross_sections]
+        self.min_origin = min(self.section_origins)
+        self.origin_dist = max(self.section_origins) - self.min_origin
+
+        # Check if face_direction is valid
+        face_directions = ["north", "east", "south", "west"]
+        if face_direction not in face_directions:
+            raise Exception("Please define the swept patch corresponding direction")
+        method_name = f"sweep_{face_direction}"
+        self._method_to_call = getattr(self, method_name, None)
+
+    def __repr__(self):
+        return "Swept Patch Multi Face"
+
+    def __call__(self, r, s) -> Vector3:
+
+        if callable(self._method_to_call):
+            s_dash = self._method_to_call(s)
+        else:
+            raise Exception(f"{self._method_to_call} is not callable")
+
+        # Calculate physical axial distance
+        dist = self.min_origin + r * self.origin_dist
+
+        # Find index of bounding cross sections
+        for i, lv in enumerate(self.section_origins):
+            if dist == self.section_origins[-1]:
+                i = len(self.section_origins) - 2
+                break
+            elif lv <= dist < self.section_origins[i + 1]:
+                break
+
+        # Get upper and lower perimeter
+        lps = self.perimeters[i](s_dash)
+        ups = self.perimeters[i + 1](s_dash)
+
+        # Get upper and lower bounding sections
+        ls = self.section_origins[i]
+        us = self.section_origins[i + 1]
+
+        # Linearly interpolate between cross-sectional perimeters
+        args = {
+            a: getattr(lps, a)
+            + (dist - ls) * (getattr(ups, a) - getattr(lps, a)) / (us - ls)
+            for a in self._other_axes
+        }
+        args[self._sweep_axis] = dist
+
+        return Vector3(**args)
+
+    def sweep_south(self, s):
+        s_dash = s * 0.25
+        return s_dash
+
+    def sweep_east(self, s):
+        s_dash = 0.25 + s * 0.25
+        return s_dash
+
+    def sweep_north(self, s):
+        s_dash = 0.5 + s * 0.25
+        return s_dash
+
+    def sweep_west(self, s):
+        s_dash = 0.75 + s * 0.25
+        return s_dash
+
+
 class RotatedPatch(ParametricSurface):
     """
     Rotates a surface about a point in an axis-specified direction.
@@ -694,7 +799,8 @@ class RotatedPatch(ParametricSurface):
         self.angle = angle
         self.axis = axis.lower()
         self.point = point
-        self.tag = underlying_surf.tag
+        if hasattr(underlying_surf, "tag"):
+            self.tag = underlying_surf.tag
 
     def __repr__(self):
         str = f" (rotated by {np.rad2deg(self.angle)} degrees)"
@@ -728,6 +834,8 @@ class MirroredPatch(ParametricSurface):
     def __init__(self, underlying_surf, axis="x"):
         self.underlying_surf = underlying_surf
         self.axis = axis.lower()
+        if hasattr(underlying_surf, "tag"):
+            self.tag = underlying_surf.tag
 
     def __repr__(self):
         return self.underlying_surf.__repr__() + f" mirrored along {self.axis}-axis"

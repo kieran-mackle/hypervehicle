@@ -48,6 +48,7 @@ class Wing(Component):
         stl_resolution: int = 2,
         verbosity: int = 1,
         name: str = None,
+        tags: dict = None,
     ) -> None:
         """Creates a new fin component.
 
@@ -122,6 +123,8 @@ class Wing(Component):
 
         name : str, optional
             The name tag for the component. The default is None.
+        tags : dict, optional
+            tags to be added to each patch (for generating a VTK file)
         """
         # Check if a LE function was provided
         if LE_wf is None and LE_type == "custom":
@@ -151,7 +154,9 @@ class Wing(Component):
             "CLOSE_WING": close_wing,
         }
 
-        super().__init__(params, stl_resolution, verbosity, name)
+        super().__init__(
+            params, stl_resolution, verbosity, name, patch_name_to_tags=tags
+        )
 
         # Extract construction points for planform
         # TODO - avoid pre-defined params dict structure for flexibility
@@ -190,6 +195,9 @@ class Wing(Component):
 
         if "CLOSE_WING" in self.params and self.params["CLOSE_WING"]:
             self._close_wing()
+
+        # Add tags to patches
+        self.add_tag_to_patches()
 
     def _create_planform_patches(self):
         if self.params["Line_B0TT_TYPE"].lower() == "bezier":
