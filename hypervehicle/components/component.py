@@ -1,10 +1,12 @@
+import enum
+
 import meshio
 import numpy as np
 from stl import mesh
 import multiprocess as mp
 from copy import deepcopy
 from abc import abstractmethod
-from typing import Callable, Union
+from typing import Callable, Union, Dict
 from hypervehicle.geometry import Vector3
 from gdtk.geom.sgrid import StructuredGrid
 from hypervehicle.utilities import assign_tags_to_cell
@@ -15,6 +17,13 @@ from hypervehicle.geometry import (
     MirroredPatch,
     OffsetPatchFunction,
 )
+
+
+class PatchTag(enum.Enum):
+    FREE_STREAM = 1
+    INLET = 2
+    OUTLET = 3
+    NOZZLE = 4
 
 
 class AbstractComponent:
@@ -87,11 +96,12 @@ class AbstractComponent:
 class Component(AbstractComponent):
     def __init__(
         self,
-        params: dict = None,
+        params: Dict = None,
         stl_resolution: int = 2,
         verbosity: int = 1,
         name: str = None,
         output_file_type: str = "stl",
+        patch_name_to_tags: Dict = None,
     ) -> None:
         # Set verbosity
         self.verbosity = verbosity
@@ -101,6 +111,7 @@ class Component(AbstractComponent):
 
         # Processed objects
         self.patches = {}  # Parametric patches (continuous)
+        self._patch_name_to_tags = patch_name_to_tags or dict()
 
         # VTK Attributes
         self.cells = None  # Mesh cells
@@ -375,3 +386,12 @@ class Component(AbstractComponent):
         print(f"COG location: {cog}")
         print("Moment of intertia metrix at COG:")
         print(inertia)
+
+    def add_tag_to_patches(self):
+        if self.patches is None:
+            raise Exception("component has no patches")
+
+        for name, patch in self.patches.items():
+            if name not in self._patch_name_to_tags:
+                continue
+            patch.tag = self._patch_name_to_tags[name]

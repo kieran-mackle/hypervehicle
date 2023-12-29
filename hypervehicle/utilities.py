@@ -833,6 +833,5 @@ def convert_all_csv_to_delaunay(directory: str = ""):
 def assign_tags_to_cell(patch, length):
     """Assign tags to cells."""
     # Creates a tag vector for a given patch
-    tags_definition = {"FreeStream": 1, "Inlet": 2, "Outlet": 3, "Nozzle": 4}
-    tags = np.ones(length) * tags_definition[patch.tag]
+    tags = [patch.tag.value] * length
     return tags
