@@ -55,25 +55,13 @@ Similar frameworks appear abundantly throughout literature [@Bowcutt1992, @Bowcu
 HyperVehicle aims to fill this gap, by providing an open-source, user-friendly and production-ready automated CAD tool as a Python package.
 
 
-# Components
-Below are some samples of the components available in HyperVehicle.
-
-| Component type | Sample |
-| -------------- | ------ |
-| Swept          | ![](./images/swept.png){width=0.4%} |
-| Revolved       | ![](./images/revolve.png){width=0.4%} |
-| Wing           | ![](./images/flap.png){width=0.4%} |
-
-
-# Vehicle geometries
+# Example vehicle geometries
 Below are some sample vehicle configurations generated using HyperVehicle.
 Note that these geometries are made avaiable in the hypervehicle hangar.
 
-<p float="left">
-  <img src="images/waverider.png" width="33%" /> 
-  <img src="images/refex.png" width="33%" /> 
-  <img src="images/x43a.png" width="33%" />
-</p>
+![Generic hypersonic waverider](images/waverider.png){ width = 70% }
+![DLR ReFEX](images/refex.png){ width = 70% }
+![NASA X43-A demonstrator](images/x43a.png){ width = 70% }
 
 
 # References
