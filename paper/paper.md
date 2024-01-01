@@ -34,12 +34,11 @@ There are many more features available, such as geometry rotation and transforma
 
 An automated geometry generation tool lies at the heart of any design optimisation framework.
 Without such a tool, design spaces cannot be efficiently explored to locate opimal designs.
-**TODO** - discuss geometry generation options: CAD, etc.
-
-
-While other Python-native geometry packages exist [@numpy_stl], they offer a low-level API for the general purpose of generating meshes from vertex coordinate and face IDs.
-Other, more feature-rich packages also exist [@PyMesh], but **... Need to expand here and distinguish where hypervehicle sits.**
-HyperVehicle differs from these packages in many ways.
+Commonly, geometry design and generation will take place using a computer-aided design (CAD) software.
+Although commercial CAD packages offer a comprehensive toolset for design, they are not usually intended for large-scale, automated design optimisation.
+As such, they do not have the functionality desired for such a purpose.
+There are also existing Python-native geometry packages [@numpy_stl, @PyMesh], which provide a good foundation for a more flexible application, as they offer a low-level API for the general purpose of generating meshes from vertex coordinate and face IDs.
+HyperVehicle differs from and extends these packages in many ways.
 
 
 As the name implies, HyperVehicle has a specific focus on the generation of vehicle geometries.
