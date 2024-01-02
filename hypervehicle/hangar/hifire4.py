@@ -6,6 +6,15 @@ from hypervehicle.geometry import Vector3, Line, Polyline, Arc
 
 
 class ParametricHIFiRE4(Generator):
+    """Parametric generator for mock-up of the HIFiRE 4.
+
+    Dimensions have been approximated based on vehicle's visual proportions.
+
+    References
+    ----------
+    https://arc.aiaa.org/doi/10.2514/6.2011-2275
+    """
+
     def __init__(self, **kwargs) -> None:
         # Vehicle parameters
         self.x_curve_mult = 0.3

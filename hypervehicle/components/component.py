@@ -1,11 +1,14 @@
+import os
+import time
+import pymeshfix
 import numpy as np
 from stl import mesh
 import multiprocess as mp
 from copy import deepcopy
-from typing import Callable, Union
 from abc import abstractmethod
 from hypervehicle.geometry import Vector3
 from gdtk.geom.sgrid import StructuredGrid
+from typing import Callable, Union, Optional
 from hypervehicle.geometry import (
     CurvedPatch,
     RotatedPatch,
@@ -63,7 +66,8 @@ class AbstractComponent:
 
     @abstractmethod
     def surface(self):
-        """Creates a surface from the parametric patches."""
+        """Creates the discretised surface data from the
+        parametric patches."""
         pass
 
     @abstractmethod
@@ -116,9 +120,15 @@ class Component(AbstractComponent):
         # Transformations
         self._transformations = []
 
+        # Modifier function
+        self._modifier_function = None
+
         # Component reflection
         self._reflection_axis = None
         self._append_reflection = True
+
+        # Ghost component
+        self._ghost = False
 
         # Component name
         self.name = name
@@ -163,19 +173,20 @@ class Component(AbstractComponent):
 
     @property
     def mesh(self):
-        # Check for processed surfaces
-        if self.surfaces is None:
-            if self.verbosity > 1:
-                print(" Generating surfaces for component.")
+        if not self._mesh:
+            # Check for processed surfaces
+            if self.surfaces is None:
+                if self.verbosity > 1:
+                    print(" Generating surfaces for component.")
 
-            # Generate surfaces
-            self.surface()
+                # Generate surfaces
+                self.surface()
 
-        # Combine all surface data
-        surface_data = np.concatenate([s[1].data for s in self.surfaces.items()])
+            # Combine all surface data
+            surface_data = np.concatenate([s[1].data for s in self.surfaces.items()])
 
-        # Create STL mesh
-        self._mesh = mesh.Mesh(surface_data)
+            # Create nominal STL mesh
+            self._mesh = mesh.Mesh(surface_data)
 
         return self._mesh
 
@@ -202,6 +213,11 @@ class Component(AbstractComponent):
         for transform in self._transformations:
             func = getattr(self, transform[0])
             func(*transform[1:])
+
+    def apply_modifier(self):
+        if self._modifier_function:
+            for key, patch in self.patches.items():
+                self.patches[key] = OffsetPatchFunction(patch, self._modifier_function)
 
     def reflect(self, axis: str = None):
         axis = self._reflection_axis if self._reflection_axis is not None else axis
@@ -270,17 +286,21 @@ class Component(AbstractComponent):
             grid.write_to_vtk_file(f"{self.vtk_filename}-wing_{key}.vtk")
 
     def to_stl(self, outfile: str = None):
-        if self.verbosity > 1:
-            print("Writing patches to STL format. ")
+        if not self._ghost:
+            if self.verbosity > 1:
+                print("Writing patches to STL format. ")
+                if outfile is not None:
+                    print(f"Output file = {outfile}.")
+
+            # Get mesh
+            stl_mesh = self.mesh
+
             if outfile is not None:
-                print(f"Output file = {outfile}.")
+                # Write STL to file
+                stl_mesh.save(outfile)
 
-        # Get mesh
-        stl_mesh = self.mesh
-
-        if outfile is not None:
-            # Write STL to file
-            stl_mesh.save(outfile)
+                # Clean it
+                pymeshfix.clean_from_file(outfile, outfile)
 
     def analyse(self):
         # Get mass properties
@@ -291,3 +311,24 @@ class Component(AbstractComponent):
         print(f"COG location: {cog}")
         print("Moment of intertia metrix at COG:")
         print(inertia)
+
+    def add_clustering_options(
+        self,
+        i_clustering_func: Optional[Callable] = None,
+        j_clustering_func: Optional[Callable] = None,
+    ):
+        """Add a clustering option to this component.
+
+        Parameters
+        -----------
+        i_clustering_func : Callable, optional
+            The clustering function in the i direction. The default is None.
+
+        j_clustering_func : Callable, optional
+            The clustering function in the j direction. The default is None.
+        """
+        if i_clustering_func:
+            self._clustering.update({"i_clustering_func": i_clustering_func})
+
+        if j_clustering_func:
+            self._clustering.update({"j_clustering_func": j_clustering_func})

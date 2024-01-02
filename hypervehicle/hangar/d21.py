@@ -8,6 +8,15 @@ from hypervehicle.geometry import Vector3, Bezier, Line, Polyline
 
 
 class ParametricD21(Generator):
+    """Parametric generator for mock-up of the Lockheed D-21 drone.
+
+    Dimensions have been approximated based on vehicle's visual proportions.
+
+    References
+    ----------
+    https://en.wikipedia.org/wiki/Lockheed_D-21
+    """
+
     def __init__(self, **kwargs) -> None:
         # Vehicle parameters
         self.R_b = 1  # Body radius

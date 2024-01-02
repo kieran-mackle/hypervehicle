@@ -20,6 +20,15 @@ def leading_edge_width_function(r):
 
 
 class ParametricReFEX(Generator):
+    """Parametric generator for mock-up of the DLR ReFEX.
+
+    Dimensions have been approximated based on vehicle's visual proportions.
+
+    References
+    ----------
+    https://www.dlr.de/irs/en/desktopdefault.aspx/tabid-15435/
+    """
+
     def __init__(self, **kwargs) -> None:
         # STL Generation Toggles
         self.generate_fuselage = True

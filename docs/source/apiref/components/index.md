@@ -1,4 +1,4 @@
-# Hypervehicle Components
+# HyperVehicle Components
 
 
 ## Component Definitions

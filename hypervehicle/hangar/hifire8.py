@@ -24,6 +24,11 @@ def leading_edge_width_function(r):
 
 
 class ParametricHIFiRE8(Generator):
+    """Parametric generator for mock-up of the HIFiRE 8.
+
+    Dimensions have been approximated based on vehicle's visual proportions.
+    """
+
     def __init__(self, **kwargs) -> None:
         # Vehicle parameters
         self.L = 1.2

@@ -1,7 +1,7 @@
 (sensitivities)=
 # Generating Parameter Sensitvities
 This tutorial will demonstrate how to generate geometric parameter
-sensitivities using *hypervehicle*.
+sensitivities using <tt>HyperVehicle</tt>.
 
 ```{seealso}
 This example follows on from the [sharp wedge](sharpwedge) tutorial.
@@ -25,7 +25,7 @@ The next step is to refactor the geometry generation code into a
 the {py:meth}`.Generator.__init__` method,
 where all geometric parameters are passed as arguments, and the 
 {py:meth}`.create_instance` method, which returns a 
-[`Vehicle`](vehicle) object ready to be {py:meth}`.generate`'d.
+{py:class}`.Vehicle` object ready to be {py:meth}`.generate`'d.
 
 
 The code below provides an example of this class. Note that the 

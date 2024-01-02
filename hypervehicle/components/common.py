@@ -62,10 +62,13 @@ class OgiveNose(RevolvedComponent):
         ----------
         h : float
             The ogive height.
+
         r_n : float
             The ogive nose radius.
+
         r_o : float
             The ogive radius.
+
         L_o : float
             The ogive length.
         """

@@ -6,6 +6,13 @@ from hypervehicle.geometry import Vector3, Line, Polyline, Arc
 
 
 class ParametricFalcon9(Generator):
+    """Parametric generator for mock-up of the SpaceX Falcon 9.
+
+    References
+    ----------
+    https://www.spacex.com/vehicles/falcon-9/
+    """
+
     def __init__(self, **kwargs) -> None:
         # Vehicle parameters
         self.D = 3.75
