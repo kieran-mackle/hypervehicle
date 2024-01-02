@@ -46,7 +46,8 @@ setuptools.setup(
     packages=setuptools.find_packages(),
     url="https://github.com/kieran-mackle/hypervehicle",
     description="Parametric geometry generation tool for hypersonic vehicles",
-    long_description=open("README.md").read(),
+    long_description=long_description,
+    long_description_content_type="text/markdown",
     install_requires=[
         "numpy-stl >= 3.0.0",
         "scipy >= 1.10.0",
