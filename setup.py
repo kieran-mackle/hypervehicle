@@ -56,6 +56,7 @@ setuptools.setup(
         "tqdm >= 4.64.1",
         "multiprocess >= 0.70.14",
         "pymeshfix >= 0.16.2",
+        "gdtk @ git+https://git@github.com/gdtk-uq/gdtk.git#subdirectory=src/lib",
     ],
     extras_require={
         "dev": dev,
