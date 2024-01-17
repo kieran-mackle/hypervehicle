@@ -57,10 +57,11 @@ HyperVehicle aims to fill this gap, by providing an open-source, user-friendly a
 # Example vehicle geometries
 Below are some sample vehicle configurations generated using HyperVehicle.
 Note that these geometries are made avaiable in the hypervehicle hangar.
+More examples can be seen on the documentation website.
 
-![Generic hypersonic waverider](images/waverider.png){ width = 70% }
-![DLR ReFEX](images/refex.png){ width = 70% }
-![NASA X43-A demonstrator](images/x43a.png){ width = 70% }
+![Generic hypersonic waverider](images/waverider.png){ width=70% }
+![DLR ReFEX](images/refex.png){ width=70% }
+![NASA X43-A demonstrator](images/x43a.png){ width=70% }
 
 
 # References
