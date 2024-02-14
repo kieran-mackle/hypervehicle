@@ -7,6 +7,15 @@ from hypervehicle.geometry import Vector3, Line, Polyline
 
 
 class ParametricHTV(Generator):
+    """Parametric generator for mock-up of the Hypersonic Technology Vehicle 2.
+
+    Dimensions have been approximated based on vehicle's visual proportions.
+
+    References
+    ----------
+    https://en.wikipedia.org/wiki/Hypersonic_Technology_Vehicle_2
+    """
+
     def __init__(self, **kwargs) -> None:
         # Vehicle parameters
         self.L = 1

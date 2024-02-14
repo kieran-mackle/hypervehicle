@@ -10,6 +10,8 @@ from hypervehicle.components import (
 
 
 class ParametricFinner(Generator):
+    """Parametric generator for generic finned rocket."""
+
     def __init__(self, **kwargs) -> None:
         """Create a parametric generator for the basic finner.
 

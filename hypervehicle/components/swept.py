@@ -14,6 +14,7 @@ class SweptComponent(Component):
         stl_resolution: int = 2,
         verbosity: int = 1,
         name: str = None,
+        tags: dict = None,
     ) -> None:
         """Create a swept component.
 
@@ -27,6 +28,7 @@ class SweptComponent(Component):
         """
         self.cross_sections = cross_sections
         self.sweep_axis = sweep_axis
+        self.patches_tags = tags
         super().__init__(stl_resolution=stl_resolution, verbosity=verbosity, name=name)
 
     def generate_patches(self):
@@ -38,3 +40,8 @@ class SweptComponent(Component):
         self.patches["swept_patch"] = p
         self.patches["swept_patch_end_0"] = self.cross_sections[0]
         self.patches["swept_patch_end_1"] = self.cross_sections[-1]
+
+        # Assign tags
+        self.patches["swept_patch"].tag = self.patches_tags["swept_tag"]
+        self.patches["swept_patch_end_0"].tag = self.patches_tags["end_0_tag"]
+        self.patches["swept_patch_end_1"].tag = self.patches_tags["end_1_tag"]

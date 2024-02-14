@@ -6,6 +6,15 @@ from hypervehicle.geometry import Vector3, Bezier, Line, Polyline
 
 
 class ParametricX43(Generator):
+    """Parametric generator for mock-up of the NASA X43-A demonstrator.
+
+    Dimensions have been approximated based on vehicle's visual proportions.
+
+    References
+    -----------
+    https://en.wikipedia.org/wiki/NASA_X-43
+    """
+
     def __init__(self, **kwargs) -> None:
         # Vehicle parameters
         self.body_length = 3.7  # From body rear to nose

@@ -1,13 +1,17 @@
 import os
 import time
 import pymeshfix
+import meshio
 import numpy as np
 from stl import mesh
 import multiprocess as mp
 from copy import deepcopy
 from abc import abstractmethod
+from typing import Callable, Union
 from hypervehicle.geometry import Vector3
 from gdtk.geom.sgrid import StructuredGrid
+from hypervehicle.utilities import assign_tags_to_cell
+from hypervehicle.utilities import parametricSurfce2stl, parametricSurfce2vtk
 from typing import Callable, Union, Optional
 from hypervehicle.geometry import (
     CurvedPatch,
@@ -15,7 +19,6 @@ from hypervehicle.geometry import (
     MirroredPatch,
     OffsetPatchFunction,
 )
-from hypervehicle.utilities import parametricSurfce2stl
 
 
 class AbstractComponent:
@@ -93,6 +96,7 @@ class Component(AbstractComponent):
         stl_resolution: int = 2,
         verbosity: int = 1,
         name: str = None,
+        output_file_type: str = "stl",
     ) -> None:
         # Set verbosity
         self.verbosity = verbosity
@@ -104,7 +108,7 @@ class Component(AbstractComponent):
         self.patches = {}  # Parametric patches (continuous)
 
         # VTK Attributes
-        self.grids = None  # Structured grids
+        self.cells = None  # Mesh cells
 
         # STL Attributes
         self.surfaces = None  # STL surfaces for each patch
@@ -132,6 +136,9 @@ class Component(AbstractComponent):
 
         # Component name
         self.name = name
+
+        # Output file type
+        self.output_file_type = output_file_type
 
     def __repr__(self):
         s = f"{self.componenttype} component"
@@ -201,7 +208,9 @@ class Component(AbstractComponent):
     def translate(self, offset: Union[Callable, Vector3]):
         if isinstance(offset, Vector3):
             # Translate vector into lambda function
-            offset_function = lambda x, y, z: offset
+            def offset_function(x, y, z):
+                return offset
+
         else:
             offset_function = offset
 
@@ -269,21 +278,66 @@ class Component(AbstractComponent):
             surface = parametricSurfce2stl(
                 patch, res, flip_faces=flip, **self._clustering
             )
+
             return (key, surface)
 
         # Initialise surfaces and pool
         self.surfaces = {}
         pool = mp.Pool()
 
-        # Submit tasks
+        # Submit tasks single (debug mode)
+        # for a in self.patches.items():
+        #     result = wrapper(a[0], a[1])
+        #     self.surfaces[result[0]] = result[1]
+
+        # Submit tasks multi
         for result in pool.starmap(wrapper, self.patches.items()):
             self.surfaces[result[0]] = result[1]
 
-    def to_vtk(self):
-        raise NotImplementedError("This method has not been implemented yet.")
-        # TODO - check for processed grids
-        for key, grid in self.grids.items():
-            grid.write_to_vtk_file(f"{self.vtk_filename}-wing_{key}.vtk")
+    def cell(self, resolution: int = None):
+        stl_resolution = self.stl_resolution if resolution is None else resolution
+
+        # Check for patches
+        if len(self.patches) == 0:
+            raise Exception(
+                "No patches have been generated. " + "Please call .generate_patches()."
+            )
+
+        # Prepare multiprocessing arguments iterable
+        def wrapper(key: str, patch):
+            flip = True if key.split("_")[-1] == "mirrored" else False
+            res = stl_resolution
+
+            if "swept" in key:
+                # Swept fuselage component
+                res = (
+                    int(stl_resolution / 4)
+                    if "end" in key
+                    else int(stl_resolution / 4) * 4
+                )
+                flip = True if "1" in key else False
+
+            vertices, cell_ids = parametricSurfce2vtk(
+                patch, res, flip_faces=flip, **self._clustering
+            )
+
+            # Assign tags to the cells
+            tags = assign_tags_to_cell(patch, len(cell_ids))
+
+            return (key, vertices, cell_ids, tags)
+
+        # Initialise cells and pool
+        self.cells = {}
+        pool = mp.Pool()
+
+        # Submit tasks single (debug mode)
+        # for a in self.patches.items():
+        #     result = wrapper(a[0], a[1])
+        #     self.cells[result[0]] = (result[1], result[2], result[3])
+
+        # Submit tasks multi
+        for result in pool.starmap(wrapper, self.patches.items()):
+            self.cells[result[0]] = (result[1], result[2], result[3])
 
     def to_stl(self, outfile: str = None):
         if not self._ghost:
@@ -301,6 +355,37 @@ class Component(AbstractComponent):
 
                 # Clean it
                 pymeshfix.clean_from_file(outfile, outfile)
+
+    def to_vtk(self, outfile: str = None):
+        if self.verbosity > 1:
+            print("Writing patches to VTK format. ")
+            if outfile is not None:
+                print(f"Output file = {outfile}.")
+
+        if self.verbosity > 1:
+            print(" Generating cells for component.")
+
+        # Generate cells
+        self.cell()
+
+        vertices = np.empty((0, 3))
+        cell_ids = np.empty((0, 3), dtype=int)
+        tags = np.empty(0, dtype=int)
+
+        # Combine all Cell data
+        for sss in self.cells.items():
+            cell_ids = np.concatenate([cell_ids, sss[1][1] + len(vertices)])
+            vertices = np.concatenate([vertices, sss[1][0]])
+            tags = np.concatenate([tags, sss[1][2]])
+
+        # Generate mesh in VTK format
+        cell_ids = [("triangle", cell_ids)]
+        cell_data = {"tag": [tags]}
+        vtk_mesh = meshio.Mesh(vertices, cell_ids, cell_data=cell_data)
+
+        # Write VTK to file
+        if outfile is not None:
+            vtk_mesh.write(outfile)
 
     def analyse(self):
         # Get mass properties
