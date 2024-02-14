@@ -735,7 +735,6 @@ class SweptPatchMultiFace(ParametricSurface):
         return "Swept Patch Multi Face"
 
     def __call__(self, r, s) -> Vector3:
-
         if callable(self._method_to_call):
             s_dash = self._method_to_call(s)
         else:

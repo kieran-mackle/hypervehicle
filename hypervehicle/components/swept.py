@@ -83,7 +83,6 @@ class SweptComponentMultiFace(Component):
         )
 
     def generate_patches(self):
-
         self.patches["swept_patch_north"] = SweptPatchMultiFace(
             cross_sections=self.cross_sections,
             sweep_axis=self.sweep_axis,

@@ -127,7 +127,6 @@ def create_cells(
     cell_ids = []
     for i in range(ni):
         for j in range(nj):
-
             ############################################################
             ### Amir - adding ni != nj capability for tagging sub_patchs
 
@@ -161,6 +160,7 @@ def create_cells(
     cell_ids = np.array(cell_ids)
 
     return (vertices, cell_ids)
+
 
 def default_vertex_func(lb, ub, steps, spacing=1.0):
     span = ub - lb
