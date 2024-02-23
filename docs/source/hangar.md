@@ -25,12 +25,12 @@ x43.to_stl()
 <!-- ![X43](images/x43-flipped.gif) -->
 
 
-## [HiFIRE4](https://www.dst.defence.gov.au/partnership/hifire-program)
+## [HIFiRE4](https://www.dst.defence.gov.au/partnership/hifire-program)
 
 ![HiFIRE4](images/hangar/hifire4.png)
 
 
-## [HiFIRE8](https://www.dst.defence.gov.au/partnership/hifire-program)
+## [HIFiRE8](https://www.dst.defence.gov.au/partnership/hifire-program)
 
 ![HiFIRE8](images/hangar/hifire8.png)
 
