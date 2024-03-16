@@ -13,6 +13,7 @@ class Cube(Component):
         stl_resolution: int = 2,
         verbosity: int = 1,
         name: str = None,
+        tags: dict = None,
     ) -> None:
         """
         Parameters
@@ -25,12 +26,20 @@ class Cube(Component):
         """
         self.a = a
         self.centre = centre
-        super().__init__(stl_resolution=stl_resolution, verbosity=verbosity, name=name)
+        super().__init__(
+            stl_resolution=stl_resolution,
+            verbosity=verbosity,
+            name=name,
+            patch_name_to_tags=tags,
+        )
 
     def generate_patches(self):
         faces = ["east", "west", "south", "north", "bottom", "top"]
         for face in faces:
             self.patches[face] = CubePatch(self.a, self.centre, face)
+
+        # Add tags to patches
+        self.add_tag_to_patches()
 
 
 class Sphere(Component):
@@ -43,6 +52,7 @@ class Sphere(Component):
         stl_resolution: int = 2,
         verbosity: int = 1,
         name: str = None,
+        tags: dict = None,
     ) -> None:
         """
         Parameters
@@ -55,10 +65,18 @@ class Sphere(Component):
         """
         self.r = r
         self.centre = centre
-        super().__init__(stl_resolution=stl_resolution, verbosity=verbosity, name=name)
+        super().__init__(
+            stl_resolution=stl_resolution,
+            verbosity=verbosity,
+            name=name,
+            patch_name_to_tags=tags,
+        )
 
     def generate_patches(self):
         faces = ["east", "west", "south", "north", "bottom", "top"]
 
         for face in faces:
             self.patches[face] = SpherePatch(self.r, self.centre, face)
+
+        # Add tags to patches
+        self.add_tag_to_patches()

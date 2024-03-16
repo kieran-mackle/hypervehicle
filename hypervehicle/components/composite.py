@@ -37,6 +37,7 @@ class CompositeComponent(Component):
         stl_resolution: int = 2,
         verbosity: int = 1,
         name: str = None,
+        tags: dict = None,
     ) -> None:
         # Initialise base class
         super().__init__(
@@ -44,6 +45,7 @@ class CompositeComponent(Component):
             stl_resolution=stl_resolution,
             verbosity=verbosity,
             name=name,
+            patch_name_to_tags=tags,
         )
 
         self.components: List[Component] = []

@@ -3,6 +3,7 @@ import sys
 import glob
 import numpy as np
 import pandas as pd
+import enum
 from stl import mesh
 from tqdm import tqdm
 from art import tprint, art
@@ -12,7 +13,8 @@ from typing import Dict, List, Optional
 
 def create_cells(
     parametric_surface,
-    triangles_per_edge: int,
+    triangles_per_edge_r: int,
+    triangles_per_edge_s: int,
     si: float = 1.0,
     sj: float = 1.0,
     mirror_y=False,
@@ -35,8 +37,11 @@ def create_cells(
         sj : float, optional
             The clustering in the j-direction. The default is 1.0.
 
-        triangles_per_edge : int
-            The resolution for the stl object.
+    triangles_per_edge_r : int
+        The resolution for the stl object in r direction.
+
+    triangles_per_edge_s : int
+        The resolution for the stl object in s direction.
 
         mirror_y : bool, optional
             Create mirror image about x-z plane. The default is False.
@@ -56,10 +61,9 @@ def create_cells(
     of a single cell
 
     """
-    # TODO - allow different ni and nj discretisation
 
-    ni = triangles_per_edge
-    nj = triangles_per_edge
+    ni = triangles_per_edge_r
+    nj = triangles_per_edge_s
 
     # Create list of vertices
     if i_clustering_func:
@@ -123,12 +127,24 @@ def create_cells(
     cell_ids = []
     for i in range(ni):
         for j in range(nj):
-            p00 = j * (nj + 1) + i  # bottom left
-            p10 = j * (nj + 1) + i + 1  # bottom right
+            ############################################################
+            ### Amir - adding ni != nj capability for tagging sub_patchs
+
+            # p00 = j * (nj + 1) + i  # bottom left
+            # p10 = j * (nj + 1) + i + 1  # bottom right
+            # p01 = (j + 1) * (ni + 1) + i  # top left
+            # p11 = (j + 1) * (ni + 1) + i + 1  # top right
+            #
+            # pc = centre_ix + j * min(ni, nj) + i  # vertex at centre of cell
+
+            p00 = j * (ni + 1) + i  # bottom left
+            p10 = j * (ni + 1) + i + 1  # bottom right
             p01 = (j + 1) * (ni + 1) + i  # top left
             p11 = (j + 1) * (ni + 1) + i + 1  # top right
 
-            pc = centre_ix + j * min(ni, nj) + i  # vertex at centre of cell
+            pc = centre_ix + j * ni + i  # vertex at centre of cell
+
+            ###################################################################
 
             if mirror_y or flip_faces:
                 cell_ids.append([p00, pc, p10])
@@ -145,6 +161,7 @@ def create_cells(
 
     return (vertices, cell_ids)
 
+
 def default_vertex_func(lb, ub, steps, spacing=1.0):
     span = ub - lb
     dx = 1.0 / (steps - 1)
@@ -153,7 +170,8 @@ def default_vertex_func(lb, ub, steps, spacing=1.0):
 
 def parametricSurfce2stl(
     parametric_surface,
-    triangles_per_edge: int,
+    triangles_per_edge_r: int,
+    triangles_per_edge_s: int = None,
     si: float = 1.0,
     sj: float = 1.0,
     mirror_y=False,
@@ -176,8 +194,11 @@ def parametricSurfce2stl(
     sj : float, optional
         The clustering in the j-direction. The default is 1.0.
 
-    triangles_per_edge : int
-        The resolution for the stl object.
+    triangles_per_edge_r : int
+        The resolution for the stl object in r direction.
+
+    triangles_per_edge_s : int, optional
+        The resolution for the stl object in s direction.
 
     mirror_y : bool, optional
         Create mirror image about x-z plane. The default is False.
@@ -204,9 +225,19 @@ def parametricSurfce2stl(
         The numpy-stl mesh.
     """
 
-    vertices, cell_ids = create_cells(parametric_surface, triangles_per_edge,
-                                      si, sj, mirror_y, flip_faces, i_clustering_func,
-                                      j_clustering_func)
+    if triangles_per_edge_s == None:
+        triangles_per_edge_s = triangles_per_edge_r
+    vertices, cell_ids = create_cells(
+        parametric_surface,
+        triangles_per_edge_r,
+        triangles_per_edge_s,
+        si,
+        sj,
+        mirror_y,
+        flip_faces,
+        i_clustering_func,
+        j_clustering_func,
+    )
 
     # Create the STL mesh object
     stl_mesh = mesh.Mesh(np.zeros(cell_ids.shape[0], dtype=mesh.Mesh.dtype))
@@ -221,7 +252,8 @@ def parametricSurfce2stl(
 
 def parametricSurfce2vtk(
     parametric_surface,
-    triangles_per_edge: int,
+    triangles_per_edge_r: int,
+    triangles_per_edge_s: int,
     si: float = 1.0,
     sj: float = 1.0,
     mirror_y=False,
@@ -242,8 +274,11 @@ def parametricSurfce2vtk(
     sj : float, optional
         The clustering in the j-direction. The default is 1.0.
 
-    triangles_per_edge : int
-        The resolution for the stl object.
+    triangles_per_edge_r : int
+        The resolution for the stl object in r direction.
+
+    triangles_per_edge_s : int
+        The resolution for the stl object in s direction.
 
     mirror_y : bool, optional
         Create mirror image about x-z plane. The default is False.
@@ -254,7 +289,13 @@ def parametricSurfce2vtk(
     """
     # Generate the mesh vertices and cell index list
     vertices, cell_ids = create_cells(
-        parametric_surface, triangles_per_edge, si, sj, mirror_y, flip_faces
+        parametric_surface,
+        triangles_per_edge_r,
+        triangles_per_edge_s,
+        si,
+        sj,
+        mirror_y,
+        flip_faces,
     )
 
     # Create the vtk cells format and add patch_tag to each cell
@@ -1056,6 +1097,12 @@ def print_banner():
 def assign_tags_to_cell(patch, length):
     """Assign tags to cells."""
     # Creates a tag vector for a given patch
-    tags_definition = {"FreeStream": 1, "Inlet": 2, "Outlet": 3, "Nozzle": 4}
-    tags = np.ones(length) * tags_definition[patch.tag]
+    tags = [patch.tag.value] * length
     return tags
+
+
+class PatchTag(enum.Enum):
+    FREE_STREAM = 1
+    INLET = 2
+    OUTLET = 3
+    NOZZLE = 4

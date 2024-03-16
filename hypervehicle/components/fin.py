@@ -45,6 +45,7 @@ class Fin(Component):
         stl_resolution: Optional[int] = 2,
         verbosity: Optional[int] = 1,
         name: Optional[str] = None,
+        tags: dict = None,
     ) -> None:
         """Creates a new fin component.
 
@@ -108,6 +109,8 @@ class Fin(Component):
 
         name : str, optional
             The name tag for the component. The default is None.
+        tags : dict, optional
+            tags to be added to each patch (for generating a VTK file)
         """
 
         if LE_wf is None:
@@ -135,7 +138,9 @@ class Fin(Component):
             "offset_function": offset_func,
         }
 
-        super().__init__(params, stl_resolution, verbosity, name)
+        super().__init__(
+            params, stl_resolution, verbosity, name, patch_name_to_tags=tags
+        )
 
     def generate_patches(self):
         # Initialise
@@ -473,3 +478,6 @@ class Fin(Component):
 
         # Save patches
         self.patches = fin_patch_dict
+
+        # Add tags to patches
+        self.add_tag_to_patches()
