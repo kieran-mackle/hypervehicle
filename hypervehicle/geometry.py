@@ -681,6 +681,41 @@ class SweptPatch(ParametricSurface):
 
         return Vector3(**args)
 
+class SweptPatch_2(ParametricSurface):
+    """Creates a swept patch from a series of cross sections.
+    Cross sections do not need to be parallel or aligned."""
+
+    __slots__ = ["cross_sections"]
+
+    def __init__(self, cross_sections: list) -> None:
+        """Construct the SweptPatch object.
+
+        Parameters
+        -----------
+        cross_sections : list
+            A list containing the cross sections to be blended.
+        """
+        self.cross_sections = cross_sections
+        self.n_slices = len(self.cross_sections)
+        self.perimeters = [SurfacePerimeter(s) for s in cross_sections]
+
+    def __repr__(self):
+        return "Swept Patch_2"
+
+    def __call__(self, r, s) -> Vector3:
+        r_slices = np.linspace(0, 1, self.n_slices)
+        if r in r_slices:
+            # can evaluate exactly
+            i = np.where(r_slices==r)[0][0]
+            return self.perimeters[i](s)
+        else:
+            # need to interpolate
+            index_above = np.where(r_slices>r)[0][0]
+            index_below = index_above-1
+            above = self.perimeters[index_above](s)
+            below = self.perimeters[index_below](s)
+            alpha = (r-r_slices[index_below]) / (r_slices[index_above]-r_slices[index_below])
+            return (1-alpha)*below + alpha*above
 
 class RotatedPatch(ParametricSurface):
     """

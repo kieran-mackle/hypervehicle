@@ -1,6 +1,6 @@
 from typing import List
 from hypervehicle.components.component import Component
-from hypervehicle.geometry import SweptPatch, CoonsPatch
+from hypervehicle.geometry import SweptPatch, SweptPatch_2, CoonsPatch, Path
 from hypervehicle.components.constants import SWEPT_COMPONENT
 
 
@@ -10,7 +10,7 @@ class SweptComponent(Component):
     def __init__(
         self,
         cross_sections: List[CoonsPatch],
-        sweep_axis: str = "z",
+        sweep_axis: str = 'n/a',
         stl_resolution: int = 2,
         verbosity: int = 1,
         name: str = None,
@@ -30,11 +30,16 @@ class SweptComponent(Component):
         super().__init__(stl_resolution=stl_resolution, verbosity=verbosity, name=name)
 
     def generate_patches(self):
-        p = SweptPatch(
-            cross_sections=self.cross_sections,
-            sweep_axis=self.sweep_axis,
-        )
-
+        if True:  # self.sweep_axis == 'n/a':
+            p = SweptPatch_2(
+                cross_sections=self.cross_sections,
+            )
+        else:
+            p = SweptPatch(
+                cross_sections=self.cross_sections,
+                sweep_axis=self.sweep_axis,
+            )
         self.patches["swept_patch"] = p
         self.patches["swept_patch_end_0"] = self.cross_sections[0]
         self.patches["swept_patch_end_1"] = self.cross_sections[-1]
+
