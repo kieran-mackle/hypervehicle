@@ -236,7 +236,19 @@ class Fin(Component):
         temp_fin_patch_dict["LE_bot_patch_1"] = LE_bot_patch[1]
 
         if self.verbosity > 1:
-            print("    Adding bottom face.")
+            print("    Adding bottom face.")  # also inward pointing face
+
+        #    11--\ e
+        #   n|    \
+        #    01   10    # Note: point 01 == p3
+        #   w|    /
+        #    00--/ s
+        #
+        # Nomenclature:
+        # south = elipse_top
+        # east = elipse_bot
+        # west = p3p3_top
+        # north = p3p3_bot
 
         thickness_top = fin_thickness_function_top(x=p3.x, y=p3.y).z
         thickness_bot = fin_thickness_function_bot(x=p3.x, y=p3.y).z
@@ -252,11 +264,16 @@ class Fin(Component):
             LE_width=leading_edge_width_function(1),
             side="bot",
         )
+
         elipse_top = ArcLengthParameterizedPath(underlying_path=elipse_top)
         elipse_bot = ArcLengthParameterizedPath(underlying_path=elipse_bot)
 
-        p3p3_top = Line(p0=p3 - Vector3(0, 0, fin_thickness / 2), p1=p3)
-        p3p3_bot = Line(p0=p3, p1=p3 + Vector3(0, 0, fin_thickness / 2))
+        p3p3_top = Line(
+            p0=p3 + Vector3(0, 0, fin_thickness_function_bot(x=p3.x, y=p3.y).z), p1=p3
+        )
+        p3p3_bot = Line(
+            p0=p3, p1=p3 + Vector3(0, 0, fin_thickness_function_top(x=p3.x, y=p3.y).z)
+        )
 
         temp_bottom_ellipse_patch = CoonsPatch(
             north=p3p3_bot, south=elipse_top, east=elipse_bot, west=p3p3_top
@@ -269,22 +286,24 @@ class Fin(Component):
 
         # Create rectangular patches for rest of fin bottom
         p3p0 = Line(p3, p0)
-        p3p0_bot = Line(
-            p0=p3 + Vector3(0, 0, fin_thickness / 2),
-            p1=p0 + Vector3(0, 0, fin_thickness / 2),
+        p3_botp0_bot = OffsetPathFunction(p3p0, fin_thickness_function_top)
+        p3_topp0_top = OffsetPathFunction(p3p0, fin_thickness_function_bot)
+
+        p0p0_top = Line(
+            p0=p0, p1=p0 + Vector3(0, 0, fin_thickness_function_bot(p0.x, p0.y).z)
         )
-        p3p0_top = Line(
-            p0=p3 - Vector3(0, 0, fin_thickness / 2),
-            p1=p0 - Vector3(0, 0, fin_thickness / 2),
+        p0_botp0 = Line(
+            p0=p0 + Vector3(0, 0, fin_thickness_function_top(p0.x, p0.y).z), p1=p0
+        )
+        p3p3_top = Line(
+            p0=p3, p1=p3 + Vector3(0, 0, fin_thickness_function_bot(p3.x, p3.y).z)
+        )
+        p3_botp3 = Line(
+            p0=p3 + Vector3(0, 0, fin_thickness_function_top(p3.x, p3.y).z), p1=p3
         )
 
-        p0p0_top = Line(p0=p0, p1=p0 - Vector3(0, 0, fin_thickness / 2))
-        p0_botp0 = Line(p0=p0 + Vector3(0, 0, fin_thickness / 2), p1=p0)
-        p3p3_top = Line(p0=p3, p1=p3 - Vector3(0, 0, fin_thickness / 2))
-        p3_botp3 = Line(p0=p3 + Vector3(0, 0, fin_thickness / 2), p1=p3)
-
-        bot_1 = CoonsPatch(north=p3p0_top, south=p3p0, east=p0p0_top, west=p3p3_top)
-        bot_2 = CoonsPatch(north=p3p0, south=p3p0_bot, east=p0_botp0, west=p3_botp3)
+        bot_1 = CoonsPatch(north=p3_topp0_top, south=p3p0, east=p0p0_top, west=p3p3_top)
+        bot_2 = CoonsPatch(north=p3p0, south=p3_botp0_bot, east=p0_botp0, west=p3_botp3)
 
         temp_fin_patch_dict["bot_ellip"] = bottom_ellipse_patch
         temp_fin_patch_dict["bot_1"] = bot_1
@@ -365,7 +384,9 @@ class Fin(Component):
             )
 
             # Create bottom triangle patch
-            p0_top = p0 - Vector3(0, 0, fin_thickness / 2)
+            p0_top = p0 - Vector3(
+                0, 0, fin_thickness / 2
+            )  # TODO: remove reference to constant thickness
             p0_bot = p0 + Vector3(0, 0, fin_thickness / 2)
             TE = Vector3(
                 x=p0.x - self.params["rudder_length"],
@@ -411,29 +432,30 @@ class Fin(Component):
             elipse_top = SubRangedPath(underlying_path=elipse_top, t0=1.0, t1=0.0)
             elipse_bot = SubRangedPath(underlying_path=elipse_bot, t0=1.0, t1=0.0)
 
-            p1p1_top = Line(p0=p1, p1=p1 - Vector3(0, 0, fin_thickness / 2))
-            p1_botp1 = Line(p0=p1 + Vector3(0, 0, fin_thickness / 2), p1=p1)
+            # Create points defining rear surface
+            p1_top = p1 + Vector3(0, 0, fin_thickness_function_bot(x=p1.x, y=p1.y).z)
+            p1_bot = p1 + Vector3(0, 0, fin_thickness_function_top(x=p1.x, y=p1.y).z)
+            p0_top = p0 + Vector3(0, 0, fin_thickness_function_bot(x=p0.x, y=p0.y).z)
+            p0_bot = p0 + Vector3(0, 0, fin_thickness_function_top(x=p0.x, y=p0.y).z)
 
+            p1p1_top = Line(p0=p1, p1=p1_top)
+            p1_botp1 = Line(p0=p1_bot, p1=p1)
             back_ellipse_patch = CoonsPatch(
                 north=p1p1_top, south=elipse_bot, east=elipse_top, west=p1_botp1
             )
 
             # Create rectangular patches for rest of fin TE
-            p0_botp1_bot = Line(
-                p0=p0 + Vector3(0, 0, fin_thickness / 2),
-                p1=p1 + Vector3(0, 0, fin_thickness / 2),
-            )
-            p0_top1_top = Line(
-                p0=p0 - Vector3(0, 0, fin_thickness / 2),
-                p1=p1 - Vector3(0, 0, fin_thickness / 2),
-            )
-
-            p0p0_top = Line(p0=p0, p1=p0 - Vector3(0, 0, fin_thickness / 2))
-            p0_botp0 = Line(p0=p0 + Vector3(0, 0, fin_thickness / 2), p1=p0)
+            p0_botp1_bot = Line(p0=p0_bot, p1=p1_bot)
+            p0_topp1_top = Line(p0=p0_top, p1=p1_top)
+            p1p1_top = Line(p0=p1, p1=p1_top)
+            p1_botp1 = Line(p0=p1_bot, p1=p1)
+            p0p0_top = Line(p0=p0, p1=p0_top)
+            p0_botp0 = Line(p0=p0_bot, p1=p0)
 
             TE_back_1 = CoonsPatch(
-                north=p0_top1_top, south=p0p1, east=p1p1_top, west=p0p0_top
+                north=p0_topp1_top, south=p0p1, east=p1p1_top, west=p0p0_top
             )
+
             TE_back_2 = CoonsPatch(
                 north=p0p1, south=p0_botp1_bot, east=p1_botp1, west=p0_botp0
             )
