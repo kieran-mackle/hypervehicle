@@ -192,23 +192,32 @@ def assess_inertial_properties(
         vehicle.generate()
 
     volumes = {}
+    areas = {}
     masses = {}
     cgs = {}
     inertias = {}
     total_mass = 0
     total_volume = 0
+    total_area = 0
 
     for name, component in vehicle._named_components.items():
+        # Estiamte inertial properties
         volume, vmass, cog, inertia = component.mesh.get_mass_properties_with_density(
             component_densities[name]
         )
 
+        # Also calculate surface area
+        area = float(sum(component.mesh.areas))
+
+        # Save component result
         volumes[name] = volume
+        areas[name] = area
         masses[name] = vmass
         cgs[name] = cog
         inertias[name] = inertia
         total_mass += vmass
         total_volume += volume
+        total_area += area
 
     # Composite centre of mass
     composite_cog = 0
@@ -233,12 +242,14 @@ def assess_inertial_properties(
     vehicle_properties = {
         "mass": total_mass,
         "volume": total_volume,
+        "area": total_area,
         "cog": composite_cog,
         "moi": composite_inertia,
     }
     component_properties = {
         "mass": masses,
         "volume": volumes,
+        "area": areas,
         "cog": cgs,
         "moi": inertias,
     }
