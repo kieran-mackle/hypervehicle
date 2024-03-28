@@ -8,7 +8,10 @@ from stl import mesh
 from tqdm import tqdm
 from art import tprint, art
 import xml.etree.ElementTree as ET
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from .vehicle import Vehicle
 
 
 def parametricSurfce2stl(
@@ -159,7 +162,9 @@ def default_vertex_func(lb, ub, steps, spacing=1.0):
     return np.array([lb + (i * dx) ** spacing * span for i in range(steps)])
 
 
-def assess_inertial_properties(vehicle, component_densities: Dict[str, float]):
+def assess_inertial_properties(
+    vehicle: "Vehicle", component_densities: Dict[str, float]
+):
     """
 
     Parameters
@@ -194,9 +199,9 @@ def assess_inertial_properties(vehicle, component_densities: Dict[str, float]):
     total_volume = 0
 
     for name, component in vehicle._named_components.items():
-        inertia_handle = getattr(component.mesh, "get_mass_properties_with_density")
-
-        volume, vmass, cog, inertia = inertia_handle(component_densities[name])
+        volume, vmass, cog, inertia = component.mesh.get_mass_properties_with_density(
+            component_densities[name]
+        )
 
         volumes[name] = volume
         masses[name] = vmass
