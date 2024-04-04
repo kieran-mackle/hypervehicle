@@ -20,6 +20,7 @@ def parametricSurfce2stl(
     flip_faces=False,
     i_clustering_func: callable = None,
     j_clustering_func: callable = None,
+    verbosity = 0
 ) -> mesh.Mesh:
     """
     Function to convert parametric_surface generated using the Eilmer Geometry
@@ -60,6 +61,9 @@ def parametricSurfce2stl(
     ni = triangles_per_edge
     nj = triangles_per_edge
 
+    if verbosity > 1:
+        print(f"Triangles per edge: (ni, nj) = ({ni}, {nj})")
+
     # Create list of vertices
     if i_clustering_func:
         r_list = [i_clustering_func(i) for i in np.linspace(0, 1, ni + 1)]
@@ -72,6 +76,10 @@ def parametricSurfce2stl(
         s_list = default_vertex_func(lb=0.0, ub=1.0, steps=nj + 1, spacing=sj)
 
     y_mult: int = -1 if mirror_y else 1
+
+    if verbosity > 1:
+        print(f"r_list = {r_list}")
+        print(f"s_list = {s_list}")
 
     # Create vertices for corner points of each quad cell
     # columns x, y, z for each vertex row
