@@ -48,7 +48,6 @@ class SweptComponent(Component):
         cross_sections: List[List],
         close_ends: bool = True,
         stl_resolution: int = 1,
-        stl_step: float = 0.01,
         verbosity: int = 1,
         name: str = None,
     ) -> None:
@@ -74,7 +73,6 @@ class SweptComponent(Component):
         self.close_ends = close_ends
         super().__init__(
             stl_resolution=stl_resolution,
-            stl_step=stl_step,
             verbosity=verbosity,
             name=name)
 
