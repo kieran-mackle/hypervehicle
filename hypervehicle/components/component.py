@@ -348,3 +348,131 @@ class Component(AbstractComponent):
 
         if j_clustering_func:
             self._clustering.update({"j_clustering_func": j_clustering_func})
+
+    def stl_check(self, projecteArea=True, matchingLines=True):
+        """Check stl mesh."""
+        pass_flag = True
+        mesh = self.mesh
+        print(f"    MESH CHECK")
+        print(f"        mesh:{mesh}")
+        if projecteArea:
+            print(f"    Project Area Check")
+            normals = np.asarray(mesh.normals, dtype=np.float64)
+            allowed_max_errors = (
+                np.abs(normals).sum(axis=0) * np.finfo(np.float32).eps
+                )
+            sum_normals = normals.sum(axis=0)
+            print(f"        allowed error: {allowed_max_errors}")
+            print(f"        normals sum: {sum_normals}")
+            if ((np.abs(sum_normals)) <= allowed_max_errors).all():
+                print(f"      PASS")
+            else:
+                print(f"      FAIL")
+                pass_flag = False
+        if matchingLines:
+            print(f"    Matching Lines Check")
+            reversed_triangles = (np.cross(mesh.v1 - mesh.v0,
+                                        mesh.v2 - mesh.v0) * mesh.normals
+                                    ).sum(axis=1) < 0
+            import itertools
+            directed_edges = {
+                tuple(edge.ravel() if not rev else edge[::-1, :].ravel())
+                for rev, edge in zip(
+                    itertools.cycle(reversed_triangles),
+                    itertools.chain(
+                        mesh.vectors[:, (0, 1), :],
+                        mesh.vectors[:, (1, 2), :],
+                        mesh.vectors[:, (2, 0), :],
+                        ),
+                    )
+                }
+        undirected_edges = {frozenset((edge[:3], edge[3:])) for edge in
+                            directed_edges}
+        edge_check = len(directed_edges) == 3 * mesh.data.size
+        print(f"        len(directed_edges) == 3 * mesh.data.size:{edge_check}")
+        if edge_check:
+            print(f"      PASS")
+        else:
+            print(f"      FAIL")
+            print(f"        The number of edges should be N_cells*3")
+            pass_flag = False
+        pair_check = len(directed_edges) == 2 * len(undirected_edges)
+        print(f"        len(directed_edges) == 2 * len(undirected_edges):{pair_check}")
+        if pair_check:
+            print(f"      PASS")
+            return pass_flag
+        else:
+            print(f"      FAIL")
+            print(f"        All edges should be in pairs")
+            print(f"        len_directed:{len(directed_edges)}")
+            print(f"        len_undirect (pairs+leftover):{len(undirected_edges)}")
+            pass_flag = False
+
+        edge_list = []
+        for edge in directed_edges:
+            edge_list.append( frozenset((edge[:3], edge[3:])))
+        # print(f"edge_list={edge_list}")
+
+        from collections import Counter
+        counter_out = Counter(edge_list)
+        #print(f"counter_out={counter_out}")
+
+        k_list = []
+        for k, v in counter_out.items():
+            if v == 2:
+                k_list.append(k)
+        for k in k_list:
+            del counter_out[k]
+
+        return pass_flag
+
+    def stl_repair(self, small_distance: float=1e-6):
+        """Attempts to repair stl mesh issues.
+
+        Parameters
+        -----------
+        small_distance : Float, optional
+            Vectors less than this distance apart will be set to the same value.
+        """
+        mesh = self.mesh
+        N_faces = np.shape(mesh)[0]
+        vectors = np.vstack((mesh.v0, mesh.v1, mesh.v2))
+
+        def find_groups(vector, small_distance):
+            """find indices for groups of points that within small_distance from one another."""
+            sort_i = np.argsort(vector)
+            groups = []
+            li = []
+            count = 0
+            for i in range(len(vector)-1):
+                if count == 0:
+                    x0 = vector[sort_i[i]]
+                x1 = vector[sort_i[i+1]]
+                if abs(x1-x0) < small_distance:
+                    if count == 0:
+                        li.append(sort_i[i])
+                        li.append(sort_i[i+1])
+                        count = 1
+                    else:
+                        li.append(sort_i[i+1])
+                else:
+                    groups.append(li)
+                    li = []
+                    count = 0
+                if i == len(vector)-2 and count > 0:
+                    groups.append(li)
+            return groups
+        iix = find_groups(vectors[:,0], small_distance)
+        iiy = find_groups(vectors[:,1], small_distance)
+        iiz = find_groups(vectors[:,2], small_distance)
+
+        # find intersecting sets and take average
+        for ix in iix:
+            for iy in iiy:
+                for iz in iiz:
+                    common = list(set(ix) & set(iy) & set(iz))
+                    if common:
+                        vectors[common] = np.mean(vectors[common], axis=0)
+        mesh.v0 = vectors[0:N_faces,:]
+        mesh.v1 = vectors[N_faces:2*N_faces,:]
+        mesh.v2 = vectors[2*N_faces:3*N_faces,:]
