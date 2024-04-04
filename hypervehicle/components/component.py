@@ -271,13 +271,25 @@ class Component(AbstractComponent):
             )
             return (key, surface)
 
-        # Initialise surfaces and pool
+        multiprocess = True  # flag to disable multiprocessing for debugging
         self.surfaces = {}
-        pool = mp.Pool()
+        if multiprocess is True:
+            # Initialise surfaces and pool
+            pool = mp.Pool()
 
-        # Submit tasks
-        for result in pool.starmap(wrapper, self.patches.items()):
-            self.surfaces[result[0]] = result[1]
+            # Submit tasks
+            print(f"START: Creating stl - multiprocessor run.")
+            for result in pool.starmap(wrapper, self.patches.items()):
+                self.surfaces[result[0]] = result[1]
+            print("  DONE: Creating stl - multiprocess.")
+        else:
+            for case in self.patches.items():
+                k = case[0]
+                pat = case[1]
+                print(f"START: Creating stl for '{k}'.")
+                result = wrapper(k, pat)
+                self.surfaces[result[0]] = result[1]
+                print("  DONE: Creating stl.")
 
     def to_vtk(self):
         raise NotImplementedError("This method has not been implemented yet.")
