@@ -4,7 +4,7 @@ from scipy.optimize import bisect
 from gdtk.geom.vector3 import Vector3
 from typing import Callable, Optional
 from gdtk.geom.surface import CoonsPatch
-from gdtk.geom.path import Line, Polyline
+from gdtk.geom.path import Line, Polyline, ReversedPath
 from hypervehicle.components.component import Component
 from hypervehicle.components.constants import FIN_COMPONENT
 from hypervehicle.geometry import (
@@ -47,6 +47,16 @@ class Fin(Component):
         name: Optional[str] = None,
     ) -> None:
         """Creates a new fin component.
+
+        Fin geometry defined by 4 points and straight edges
+        between the points that define the fin planform.
+        Leading Edge runs p3->p2->p1.
+
+        p1--N--p2
+        |         \
+        w           e      <---- FLOW
+        |             \
+        p0-----S------p3
 
         Parameters
         ----------
@@ -135,7 +145,7 @@ class Fin(Component):
             "offset_function": offset_func,
         }
 
-        super().__init__(params, stl_resolution, verbosity, name)
+        super().__init__(params=params, stl_resolution=stl_resolution, verbosity=verbosity, name=name)
 
     def generate_patches(self):
         # Initialise
@@ -280,11 +290,13 @@ class Fin(Component):
 
         p0p0_top = Line(p0=p0, p1=p0 - Vector3(0, 0, fin_thickness / 2))
         p0_botp0 = Line(p0=p0 + Vector3(0, 0, fin_thickness / 2), p1=p0)
-        p3p3_top = Line(p0=p3, p1=p3 - Vector3(0, 0, fin_thickness / 2))
-        p3_botp3 = Line(p0=p3 + Vector3(0, 0, fin_thickness / 2), p1=p3)
+        #p3p3_top_reversed = SubRangedPath(p3p3_top, 1, 0)
+        #p3p3_bot_reversed = SubRangedPath(p3p3_bot, 1, 0)
+        p3p3_top_reversed = ReversedPath(p3p3_top)
+        p3p3_bot_reversed = ReversedPath(p3p3_bot)
 
-        bot_1 = CoonsPatch(north=p3p0_top, south=p3p0, east=p0p0_top, west=p3p3_top)
-        bot_2 = CoonsPatch(north=p3p0, south=p3p0_bot, east=p0_botp0, west=p3_botp3)
+        bot_1 = CoonsPatch(north=p3p0_top, south=p3p0, east=p0p0_top, west=p3p3_top_reversed)
+        bot_2 = CoonsPatch(north=p3p0, south=p3p0_bot, east=p0_botp0, west=p3p3_bot_reversed)
 
         temp_fin_patch_dict["bot_ellip"] = bottom_ellipse_patch
         temp_fin_patch_dict["bot_1"] = bot_1
