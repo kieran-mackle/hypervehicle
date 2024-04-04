@@ -90,6 +90,7 @@ class Component(AbstractComponent):
     def __init__(
         self,
         params: dict = None,
+        edges: list =[],
         stl_resolution: int = 2,
         verbosity: int = 1,
         name: str = None,
@@ -99,6 +100,9 @@ class Component(AbstractComponent):
 
         # Save parameters
         self.params = params
+
+        # Save edges
+        self.edges = edges
 
         # Processed objects
         self.patches = {}  # Parametric patches (continuous)
@@ -257,14 +261,14 @@ class Component(AbstractComponent):
             flip = True if key.split("_")[-1] == "mirrored" else False
             res = stl_resolution
 
-            if "swept" in key:
-                # Swept fuselage component
-                res = (
-                    int(stl_resolution / 4)
-                    if "end" in key
-                    else int(stl_resolution / 4) * 4
-                )
-                flip = True if "1" in key else False
+            #if "swept" in key:
+            #    # Swept fuselage component
+            #    res = (
+            #        int(stl_resolution / 4)
+            #        if "end" in key
+            #        else int(stl_resolution / 4) * 4
+            #    )
+            #    flip = True if "1" in key else False
 
             surface = parametricSurfce2stl(
                 patch, res, flip_faces=flip, **self._clustering
