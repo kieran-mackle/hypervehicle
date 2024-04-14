@@ -225,7 +225,7 @@ class ParametricWaverider(Generator):
             clustering={"i_clustering_func": self._cf},
             curvatures=self.curvatures,
             modifier_function=modify_underside,
-            ghost=True,
+            # ghost=True,
         )
 
     def _create_wings(self, waverider: Vehicle) -> None:
@@ -233,11 +233,15 @@ class ParametricWaverider(Generator):
         A1 = Vector3(x=0.5 * self.length, y=0)
         TT = Vector3(x=self.length, y=0)
         B0 = Vector3(x=0, y=self.width / 2)
+
+        # Need to limit p2y based on fuselage width
+        p2y = max(self.p2y, self._get_local_height(self.p2x))
+        p3y = max(self.p3y, self._get_local_height(self.p2x))
         Line_B0TT = Bezier(
             [
                 B0,
-                Vector3(self.p2x, self.p2y),
-                Vector3(self.p3x, self.p3y),
+                Vector3(self.p2x, p2y),
+                Vector3(self.p3x, p3y),
                 TT,
             ]
         )
