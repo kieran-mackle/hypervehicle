@@ -106,6 +106,8 @@ class Component(AbstractComponent):
 
         # Processed objects
         self.patches = {}  # Parametric patches (continuous)
+        self.patch_res_r = {}  # corresponding stl resolution in 'r' direction
+        self.patch_res_s = {}  # corresponding stl resolution in 's' direction
 
         # VTK Attributes
         self.grids = None  # Structured grids
@@ -256,10 +258,20 @@ class Component(AbstractComponent):
                 "No patches have been generated. " + "Please call .generate_patches()."
             )
 
+        # Create case list
+        case_list = []
+        for k, patch in self.patches.items():
+            if isinstance(stl_resolution, int):
+                res_r = stl_resolution
+                res_s = stl_resolution
+            else:
+                res_r = self.patch_res_r[k]
+                res_s = self.patch_res_s[k]
+            case_list.append([k, patch, res_r, res_s])
+
         # Prepare multiprocessing arguments iterable
-        def wrapper(key: str, patch):
+        def wrapper(key: str, patch, res_r: int, res_s: int):
             flip = True if key.split("_")[-1] == "mirrored" else False
-            res = stl_resolution
 
             #if "swept" in key:
             #    # Swept fuselage component
@@ -269,13 +281,12 @@ class Component(AbstractComponent):
             #        else int(stl_resolution / 4) * 4
             #    )
             #    flip = True if "1" in key else False
-
             surface = parametricSurfce2stl(
-                patch, res, flip_faces=flip, **self._clustering
+                patch, res_r, res_s, flip_faces=flip, **self._clustering
             )
             return (key, surface)
 
-        multiprocess = True  # flag to disable multiprocessing for debugging
+        multiprocess = False  # flag to disable multiprocessing for debugging
         self.surfaces = {}
         if multiprocess is True:
             # Initialise surfaces and pool
@@ -283,15 +294,15 @@ class Component(AbstractComponent):
 
             # Submit tasks
             print(f"START: Creating stl - multiprocessor run.")
-            for result in pool.starmap(wrapper, self.patches.items()):
+            for result in pool.starmap(wrapper, case_list):
                 self.surfaces[result[0]] = result[1]
             print("  DONE: Creating stl - multiprocess.")
         else:
-            for case in self.patches.items():
+            for case in case_list:
                 k = case[0]
                 pat = case[1]
                 print(f"START: Creating stl for '{k}'.")
-                result = wrapper(k, pat)
+                result = wrapper(k, pat, case[2], case[3])
                 self.surfaces[result[0]] = result[1]
                 print("  DONE: Creating stl.")
 

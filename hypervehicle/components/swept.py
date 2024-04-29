@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Dict
 from hypervehicle.components.component import Component
 from hypervehicle.geometry import SweptPatch, SweptPatchfromEdges
 from hypervehicle.components.constants import SWEPT_COMPONENT
@@ -47,7 +47,7 @@ class SweptComponent(Component):
         self,
         cross_sections: List[List],
         close_ends: bool = True,
-        stl_resolution: int = 1,
+        stl_resolution: int | Dict[str, int] = 1,
         verbosity: int = 1,
         name: str = None,
     ) -> None:
@@ -64,10 +64,10 @@ class SweptComponent(Component):
             4 paths.
         stl_resolution : int, optional
             Defines same stl_resolution to all edges.
-            If 0 - then switch to stl_step automatic stl resolutions
-        stl_step : float, optional
-            stl resolution is calculated automatically to achieve desired step
-            size along edges
+        stl_resolution : dict [str, int]
+            Defines different stl resolution for different edges.  Keys are
+            are: 'e0', 'e1', ... 'eN', 'sweep' for edges in first cross-section
+            and for swept edges.
         """
         self.cross_sections = cross_sections
         self.close_ends = close_ends
@@ -111,6 +111,16 @@ class SweptComponent(Component):
                 f"close_ends={self.close_ends} and N_edge={self.n_edges} is " +
                 f"not supported."
             )
+        if self.close_ends and isinstance(self.stl_resolution, Dict):
+            flag = 0
+            if self.stl_resolution['e0'] != self.stl_resolution['e2']:
+                print("edge 'e0' and 'e2' don't have same stl_resolution.")
+                flag = 1
+            if self.stl_resolution['e1'] != self.stl_resolution['e3']:
+                print("edge 'e1' and 'e3' don't have same stl_resolution.")
+                flag = 1
+            if flag > 0:
+                raise Exception(f"stl_resolution not compatible for close_end.")
 
     def generate_patches(self):
         for ne in range(self.n_edges):
@@ -120,6 +130,12 @@ class SweptComponent(Component):
                 edges.append(cs[ne])
             p =  SweptPatchfromEdges(edges=edges)
             self.patches[k] = p
+            if isinstance(self.stl_resolution, int):
+                self.patch_res_r[k] = self.stl_resolution
+                self.patch_res_s[k] = self.stl_resolution
+            else:
+                self.patch_res_r[k] = self.stl_resolution['sweep']
+                self.patch_res_s[k] = self.stl_resolution[f'e{ne}']
 
         if self.close_ends == True:
             edges = self.cross_sections[0]  # front
@@ -128,9 +144,21 @@ class SweptComponent(Component):
             north = ReversedPath(edges[2])
             west = ReversedPath(edges[3])
             self.patches["swept_patch_end_0"] = CoonsPatch(south=south, north=north, west=west, east=east)
+            if isinstance(self.stl_resolution, int):
+                self.patch_res_r["swept_patch_end_0"] = self.stl_resolution
+                self.patch_res_s["swept_patch_end_0"] = self.stl_resolution
+            else:
+                self.patch_res_r["swept_patch_end_0"] = self.stl_resolution['e0']
+                self.patch_res_s["swept_patch_end_0"] = self.stl_resolution['e1']
             edges = self.cross_sections[-1]  # rear
             south = ReversedPath(edges[0])
             east = ReversedPath(edges[3])
             north = edges[2]
             west = edges[1]
             self.patches["swept_patch_end_1"] = CoonsPatch(south=south, north=north, west=west, east=east)
+            if isinstance(self.stl_resolution, int):
+                self.patch_res_r["swept_patch_end_1"] = self.stl_resolution
+                self.patch_res_s["swept_patch_end_1"] = self.stl_resolution
+            else:
+                self.patch_res_r["swept_patch_end_1"] = self.stl_resolution['e0']
+                self.patch_res_s["swept_patch_end_1"] = self.stl_resolution['e1']
