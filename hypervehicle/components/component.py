@@ -369,6 +369,7 @@ class Component(AbstractComponent):
             else:
                 print(f"      FAIL")
                 pass_flag = False
+
         if matchingLines:
             print(f"    Matching Lines Check")
             reversed_triangles = (np.cross(mesh.v1 - mesh.v0,
@@ -389,19 +390,25 @@ class Component(AbstractComponent):
         undirected_edges = {frozenset((edge[:3], edge[3:])) for edge in
                             directed_edges}
         edge_check = len(directed_edges) == 3 * mesh.data.size
-        print(f"        len(directed_edges) == 3 * mesh.data.size:{edge_check}")
+        print(f"        len(directed_edges) == 3 * mesh.data.size")
         if edge_check:
+            print(f"        {len(directed_edges)} == {3*mesh.data.size}")
             print(f"      PASS")
         else:
+            print(f"        {len(directed_edges)} != {3*mesh.data.size}")
             print(f"      FAIL")
             print(f"        The number of edges should be N_cells*3")
+            print(f"        len(directed_edges)={len(directed_edges)}")
+            print(f"        mesh.data.size={mesh.data.size}")
             pass_flag = False
         pair_check = len(directed_edges) == 2 * len(undirected_edges)
-        print(f"        len(directed_edges) == 2 * len(undirected_edges):{pair_check}")
+        print(f"        len(directed_edges) == 2 * len(undirected_edges)")
         if pair_check:
+            print(f"        {len(directed_edges)} == {2 * len(undirected_edges)}")
             print(f"      PASS")
             return pass_flag
         else:
+            print(f"        {len(directed_edges)} != {2 * len(undirected_edges)}")
             print(f"      FAIL")
             print(f"        All edges should be in pairs")
             print(f"        len_directed:{len(directed_edges)}")
@@ -469,8 +476,11 @@ class Component(AbstractComponent):
         # find intersecting sets and take average
         for ix in iix:
             for iy in iiy:
+                common0 = set(ix) & set(iy)
+                if len(common0) == 0:
+                    continue  # jumpt to next loop iteration if only one entry
                 for iz in iiz:
-                    common = list(set(ix) & set(iy) & set(iz))
+                    common = list(common0 & set(iz))
                     if common:
                         vectors[common] = np.mean(vectors[common], axis=0)
         mesh.v0 = vectors[0:N_faces,:]
