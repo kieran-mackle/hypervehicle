@@ -8,14 +8,14 @@ from collections import Counter
 from hypervehicle.geometry import Vector3
 from gdtk.geom.sgrid import StructuredGrid
 from typing import Callable, Union, Optional
+from hypervehicle.utilities import surfce_to_stl
 from hypervehicle.geometry import (
     CurvedPatch,
     RotatedPatch,
     MirroredPatch,
     OffsetPatchFunction,
 )
-from hypervehicle.utilities import parametricSurfce2stl
-surfce_to_stl
+
 
 class AbstractComponent:
     componenttype = None
@@ -271,8 +271,8 @@ class Component(AbstractComponent):
 
         # Prepare multiprocessing arguments iterable
         def wrapper(key: str, patch, res_r: int, res_s: int):
-            surface = parametricSurfce2stl(patch, res_r, res_s, **self._clustering)
-            return (kesurfce_to_stl
+            surface = surfce_to_stl(patch, res_r, res_s, **self._clustering)
+            return surface
 
         self.surfaces = {}
         multiprocess = False  # flag to disable multiprocessing for debugging
