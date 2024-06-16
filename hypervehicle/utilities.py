@@ -11,7 +11,7 @@ import xml.etree.ElementTree as ET
 from typing import Dict, List, Optional
 
 
-def parametricSurfce2stl(
+def surfce_to_stl(
     parametric_surface,
     triangles_per_edge_r: int,
     triangles_per_edge_s: int,

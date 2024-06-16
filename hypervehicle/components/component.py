@@ -15,7 +15,7 @@ from hypervehicle.geometry import (
     OffsetPatchFunction,
 )
 from hypervehicle.utilities import parametricSurfce2stl
-
+surfce_to_stl
 
 class AbstractComponent:
     componenttype = None
@@ -272,7 +272,7 @@ class Component(AbstractComponent):
         # Prepare multiprocessing arguments iterable
         def wrapper(key: str, patch, res_r: int, res_s: int):
             surface = parametricSurfce2stl(patch, res_r, res_s, **self._clustering)
-            return (key, surface)
+            return (kesurfce_to_stl
 
         self.surfaces = {}
         multiprocess = False  # flag to disable multiprocessing for debugging
