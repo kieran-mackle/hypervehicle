@@ -5,13 +5,14 @@ from hypervehicle.components.constants import SWEPT_COMPONENT
 from gdtk.geom.path import ReversedPath
 from gdtk.geom.surface import CoonsPatch
 
+
 class SweptComponent_old(Component):
     componenttype = SWEPT_COMPONENT
 
     def __init__(
         self,
         cross_sections: List[CoonsPatch],
-        sweep_axis: str = 'n/a',
+        sweep_axis: str = "n/a",
         stl_resolution: int = 2,
         verbosity: int = 1,
         name: str = None,
@@ -34,7 +35,7 @@ class SweptComponent_old(Component):
         p = SweptPatch(
             cross_sections=self.cross_sections,
             sweep_axis=self.sweep_axis,
-            )
+        )
         self.patches["swept_patch"] = p
         self.patches["swept_patch_end_0"] = self.cross_sections[0]
         self.patches["swept_patch_end_1"] = self.cross_sections[-1]
@@ -71,10 +72,7 @@ class SweptComponent(Component):
         """
         self.cross_sections = cross_sections
         self.close_ends = close_ends
-        super().__init__(
-            stl_resolution=stl_resolution,
-            verbosity=verbosity,
-            name=name)
+        super().__init__(stl_resolution=stl_resolution, verbosity=verbosity, name=name)
 
         self.n_slices = len(self.cross_sections)
         self.n_edges = len(self.cross_sections[0])
@@ -85,38 +83,40 @@ class SweptComponent(Component):
             if len(cs) != self.n_edges:
                 # check that each c/s has correct number of edges
                 raise Exception(
-                    f"Swept Component {self.name}." +
-                    f"Slice {ns} has incorrect number of edges.\n" +
-                    f"N_e={len(cs)} - {self.n_edges} expected."
+                    f"Swept Component {self.name}."
+                    + f"Slice {ns} has incorrect number of edges.\n"
+                    + f"N_e={len(cs)} - {self.n_edges} expected."
                 )
             for i in range(len(cs)):
                 # check that edges in each c/s form a closed loop
-                if i < len(cs)-1:
-                    ip = i+1
+                if i < len(cs) - 1:
+                    ip = i + 1
                 else:
                     ip = 0
                 p1 = cs[i](1)
                 p0 = cs[ip](0)
-                if (abs(p0.x-p1.x)>small_number or
-                    abs(p0.y-p1.y)>small_number or
-                    abs(p0.z-p1.z)>small_number):
+                if (
+                    abs(p0.x - p1.x) > small_number
+                    or abs(p0.y - p1.y) > small_number
+                    or abs(p0.z - p1.z) > small_number
+                ):
                     raise Exception(
-                        f"Swept Component {self.name}, Slice {ns}, edges not closed.\n" +
-                        f"edges[{i}](1) != edges[{ip}](0)\n" +
-                        f"{p1} != {p0}"
+                        f"Swept Component {self.name}, Slice {ns}, edges not closed.\n"
+                        + f"edges[{i}](1) != edges[{ip}](0)\n"
+                        + f"{p1} != {p0}"
                     )
         if self.close_ends is True and self.n_edges != 4:
             raise Exception(
-                f"Swept Component {self.name}. Combination of " +
-                f"close_ends={self.close_ends} and N_edge={self.n_edges} is " +
-                f"not supported."
+                f"Swept Component {self.name}. Combination of "
+                + f"close_ends={self.close_ends} and N_edge={self.n_edges} is "
+                + f"not supported."
             )
         if self.close_ends and isinstance(self.stl_resolution, Dict):
             flag = 0
-            if self.stl_resolution['e0'] != self.stl_resolution['e2']:
+            if self.stl_resolution["e0"] != self.stl_resolution["e2"]:
                 print("edge 'e0' and 'e2' don't have same stl_resolution.")
                 flag = 1
-            if self.stl_resolution['e1'] != self.stl_resolution['e3']:
+            if self.stl_resolution["e1"] != self.stl_resolution["e3"]:
                 print("edge 'e1' and 'e3' don't have same stl_resolution.")
                 flag = 1
             if flag > 0:
@@ -128,14 +128,14 @@ class SweptComponent(Component):
             edges = []
             for cs in self.cross_sections:
                 edges.append(cs[ne])
-            p =  SweptPatchfromEdges(edges=edges)
+            p = SweptPatchfromEdges(edges=edges)
             self.patches[k] = p
             if isinstance(self.stl_resolution, int):
                 self.patch_res_r[k] = self.stl_resolution
                 self.patch_res_s[k] = self.stl_resolution
             else:
-                self.patch_res_r[k] = self.stl_resolution['sweep']
-                self.patch_res_s[k] = self.stl_resolution[f'e{ne}']
+                self.patch_res_r[k] = self.stl_resolution["sweep"]
+                self.patch_res_s[k] = self.stl_resolution[f"e{ne}"]
 
         if self.close_ends == True:
             edges = self.cross_sections[0]  # front
@@ -143,22 +143,26 @@ class SweptComponent(Component):
             east = edges[1]
             north = ReversedPath(edges[2])
             west = ReversedPath(edges[3])
-            self.patches["swept_patch_end_0"] = CoonsPatch(south=south, north=north, west=west, east=east)
+            self.patches["swept_patch_end_0"] = CoonsPatch(
+                south=south, north=north, west=west, east=east
+            )
             if isinstance(self.stl_resolution, int):
                 self.patch_res_r["swept_patch_end_0"] = self.stl_resolution
                 self.patch_res_s["swept_patch_end_0"] = self.stl_resolution
             else:
-                self.patch_res_r["swept_patch_end_0"] = self.stl_resolution['e0']
-                self.patch_res_s["swept_patch_end_0"] = self.stl_resolution['e1']
+                self.patch_res_r["swept_patch_end_0"] = self.stl_resolution["e0"]
+                self.patch_res_s["swept_patch_end_0"] = self.stl_resolution["e1"]
             edges = self.cross_sections[-1]  # rear
             south = ReversedPath(edges[0])
             east = ReversedPath(edges[3])
             north = edges[2]
             west = edges[1]
-            self.patches["swept_patch_end_1"] = CoonsPatch(south=south, north=north, west=west, east=east)
+            self.patches["swept_patch_end_1"] = CoonsPatch(
+                south=south, north=north, west=west, east=east
+            )
             if isinstance(self.stl_resolution, int):
                 self.patch_res_r["swept_patch_end_1"] = self.stl_resolution
                 self.patch_res_s["swept_patch_end_1"] = self.stl_resolution
             else:
-                self.patch_res_r["swept_patch_end_1"] = self.stl_resolution['e0']
-                self.patch_res_s["swept_patch_end_1"] = self.stl_resolution['e1']
+                self.patch_res_r["swept_patch_end_1"] = self.stl_resolution["e0"]
+                self.patch_res_s["swept_patch_end_1"] = self.stl_resolution["e1"]
