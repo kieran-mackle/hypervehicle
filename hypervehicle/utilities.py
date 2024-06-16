@@ -18,7 +18,6 @@ def parametricSurfce2stl(
     si: float = 1.0,
     sj: float = 1.0,
     mirror_y=False,
-    flip_faces=False,
     i_clustering_func: callable = None,
     j_clustering_func: callable = None,
     verbosity=0,
@@ -60,8 +59,6 @@ def parametricSurfce2stl(
     stl_mesh : Mesh
         The numpy-stl mesh.
     """
-    # TODO - allow different ni and nj discretisation
-
     ni = triangles_per_edge_r
     nj = triangles_per_edge_s
 

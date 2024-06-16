@@ -1,11 +1,10 @@
-import os
-import time
 import pymeshfix
 import numpy as np
 from stl import mesh
 import multiprocess as mp
 from copy import deepcopy
 from abc import abstractmethod
+from collections import Counter
 from hypervehicle.geometry import Vector3
 from gdtk.geom.sgrid import StructuredGrid
 from typing import Callable, Union, Optional
@@ -259,35 +258,25 @@ class Component(AbstractComponent):
             )
 
         # Create case list
-        case_list = []
-        for k, patch in self.patches.items():
-            if isinstance(stl_resolution, int):
-                res_r = stl_resolution
-                res_s = stl_resolution
-            else:
-                res_r = self.patch_res_r[k]
-                res_s = self.patch_res_s[k]
-            case_list.append([k, patch, res_r, res_s])
+        if isinstance(stl_resolution, int):
+            case_list = [
+                [k, patch, stl_resolution, stl_resolution]
+                for k, patch in self.patches.items()
+            ]
+        else:
+            case_list = [
+                [k, patch, self.patch_res_r[k], self.patch_res_r[k]]
+                for k, patch in self.patches.items()
+            ]
 
         # Prepare multiprocessing arguments iterable
         def wrapper(key: str, patch, res_r: int, res_s: int):
-            flip = True if key.split("_")[-1] == "mirrored" else False
-
-            # if "swept" in key:
-            #    # Swept fuselage component
-            #    res = (
-            #        int(stl_resolution / 4)
-            #        if "end" in key
-            #        else int(stl_resolution / 4) * 4
-            #    )
-            #    flip = True if "1" in key else False
-            surface = parametricSurfce2stl(
-                patch, res_r, res_s, flip_faces=flip, **self._clustering
-            )
+            surface = parametricSurfce2stl(patch, res_r, res_s, **self._clustering)
             return (key, surface)
 
-        multiprocess = False  # flag to disable multiprocessing for debugging
         self.surfaces = {}
+        multiprocess = False  # flag to disable multiprocessing for debugging
+        # TODO - move multiprocess to arg / config option
         if multiprocess is True:
             # Initialise surfaces and pool
             pool = mp.Pool()
@@ -297,6 +286,7 @@ class Component(AbstractComponent):
             for result in pool.starmap(wrapper, case_list):
                 self.surfaces[result[0]] = result[1]
             print("  DONE: Creating stl - multiprocess.")
+
         else:
             for case in case_list:
                 k = case[0]
@@ -360,13 +350,16 @@ class Component(AbstractComponent):
         if j_clustering_func:
             self._clustering.update({"j_clustering_func": j_clustering_func})
 
-    def stl_check(self, projecteArea=True, matchingLines=True):
-        """Check stl mesh."""
+    def stl_check(
+        self, project_area: Optional[bool] = True, matching_lines: Optional[bool] = True
+    ):
+        """Check the STL mesh."""
+        # TODO - add comment annotations
         pass_flag = True
         mesh = self.mesh
         print(f"    MESH CHECK")
-        print(f"        mesh:{mesh}")
-        if projecteArea:
+        print(f"        mesh: {mesh}")
+        if project_area:
             print(f"    Project Area Check")
             normals = np.asarray(mesh.normals, dtype=np.float64)
             allowed_max_errors = np.abs(normals).sum(axis=0) * np.finfo(np.float32).eps
@@ -379,7 +372,7 @@ class Component(AbstractComponent):
                 print(f"      FAIL")
                 pass_flag = False
 
-        if matchingLines:
+        if matching_lines:
             print(f"    Matching Lines Check")
             reversed_triangles = (
                 np.cross(mesh.v1 - mesh.v0, mesh.v2 - mesh.v0) * mesh.normals
@@ -427,12 +420,8 @@ class Component(AbstractComponent):
         edge_list = []
         for edge in directed_edges:
             edge_list.append(frozenset((edge[:3], edge[3:])))
-        # print(f"edge_list={edge_list}")
-
-        from collections import Counter
 
         counter_out = Counter(edge_list)
-        # print(f"counter_out={counter_out}")
 
         k_list = []
         for k, v in counter_out.items():
