@@ -90,7 +90,7 @@ class Component(AbstractComponent):
     def __init__(
         self,
         params: dict = None,
-        edges: list = [],
+        edges: list = None,
         stl_resolution: int = 2,
         verbosity: int = 1,
         name: str = None,
@@ -102,7 +102,7 @@ class Component(AbstractComponent):
         self.params = params
 
         # Save edges
-        self.edges = edges
+        self.edges = edges if edges is not None else []
 
         # Processed objects
         self.patches = {}  # Parametric patches (continuous)
