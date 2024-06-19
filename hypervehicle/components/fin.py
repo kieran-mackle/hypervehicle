@@ -52,43 +52,60 @@ class Fin(Component):
         ----------
         p0 : Vector3
             Point p0 of the fin geometry.
+
         p1 : Vector3
             Point p1 of the fin geometry.
+
         p2 : Vector3
             Point p2 of the fin geometry.
+
         p3 : Vector3
             Point p3 of the fin geometry.
+
         fin_thickness : float
             The thickness of the fin.
+
         fin_angle : float
             The axial position angle of the placement of the fin.
+
         top_thickness_function : Callable
             The thickness function for the top surface of the fin.
+
         bot_thickness_function : Callable
             The thickness function for the top surface of the fin.
+
         LE_wf : Callable, optional
             The thickness function for the leading edge of the fin.
+
         mirror : bool, optional
             Mirror the fin. The default is False.
+
         rudder_type : str, optional
             The type of rudder to use, either "flat" or "sharp". The
             default is "flat".
+
         rudder_length : float, optional
             The length of the rudder. The default is 0.
+
         pivot_angle : float, optional
             The pivot angle of the entire fin, about its central axis.
             The default is 0.
+
         pivot_point : Vector3, optional
             The point about which to apply the pivot_angle. The default
             is Vector3(0,0,0).
+
         offset_func : Callable, optional
             The function to apply when offsetting the fin position.
             The default is None.
+
         stl_resolution : int, optional
             The stl resolution to use when creating the mesh for this
             component. The default is None.
+
         verbosity : int, optional
             The verbosity of the component. The default is 1.
+
         name : str, optional
             The name tag for the component. The default is None.
         """

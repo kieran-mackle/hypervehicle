@@ -1,6 +1,6 @@
 (sharpwedge)=
 # Sharp Wedge Tutorial
-This page provides a simple example to get started with *hypervehicle*.
+This page provides a simple example to get started with <tt>HyperVehicle</tt>.
 It will cover how to construct the sharp wedge shown below.
 
 ```{seealso}

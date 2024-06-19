@@ -5,6 +5,7 @@ import numpy as np
 import pandas as pd
 from stl import mesh
 from tqdm import tqdm
+from art import tprint, art
 import xml.etree.ElementTree as ET
 from typing import Dict, List, Optional
 
@@ -140,6 +141,8 @@ def parametricSurfce2stl(
     sj: float = 1.0,
     mirror_y=False,
     flip_faces=False,
+    i_clustering_func: callable = None,
+    j_clustering_func: callable = None,
 ) -> mesh.Mesh:
     """
     Function to convert parametric_surface generated using the Eilmer Geometry
@@ -147,38 +150,128 @@ def parametricSurfce2stl(
 
     Parameters
     ----------
-    parametric_surface : Any
-        The parametric surface object.
+        parametric_surface : Any
+            The parametric surface object.
 
-    si : float, optional
-        The clustering in the i-direction. The default is 1.0.
+        si : float, optional
+            The clustering in the i-direction. The default is 1.0.
 
-    sj : float, optional
-        The clustering in the j-direction. The default is 1.0.
+        sj : float, optional
+            The clustering in the j-direction. The default is 1.0.
 
-    triangles_per_edge : int
-        The resolution for the stl object.
+        triangles_per_edge : int
+            The resolution for the stl object.
 
-    mirror_y : bool, optional
-        Create mirror image about x-z plane. The default is False.
+        mirror_y : bool, optional
+            Create mirror image about x-z plane. The default is False.
+
+        i_clustering_func : callable, optional
+            A custom clustering function to apply in the i direction.
+            The default is None.
+
+        j_clustering_func : callable, optional
+            A custom clustering function to apply in the j direction.
+            The default is None.
 
     Returns
     ----------
     stl_mesh : Mesh
         The numpy-stl mesh.
     """
+    # TODO - allow different ni and nj discretisation
 
-    vertices, cell_ids = create_cells(
-        parametric_surface, triangles_per_edge, si, sj, mirror_y, flip_faces
-    )
+    ni = triangles_per_edge
+    nj = triangles_per_edge
+
+    # Create list of vertices
+    if i_clustering_func:
+        r_list = [i_clustering_func(i) for i in np.linspace(0, 1, ni + 1)]
+    else:
+        r_list = default_vertex_func(lb=0.0, ub=1.0, steps=ni + 1, spacing=si)
+
+    if j_clustering_func:
+        s_list = [j_clustering_func(i) for i in np.linspace(0, 1, ni + 1)]
+    else:
+        s_list = default_vertex_func(lb=0.0, ub=1.0, steps=nj + 1, spacing=sj)
+
+    y_mult: int = -1 if mirror_y else 1
+
+    # Create vertices for corner points of each quad cell
+    # columns x, y, z for each vertex row
+    # quad exterior vertices + quad centres
+    vertices: np.ndarray = np.zeros(((ni + 1) * (nj + 1) + ni * nj, 3))
+    centre_ix: int = (ni + 1) * (nj + 1)
+
+    # For vertices along the x direction (i)
+    for i, r in enumerate(r_list):
+        # For vertices along the y direction (j)
+        for j, s in enumerate(s_list):
+            # Evaluate position
+            pos = parametric_surface(r, s)
+
+            # Assign vertex
+            vertices[j * (ni + 1) + i] = np.array([pos.x, y_mult * pos.y, pos.z])
+
+            # Create vertices for centre point of each quad cell
+            try:
+                # Try index to bail before calling surface
+                vertices[centre_ix + (j * ni + i)]
+
+                r0 = r_list[i]
+                r1 = r_list[i + 1]
+                s0 = s_list[j]
+                s1 = s_list[j + 1]
+
+                # Get corner points
+                pos00 = parametric_surface(r0, s0)
+                pos10 = parametric_surface(r1, s0)
+                pos01 = parametric_surface(r0, s1)
+                pos11 = parametric_surface(r1, s1)
+
+                # Evaluate quad centre coordinate
+                pos_x = 0.25 * (pos00.x + pos10.x + pos01.x + pos11.x)
+                pos_y = 0.25 * (pos00.y + pos10.y + pos01.y + pos11.y)
+                pos_z = 0.25 * (pos00.z + pos10.z + pos01.z + pos11.z)
+
+                # Assign quad centre vertices
+                vc = np.array([pos_x, y_mult * pos_y, pos_z])
+                vertices[centre_ix + (j * ni + i)] = vc
+
+            except IndexError:
+                # Index out of bounds
+                pass
+
+    # Create list of faces, defining the face vertices
+    faces = []
+    for i in range(ni):
+        for j in range(nj):
+            p00 = j * (nj + 1) + i  # bottom left
+            p10 = j * (nj + 1) + i + 1  # bottom right
+            p01 = (j + 1) * (ni + 1) + i  # top left
+            p11 = (j + 1) * (ni + 1) + i + 1  # top right
+
+            pc = centre_ix + j * min(ni, nj) + i  # vertex at centre of cell
+
+            if mirror_y or flip_faces:
+                faces.append([p00, pc, p10])
+                faces.append([p10, pc, p11])
+                faces.append([p11, pc, p01])
+                faces.append([p01, pc, p00])
+            else:
+                faces.append([p00, p10, pc])
+                faces.append([p10, p11, pc])
+                faces.append([p11, p01, pc])
+                faces.append([p01, p00, pc])
+
+    faces = np.array(faces)
 
     # Create the STL mesh object
-    stl_mesh = mesh.Mesh(np.zeros(cell_ids.shape[0], dtype=mesh.Mesh.dtype))
-    for ix, cell_id in enumerate(cell_ids):
+    stl_mesh = mesh.Mesh(np.zeros(faces.shape[0], dtype=mesh.Mesh.dtype))
+    for ix, face in enumerate(faces):
         # For each face
         for c in range(3):
             # For each coordinate x/y/z
-            stl_mesh.vectors[ix][c] = vertices[cell_id[c], :]
+            stl_mesh.vectors[ix][c] = vertices[face[c], :]
 
     return stl_mesh
 
@@ -238,8 +331,14 @@ def parametricSurfce2vtk(
     return (vertices, cell_ids)
 
 
+def default_vertex_func(lb, ub, steps, spacing=1.0):
+    span = ub - lb
+    dx = 1.0 / (steps - 1)
+    return np.array([lb + (i * dx) ** spacing * span for i in range(steps)])
+
+
 def assess_inertial_properties(vehicle, component_densities: Dict[str, float]):
-    """Return the inertial properties of a vehicle.
+    """
 
     Parameters
     ----------
@@ -253,30 +352,13 @@ def assess_inertial_properties(vehicle, component_densities: Dict[str, float]):
 
     Returns
     -------
-    total_volume : float
-        The total volume.
+    vehicle_properties : dict
+        A dictionary containing the vehicle's mass, volume, location of
+        CoG and moment of inertia matrix.
 
-    total_mass : float
-        The toal mass.
-
-    composite_cog : np.array
-        The composite center of gravity.
-
-    composite_inertia : np.array
-        The composite mass moment of inertia.
-
-    Examples
-    --------
-    >>> components = {'body': {'type': 'body', 'mesh': body},
-                      'wings': {'type': 'wing', 'mesh': wings},
-                      'inlet': {'type': 'inlet', 'mesh': inlet},
-                      'fin1': {'type': 'fin', 'mesh': fin1},
-                      'fin2': {'type': 'fin', 'mesh': fin2}}
-
-    >>> component_densities = {'wing': 5590, 'body': 1680, 'inlet': 1680, 'fin': 5590}
-
-    >>> volume, mass, cog, inertia = utils.assess_inertial_properties(components,
-                                                             component_densities)
+    component_properties : dict
+        A dictionary containing the same keys as vehicle_properties, but
+        the values are now dictionaries for each component of the vehicle.
     """
     # Check if vehicle has been generated
     if not vehicle._generated:
@@ -320,7 +402,21 @@ def assess_inertial_properties(vehicle, component_densities: Dict[str, float]):
         shifted_inertias[component] = I_adj
         composite_inertia += I_adj
 
-    return total_volume, total_mass, composite_cog, composite_inertia
+    # Prepare output
+    vehicle_properties = {
+        "mass": total_mass,
+        "volume": total_volume,
+        "cog": composite_cog,
+        "moi": composite_inertia,
+    }
+    component_properties = {
+        "mass": masses,
+        "volume": volumes,
+        "cog": cgs,
+        "moi": inertias,
+    }
+
+    return vehicle_properties, component_properties
 
 
 class SensitivityStudy:
@@ -328,7 +424,7 @@ class SensitivityStudy:
     Computes the geometric sensitivities using finite differencing.
     """
 
-    def __init__(self, vehicle_constructor, verbosity: int = 1):
+    def __init__(self, vehicle_constructor, verbosity: Optional[int] = 1):
         """Vehicle geometry sensitivity constructor.
 
         Parameters
@@ -336,10 +432,12 @@ class SensitivityStudy:
         vehicle_constructor : AbstractGenerator
             The Vehicle instance constructor.
 
+        verbosity : int, optional
+            The code verbosity. The default is 1.
+
         Returns
         -------
         VehicleSensitivity object.
-
         """
         self.vehicle_constructor = vehicle_constructor
         self.verbosity = verbosity
@@ -347,17 +445,26 @@ class SensitivityStudy:
         # Parameter sensitivities
         self.parameter_sensitivities = None
         self.component_sensitivities = None
+        self.component_scalar_sensitivities = None
         self.scalar_sensitivities = None
+        self.property_sensitivities = None
+
+        # Nominal vehicle instance
+        self.nominal_vehicle_instance = None
+
+        # Combined data file name
+        self.combined_fn = "all_components_sensitivity.csv"
 
     def __repr__(self):
         return "HyperVehicle sensitivity study"
 
     def dvdp(
         self,
-        parameter_dict: dict,
-        perturbation: float = 5,
-        write_nominal_stl: bool = True,
-        nominal_stl_prefix: str = None,
+        parameter_dict: dict[str, any],
+        overrides: Optional[dict[str, any]] = None,
+        perturbation: Optional[float] = 5,
+        write_nominal_stl: Optional[bool] = True,
+        nominal_stl_prefix: Optional[str] = None,
     ):
         """Computes the sensitivity of the geometry with respect to the
         parameters.
@@ -367,6 +474,10 @@ class SensitivityStudy:
         parameter_dict : dict
             A dictionary of the design parameters to perturb, and their
             nominal values.
+
+        overrides : dict, optional
+            Optional vehicle generator overrides to provide along with the
+            parameter dictionary without variation. The default is None.
 
         perturbation : float, optional
             The design parameter perturbation amount, specified as percentage.
@@ -386,21 +497,28 @@ class SensitivityStudy:
 
         Returns
         -------
-        sensitivities : TYPE
+        sensitivities : dict
             A dictionary containing the sensitivity information for all
             components of the geometry, relative to the nominal geometry.
-
         """
+        # Print banner
+        if self.verbosity > 0:
+            print_banner()
+            print("Running geometric sensitivity study.")
+
         # TODO - return perturbed instances? After generatation to allow
         # quickly writing to STL
         from hypervehicle.generator import AbstractGenerator
 
+        # Check overrides
+        overrides = overrides if overrides else {}
+
         # Create Vehicle instance with nominal parameters
         if self.verbosity > 0:
-            print("Generating nominal geometry...")
+            print("  Generating nominal geometry...")
 
         constructor_instance: AbstractGenerator = self.vehicle_constructor(
-            **parameter_dict
+            **parameter_dict, **overrides
         )
         nominal_instance = constructor_instance.create_instance()
         nominal_instance.verbosity = 0
@@ -413,7 +531,7 @@ class SensitivityStudy:
         }
 
         if self.verbosity > 0:
-            print("  Done.")
+            print("    Done.")
 
         if write_nominal_stl:
             # Write nominal instance to STL files
@@ -421,11 +539,17 @@ class SensitivityStudy:
 
         # Generate meshes for each parameter
         if self.verbosity > 0:
-            print("Generating perturbed geometries...")
+            print("  Generating perturbed geometries...")
+            print("    Parameters: ", parameter_dict.keys())
 
         sensitivities = {}
         analysis_sens = {}
+        component_analysis_sens = {}
+        property_sens = {}
         for parameter, value in parameter_dict.items():
+            if self.verbosity > 0:
+                print(f"    Generating for {parameter}.")
+
             sensitivities[parameter] = {}
 
             # Create copy
@@ -436,7 +560,9 @@ class SensitivityStudy:
             dp = adjusted_parameters[parameter] - value
 
             # Create Vehicle instance with perturbed parameter
-            constructor_instance = self.vehicle_constructor(**adjusted_parameters)
+            constructor_instance = self.vehicle_constructor(
+                **adjusted_parameters, **overrides
+            )
             parameter_instance = constructor_instance.create_instance()
             parameter_instance.verbosity = 0
 
@@ -455,6 +581,19 @@ class SensitivityStudy:
                         parameter_instance.analysis_results[r] - v
                     ) / dp
 
+                # Repeat for components
+                component_analysis_sens[parameter] = (
+                    parameter_instance._volmass - nominal_instance._volmass
+                ) / dp
+
+            # Generate sensitivities for vehicle properties
+            if nominal_instance.properties:
+                property_sens[parameter] = {}
+                for property, v in nominal_instance.properties.items():
+                    property_sens[parameter][property] = (
+                        parameter_instance.properties[property] - v
+                    ) / dp
+
             # Generate sensitivities
             for component, nominal_mesh in nominal_meshes.items():
                 parameter_mesh = parameter_meshes[component]
@@ -468,12 +607,18 @@ class SensitivityStudy:
                 sensitivities[parameter][component] = sensitivity_df
 
         if self.verbosity > 0:
-            print("  Done.")
+            print("    Done.")
 
         # Return output
         self.parameter_sensitivities = sensitivities
         self.scalar_sensitivities = analysis_sens
+        self.component_scalar_sensitivities = component_analysis_sens
+        self.property_sensitivities = property_sens
         self.component_sensitivities = self._combine(nominal_instance, sensitivities)
+        self.nominal_vehicle_instance = nominal_instance
+
+        if self.verbosity > 0:
+            print("Sensitivity study complete.")
 
         return sensitivities
 
@@ -486,10 +631,18 @@ class SensitivityStudy:
             The output directory to write the sensitivity files to. If
             None, the current working directory will be used. The default
             is None.
+
+        Returns
+        -------
+        combined_data_filepath : str
+            The filepath to the combined sensitivity data.
         """
+        # Check if sensitivities have been generated
         if self.component_sensitivities is None:
             raise Exception("Sensitivities have not yet been generated.")
+
         else:
+            # Check output directory
             if outdir is None:
                 outdir = os.getcwd()
 
@@ -497,10 +650,17 @@ class SensitivityStudy:
                 # Make the directory
                 os.mkdir(outdir)
 
+            # Save sensitivity data for each component
+            all_sens_data = pd.DataFrame()
             for component, df in self.component_sensitivities.items():
                 df.to_csv(
                     os.path.join(outdir, f"{component}_sensitivity.csv"), index=False
                 )
+                all_sens_data = pd.concat([all_sens_data, df])
+
+            # Also save the combined sensitivity data
+            combined_data_path = os.path.join(outdir, self.combined_fn)
+            all_sens_data.to_csv(combined_data_path, index=False)
 
             # Also save analysis sensitivities
             if self.scalar_sensitivities:
@@ -509,14 +669,27 @@ class SensitivityStudy:
                 if not os.path.exists(properties_dir):
                     os.mkdir(properties_dir)
 
-                vm = {
-                    p: {k: self.scalar_sensitivities[p][k] for k in ["volume", "mass"]}
-                    for p in self.scalar_sensitivities
-                }
-                pd.DataFrame(vm).to_csv(
+                # Save volume and mass
+                reformatted_results = {}
+                for p, s in self.component_scalar_sensitivities.items():
+                    labels = []
+                    values = []
+                    s: pd.DataFrame
+                    for component, comp_sens in s.iterrows():
+                        comp_sens: pd.Series
+                        for i, j in comp_sens.items():
+                            labels.append(f"{component}_{i}")
+                            values.append(j)
+
+                    reformatted_results[p] = values
+
+                # Convert to DataFrame and save
+                comp_sens = pd.DataFrame(data=reformatted_results, index=labels)
+                comp_sens.to_csv(
                     os.path.join(properties_dir, "volmass_sensitivity.csv")
                 )
 
+                # Save others
                 for param in self.scalar_sensitivities:
                     self.scalar_sensitivities[param]["cog"].tofile(
                         os.path.join(properties_dir, f"{param}_cog_sensitivity.txt"),
@@ -527,6 +700,18 @@ class SensitivityStudy:
                         sep=", ",
                     )
 
+            # Also save user-defined property sensitivities
+            if self.property_sensitivities:
+                properties_dir = os.path.join(outdir, f"scalar_sensitivities")
+                if not os.path.exists(properties_dir):
+                    os.mkdir(properties_dir)
+
+                pd.DataFrame(self.property_sensitivities).to_csv(
+                    os.path.join(properties_dir, "property_sensitivity.csv")
+                )
+
+            return combined_data_path
+
     @staticmethod
     def _compare_meshes(mesh1, mesh2, dp, parameter_name: str) -> pd.DataFrame:
         """Compares two meshes with each other and applies finite differencing
@@ -534,13 +719,14 @@ class SensitivityStudy:
 
         Parameters
         ----------
-        mesh1 : None
+        mesh1 : Mesh
             The reference mesh.
 
-        mesh1 : None
+        mesh1 : Mesh
             The perturbed mesh.
 
-        dp : None
+        dp : float
+            The parameter perturbation.
 
         parameter_name : str
             The name of the parameter.
@@ -610,13 +796,19 @@ class SensitivityStudy:
 
 def append_sensitivities_to_tri(
     dp_filenames: List[str],
-    components_filepath: str = "Components.i.tri",
-    match_tolerance: float = 1e-5,
-    rounding_tolerance: float = 1e-8,
-    verbosity: int = 1,
+    components_filepath: Optional[str] = "Components.i.tri",
+    match_tolerance: Optional[float] = 1e-5,
+    rounding_tolerance: Optional[float] = 1e-8,
+    combined_sens_fn: Optional[str] = "all_components_sensitivity.csv",
     outdir: Optional[str] = None,
+    verbosity: Optional[int] = 1,
 ) -> float:
-    """Appends shape sensitivity data to .i.tri file.
+    """Appends shape sensitivity data to .i.tri file, and writes the sensitivity
+    data to csv file too. This step is required for geometries with multiple
+    components. The .tri file is used to match individual sensitivity files
+    (dp_filenames) to the geometry. The combined sensitivity file is required
+    to calculate flow sensitivities with the .plt file, which has local flow
+    conditions attached.
 
     Parameters
     ----------
@@ -634,10 +826,17 @@ def append_sensitivities_to_tri(
     rounding_tolerance : float, optional
         The tolerance to round data off to. The default is 1e-8.
 
+    combined_sens_fn : str, optional
+        The filename of the combined geometry sensitivity data. The default
+        is "all_components_sensitivity.csv".
+
     outdir : str, optional
         The output directory to write the combined sensitivity file to. If
         None, the current working directory will be used. The default
         is None.
+
+    verbosity : int, optional
+        The verbosity of the code. The defualt is 1.
 
     Returns
     ---------
@@ -677,7 +876,7 @@ def append_sensitivities_to_tri(
 
     # Ensure previous components sensitivity file is not included
     try:
-        del dp_filenames[dp_filenames.index("all_components_sensitivity.csv")]
+        del dp_filenames[dp_filenames.index(combined_sens_fn)]
     except ValueError:
         # It is not in there
         pass
@@ -759,9 +958,7 @@ def append_sensitivities_to_tri(
         left_index=True,
         right_index=True,
     ).drop("index", axis=1)
-    combined_sense.to_csv(
-        os.path.join(outdir, "all_components_sensitivity.csv"), index=False
-    )
+    combined_sense.to_csv(os.path.join(outdir, combined_sens_fn), index=False)
 
     # Write the matched sensitivity df to i.tri file as new xml element
     # NumberOfComponents is how many sensitivity components there are (3 for x,y,z)
@@ -835,3 +1032,93 @@ def assign_tags_to_cell(patch, length):
     # Creates a tag vector for a given patch
     tags = [patch.tag.value] * length
     return tags
+
+
+def merge_stls(
+    stl_files: List[str], name: Optional[str] = None, verbosity: Optional[int] = 1
+) -> str:
+    """Merge STL files into a single file. Note that this function
+    depends on having PyMesh installed.
+
+    Parameters
+    ----------
+    stl_files : list[str]
+        A list of the STL file names to be merged.
+
+    name : str, optional
+        The prefix of the combined STL filename output.
+
+    verbosity : int, optional
+        The function verbosity. The default is 1.
+
+    Returns
+    -------
+    outfile : str
+        The filename of the merged STL.
+    """
+    # Import PyMesh
+    try:
+        import pymesh
+    except ModuleNotFoundError:
+        raise Exception(
+            "Could not find pymesh. Please follow the "
+            + "installation instructions at "
+            + "https://pymesh.readthedocs.io/en/latest/installation.html"
+        )
+
+    if verbosity > 0:
+        print("")
+
+    # Load STL files
+    if verbosity > 1:
+        print("Loading STLs...")
+    meshes = [pymesh.meshio.load_mesh(f) for f in stl_files]
+
+    # Merge meshes
+    if verbosity > 0:
+        print("Merging STLs...")
+    merged = pymesh.merge_meshes(meshes)
+
+    # Resolve self-intersections
+    if verbosity > 1:
+        print("Resolving self intersections...")
+    merged = pymesh.resolve_self_intersection(merged)
+
+    # Remove degenerate triangles
+    if verbosity > 1:
+        print("Removing degenerate triangles...")
+    merged, info = pymesh.remove_degenerated_triangles(merged)
+
+    # Remove duplicate faces
+    if verbosity > 1:
+        print("Removing duplicated faces...")
+    merged, info = pymesh.remove_duplicated_faces(merged)
+
+    # Remove isolated vertices
+    if verbosity > 1:
+        print("Removing isolated vertices...")
+    merged, info = pymesh.remove_isolated_vertices(merged)
+
+    # Remove obtuse triangles
+    if verbosity > 1:
+        print("Removing obtuse triangles...")
+    merged, info = pymesh.remove_obtuse_triangles(merged)
+
+    # Write to file
+    if verbosity > 1:
+        print("Saving merged STL mesh...")
+    name = "combined_mesh" if name is None else name
+    outfile = f"{name}.stl"
+    pymesh.meshio.save_mesh(outfile, merged)
+
+    if verbosity > 0:
+        print(f"Done. Merged STLs written to '{outfile}'.")
+
+    return outfile
+
+
+def print_banner():
+    """Prints the hypervehicle banner"""
+    tprint("Hypervehicle", "tarty4")
+    p = art("airplane2")
+    print(f" {p}               {p}               {p}               {p}")

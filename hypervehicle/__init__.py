@@ -1,4 +1,4 @@
+__version__ = "0.5.0"
+
+
 from .vehicle import Vehicle
-
-
-__version__ = "0.4.0"

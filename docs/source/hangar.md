@@ -1,6 +1,6 @@
-# Vehicle Hangar
+# HyperVehicle Hangar
 
-This page is a showcase of vehicle geometries possible using *hypervehicle*.
+This page is a showcase of vehicle geometries possible using <tt>HyperVehicle</tt>.
 Note that all of these vehicles can be accessed via the `hypervehicle.hangar`
 namespace. For example, to generate the X-43A geometry shown below, the following
 code can be used.
@@ -14,10 +14,15 @@ x43.generate()
 x43.to_stl()
 ```
 
+## Generic Hypersonic Waverider
+
+![Generic Hypersonic Waverider](images/hangar/waverider.png)
+
 
 ## [X-43A](https://en.wikipedia.org/wiki/NASA_X-43)
 
 ![X-43A](images/hangar/x43a.png)
+<!-- ![X43](images/x43-flipped.gif) -->
 
 
 ## [HiFIRE4](https://www.dst.defence.gov.au/partnership/hifire-program)

@@ -1,45 +1,36 @@
-# Getting Started with *hypervehicle*
-
-## Dependencies
-
-### GDTK
-*Hypervehicle* depends on the 
-[GDTK](https://github.com/gdtk-uq/gdtk) Python 
-package for its geometric toolkit. Note that a full install is 
-not required. Instead, do a 
-[sparse checkout](https://stackoverflow.com/questions/600079/how-do-i-clone-a-subdirectory-only-of-a-git-repository)
-of the relevant files, using the commands below.
-
-```
-mkdir gdtk
-cd gdtk/
-git init
-git remote add -f origin https://github.com/gdtk-uq/gdtk.git
-git config core.sparseCheckout true
-echo "src/lib/" >> .git/info/sparse-checkout
-git pull origin master
-cd src/lib
-python3 -m pip install .
-cd ../../../
-```
-
-
+# Getting Started with HyperVehicle
 
 ## Installation
-First clone the repository, then install via pip.
+
+### Installation from PyPI
 
 ```
-git clone https://github.com/kieran-mackle/hypervehicle
-cd hypervehicle
-python3 -m pip install ./
+pip install hypervehicle
 ```
+
+### Installation from source
+To install `hypervehicle` from source, use the command below.
+
+```
+pip install git+https://github.com/kieran-mackle/hypervehicle
+```
+
 
 ### Testing the installation
+
+To check that everything has been installed properly and <tt>HyperVehicle</tt> is 
+ready to go, run the command below.
+
 ```
 python3 -m pytest tests/
 ```
 
 
-## Example
-See an example of using *hypervehicle* to generate geometry, 
-check out the [X-43A tutorial](examples/x43.md).
+## Optional Dependencies
+
+### PyMESH
+
+To access more advanced features of <tt>HyperVehicle</tt>, such as compeonent mesh merging
+and cleaning, [PyMesh](https://github.com/PyMesh/PyMesh) is required. You do not need to install
+this to use <tt>HyperVehicle</tt>, but it can come in handy, especially when extracting 
+sensitivities for multi-component geometries.

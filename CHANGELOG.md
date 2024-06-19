@@ -1,3 +1,38 @@
+## v0.5.0 (2024-01-02)
+
+### Feat
+
+- **Component**: added add_clustering_options method
+- **utilities**: improve verbosity of senstivity study
+- **SensitivityStudy**: optionally provide generator overrides
+- **SensitivityStudy**: improved verbosity
+- **merge_stls**: return merged stl filename
+- **merge_stls**: added verbosity control
+- **SensitivityStudy**: writing results to csv also writes combined csv
+- **utilities**: added print_banner utility function
+- **hangar**: add waverider to hangar
+- **Component**: ghost components
+- **Vehicle**: include option to merge all stls when writing to_stl
+- **utilities**: added stl mesh merge function
+- **SensitivityStudy**: calculates and saves component volume and mass sensitivities
+- **Vehicle**: component volume and mass included in vehicle assessment
+- **Component**: clean mesh on writing to stl
+- **Vehicle**: allow specifying component modifier function to manipulate surfaces
+- **parametricSurfce2stl**: allow passing custom clustering function
+- **Vehicle**: ability to define and differentiate vehicle properties
+
+### Fix
+
+- **CompositeComponent**: added sphere and cube to allowable components
+- **hangar**: include waverider in hangar namespace loading
+- **Vehicle.to_stl**: exclude ghost components in stl merge
+
+### Refactor
+
+- **Component**: only clean mesh on writing to STL
+- **Component**: clean STL mesh when generating mesh object instead of on saving to file
+- **SensitivityStudy**: component volmass sens replaces just vehicle sens
+
 ## v0.4.0 (2023-03-10)
 
 ### Feat
