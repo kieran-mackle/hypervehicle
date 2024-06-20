@@ -1,7 +1,7 @@
 import os
 import numpy as np
 from stl import Mesh
-from hypervehicle.utilities import parametricSurfce2stl
+from hypervehicle.utilities import surfce_to_stl
 from hypervehicle.geometry import SweptPatch, CoonsPatch, Vector3
 
 
@@ -26,9 +26,9 @@ def test_sweep():
 
     p = SweptPatch(sections)
 
-    s = parametricSurfce2stl(p, 20)
-    s1 = parametricSurfce2stl(c1, 20)
-    s2 = parametricSurfce2stl(c2, 20)
+    s = surfce_to_stl(p, 20)
+    s1 = surfce_to_stl(c1, 20)
+    s2 = surfce_to_stl(c2, 20)
 
     stl_data = [s.data, s1.data, s2.data]
     m = Mesh(np.concatenate(stl_data))

@@ -1,21 +1,20 @@
-import os
-import time
 import pymeshfix
 import numpy as np
 from stl import mesh
 import multiprocess as mp
 from copy import deepcopy
 from abc import abstractmethod
+from collections import Counter
 from hypervehicle.geometry import Vector3
 from gdtk.geom.sgrid import StructuredGrid
 from typing import Callable, Union, Optional
+from hypervehicle.utilities import surfce_to_stl
 from hypervehicle.geometry import (
     CurvedPatch,
     RotatedPatch,
     MirroredPatch,
     OffsetPatchFunction,
 )
-from hypervehicle.utilities import parametricSurfce2stl
 
 
 class AbstractComponent:
@@ -90,7 +89,7 @@ class Component(AbstractComponent):
     def __init__(
         self,
         params: dict = None,
-        edges: list =[],
+        edges: list = None,
         stl_resolution: int = 2,
         verbosity: int = 1,
         name: str = None,
@@ -102,7 +101,7 @@ class Component(AbstractComponent):
         self.params = params
 
         # Save edges
-        self.edges = edges
+        self.edges = edges if edges is not None else []
 
         # Processed objects
         self.patches = {}  # Parametric patches (continuous)
@@ -259,35 +258,25 @@ class Component(AbstractComponent):
             )
 
         # Create case list
-        case_list = []
-        for k, patch in self.patches.items():
-            if isinstance(stl_resolution, int):
-                res_r = stl_resolution
-                res_s = stl_resolution
-            else:
-                res_r = self.patch_res_r[k]
-                res_s = self.patch_res_s[k]
-            case_list.append([k, patch, res_r, res_s])
+        if isinstance(stl_resolution, int):
+            case_list = [
+                [k, patch, stl_resolution, stl_resolution]
+                for k, patch in self.patches.items()
+            ]
+        else:
+            case_list = [
+                [k, patch, self.patch_res_r[k], self.patch_res_r[k]]
+                for k, patch in self.patches.items()
+            ]
 
         # Prepare multiprocessing arguments iterable
         def wrapper(key: str, patch, res_r: int, res_s: int):
-            flip = True if key.split("_")[-1] == "mirrored" else False
+            surface = surfce_to_stl(patch, res_r, res_s, **self._clustering)
+            return surface
 
-            #if "swept" in key:
-            #    # Swept fuselage component
-            #    res = (
-            #        int(stl_resolution / 4)
-            #        if "end" in key
-            #        else int(stl_resolution / 4) * 4
-            #    )
-            #    flip = True if "1" in key else False
-            surface = parametricSurfce2stl(
-                patch, res_r, res_s, flip_faces=flip, **self._clustering
-            )
-            return (key, surface)
-
-        multiprocess = False  # flag to disable multiprocessing for debugging
         self.surfaces = {}
+        multiprocess = False  # flag to disable multiprocessing for debugging
+        # TODO - move multiprocess to arg / config option
         if multiprocess is True:
             # Initialise surfaces and pool
             pool = mp.Pool()
@@ -297,6 +286,7 @@ class Component(AbstractComponent):
             for result in pool.starmap(wrapper, case_list):
                 self.surfaces[result[0]] = result[1]
             print("  DONE: Creating stl - multiprocess.")
+
         else:
             for case in case_list:
                 k = case[0]
@@ -360,18 +350,19 @@ class Component(AbstractComponent):
         if j_clustering_func:
             self._clustering.update({"j_clustering_func": j_clustering_func})
 
-    def stl_check(self, projecteArea=True, matchingLines=True):
-        """Check stl mesh."""
+    def stl_check(
+        self, project_area: Optional[bool] = True, matching_lines: Optional[bool] = True
+    ):
+        """Check the STL mesh."""
+        # TODO - add comment annotations
         pass_flag = True
         mesh = self.mesh
         print(f"    MESH CHECK")
-        print(f"        mesh:{mesh}")
-        if projecteArea:
+        print(f"        mesh: {mesh}")
+        if project_area:
             print(f"    Project Area Check")
             normals = np.asarray(mesh.normals, dtype=np.float64)
-            allowed_max_errors = (
-                np.abs(normals).sum(axis=0) * np.finfo(np.float32).eps
-                )
+            allowed_max_errors = np.abs(normals).sum(axis=0) * np.finfo(np.float32).eps
             sum_normals = normals.sum(axis=0)
             print(f"        allowed error: {allowed_max_errors}")
             print(f"        normals sum: {sum_normals}")
@@ -381,12 +372,13 @@ class Component(AbstractComponent):
                 print(f"      FAIL")
                 pass_flag = False
 
-        if matchingLines:
+        if matching_lines:
             print(f"    Matching Lines Check")
-            reversed_triangles = (np.cross(mesh.v1 - mesh.v0,
-                                        mesh.v2 - mesh.v0) * mesh.normals
-                                    ).sum(axis=1) < 0
+            reversed_triangles = (
+                np.cross(mesh.v1 - mesh.v0, mesh.v2 - mesh.v0) * mesh.normals
+            ).sum(axis=1) < 0
             import itertools
+
             directed_edges = {
                 tuple(edge.ravel() if not rev else edge[::-1, :].ravel())
                 for rev, edge in zip(
@@ -395,11 +387,10 @@ class Component(AbstractComponent):
                         mesh.vectors[:, (0, 1), :],
                         mesh.vectors[:, (1, 2), :],
                         mesh.vectors[:, (2, 0), :],
-                        ),
-                    )
-                }
-        undirected_edges = {frozenset((edge[:3], edge[3:])) for edge in
-                            directed_edges}
+                    ),
+                )
+            }
+        undirected_edges = {frozenset((edge[:3], edge[3:])) for edge in directed_edges}
         edge_check = len(directed_edges) == 3 * mesh.data.size
         print(f"        len(directed_edges) == 3 * mesh.data.size")
         if edge_check:
@@ -428,12 +419,9 @@ class Component(AbstractComponent):
 
         edge_list = []
         for edge in directed_edges:
-            edge_list.append( frozenset((edge[:3], edge[3:])))
-        # print(f"edge_list={edge_list}")
+            edge_list.append(frozenset((edge[:3], edge[3:])))
 
-        from collections import Counter
         counter_out = Counter(edge_list)
-        #print(f"counter_out={counter_out}")
 
         k_list = []
         for k, v in counter_out.items():
@@ -444,7 +432,7 @@ class Component(AbstractComponent):
 
         return pass_flag
 
-    def stl_repair(self, small_distance: float=1e-6):
+    def stl_repair(self, small_distance: float = 1e-6):
         """Attempts to repair stl mesh issues.
 
         Parameters
@@ -462,27 +450,28 @@ class Component(AbstractComponent):
             groups = []
             li = []
             count = 0
-            for i in range(len(vector)-1):
+            for i in range(len(vector) - 1):
                 if count == 0:
                     x0 = vector[sort_i[i]]
-                x1 = vector[sort_i[i+1]]
-                if abs(x1-x0) < small_distance:
+                x1 = vector[sort_i[i + 1]]
+                if abs(x1 - x0) < small_distance:
                     if count == 0:
                         li.append(sort_i[i])
-                        li.append(sort_i[i+1])
+                        li.append(sort_i[i + 1])
                         count = 1
                     else:
-                        li.append(sort_i[i+1])
+                        li.append(sort_i[i + 1])
                 else:
                     groups.append(li)
                     li = []
                     count = 0
-                if i == len(vector)-2 and count > 0:
+                if i == len(vector) - 2 and count > 0:
                     groups.append(li)
             return groups
-        iix = find_groups(vectors[:,0], small_distance)
-        iiy = find_groups(vectors[:,1], small_distance)
-        iiz = find_groups(vectors[:,2], small_distance)
+
+        iix = find_groups(vectors[:, 0], small_distance)
+        iiy = find_groups(vectors[:, 1], small_distance)
+        iiz = find_groups(vectors[:, 2], small_distance)
 
         # find intersecting sets and take average
         for ix in iix:
@@ -494,6 +483,6 @@ class Component(AbstractComponent):
                     common = list(common0 & set(iz))
                     if common:
                         vectors[common] = np.mean(vectors[common], axis=0)
-        mesh.v0 = vectors[0:N_faces,:]
-        mesh.v1 = vectors[N_faces:2*N_faces,:]
-        mesh.v2 = vectors[2*N_faces:3*N_faces,:]
+        mesh.v0 = vectors[0:N_faces, :]
+        mesh.v1 = vectors[N_faces : 2 * N_faces, :]
+        mesh.v2 = vectors[2 * N_faces : 3 * N_faces, :]

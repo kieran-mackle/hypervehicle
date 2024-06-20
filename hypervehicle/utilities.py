@@ -11,17 +11,16 @@ import xml.etree.ElementTree as ET
 from typing import Dict, List, Optional
 
 
-def parametricSurfce2stl(
+def surfce_to_stl(
     parametric_surface,
     triangles_per_edge_r: int,
     triangles_per_edge_s: int,
     si: float = 1.0,
     sj: float = 1.0,
     mirror_y=False,
-    flip_faces=False,
     i_clustering_func: callable = None,
     j_clustering_func: callable = None,
-    verbosity = 0
+    verbosity=0,
 ) -> mesh.Mesh:
     """
     Function to convert parametric_surface generated using the Eilmer Geometry
@@ -60,8 +59,6 @@ def parametricSurfce2stl(
     stl_mesh : Mesh
         The numpy-stl mesh.
     """
-    # TODO - allow different ni and nj discretisation
-
     ni = triangles_per_edge_r
     nj = triangles_per_edge_s
 
@@ -94,7 +91,7 @@ def parametricSurfce2stl(
     #    |  /  0  \ |
     #   p00-------p10
 
-    N_triangles = 4*(ni)*(nj)
+    N_triangles = 4 * (ni) * (nj)
     stl_mesh = mesh.Mesh(np.zeros(N_triangles, dtype=mesh.Mesh.dtype))
     # mesh.vectors contains a list defining three corners of each triangle.
     t = 0
@@ -104,9 +101,9 @@ def parametricSurfce2stl(
         for j in range(nj):
             # get corner points for current cell (quad)
             pos00 = parametric_surface(r_list[i], s_list[j])
-            pos10 = parametric_surface(r_list[i+1], s_list[j])
-            pos01 = parametric_surface(r_list[i], s_list[j+1])
-            pos11 = parametric_surface(r_list[i+1], s_list[j+1])
+            pos10 = parametric_surface(r_list[i + 1], s_list[j])
+            pos01 = parametric_surface(r_list[i], s_list[j + 1])
+            pos11 = parametric_surface(r_list[i + 1], s_list[j + 1])
             # get centre for current cell (quad)
             pos_x = 0.25 * (pos00.x + pos10.x + pos01.x + pos11.x)
             pos_y = 0.25 * (pos00.y + pos10.y + pos01.y + pos11.y)
