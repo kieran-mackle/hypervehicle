@@ -1,3 +1,15 @@
+## v0.5.1 (2024-06-20)
+
+### Fix
+
+- **Component**: fix automatic refactor error
+- **Component**: avoid mutable default arg
+
+### Refactor
+
+- **SweptComponent**: deprectate old swept component type
+- **Component**: review changes and tidy
+
 ## v0.5.0 (2024-01-02)
 
 ### Feat
