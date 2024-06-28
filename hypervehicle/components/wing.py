@@ -151,7 +151,9 @@ class Wing(Component):
             "CLOSE_WING": close_wing,
         }
 
-        super().__init__(params, stl_resolution, verbosity, name)
+        super().__init__(
+            params=params, stl_resolution=stl_resolution, verbosity=verbosity, name=name
+        )
 
         # Extract construction points for planform
         # TODO - avoid pre-defined params dict structure for flexibility

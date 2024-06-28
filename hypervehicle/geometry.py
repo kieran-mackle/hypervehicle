@@ -682,6 +682,44 @@ class SweptPatch(ParametricSurface):
         return Vector3(**args)
 
 
+class SweptPatchfromEdges(ParametricSurface):
+    """Creates a swept patch from a series of cross sections.
+    Cross sections do not need to be parallel or aligned."""
+
+    __slots__ = ["edges"]
+
+    def __init__(self, edges: list) -> None:
+        """Construct the SweptPatch object.
+
+        Parameters
+        -----------
+        edges : list
+            A list containing the edges through which to sweep.
+        """
+        self.edges = edges
+        self.n_edges = len(edges)
+
+    def __repr__(self):
+        return "Swept Patch"
+
+    def __call__(self, r, s) -> Vector3:
+        r_slices = np.linspace(0, 1, self.n_edges)
+        if r in r_slices:
+            # can evaluate exactly
+            i = np.where(r_slices == r)[0][0]
+            return self.edges[i](s)
+        else:
+            # need to interpolate
+            index_above = np.where(r_slices > r)[0][0]
+            index_below = index_above - 1
+            above = self.edges[index_above](s)
+            below = self.edges[index_below](s)
+            alpha = (r - r_slices[index_below]) / (
+                r_slices[index_above] - r_slices[index_below]
+            )
+            return (1 - alpha) * below + alpha * above
+
+
 class RotatedPatch(ParametricSurface):
     """
     Rotates a surface about a point in an axis-specified direction.
