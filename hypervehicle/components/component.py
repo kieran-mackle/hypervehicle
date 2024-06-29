@@ -272,7 +272,7 @@ class Component(AbstractComponent):
         # Prepare multiprocessing arguments iterable
         def wrapper(key: str, patch, res_r: int, res_s: int):
             surface = surfce_to_stl(patch, res_r, res_s, **self._clustering)
-            return surface
+            return (key, surface)
 
         self.surfaces = {}
         multiprocess = False  # flag to disable multiprocessing for debugging
