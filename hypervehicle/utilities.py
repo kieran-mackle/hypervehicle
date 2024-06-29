@@ -19,7 +19,7 @@ def surfce_to_stl(
     triangles_per_edge_s: int,
     si: float = 1.0,
     sj: float = 1.0,
-    mirror_y=False,
+    mirror_y: bool = False,
     i_clustering_func: callable = None,
     j_clustering_func: callable = None,
     verbosity=0,
@@ -97,40 +97,46 @@ def surfce_to_stl(
     stl_mesh = mesh.Mesh(np.zeros(N_triangles, dtype=mesh.Mesh.dtype))
     # mesh.vectors contains a list defining three corners of each triangle.
     t = 0
+
     # For vertices along the x direction (i)
     for i in range(ni):
         # For vertices along the y direction (j)
         for j in range(nj):
-            # get corner points for current cell (quad)
+            # Get corner points for current cell (quad)
             pos00 = parametric_surface(r_list[i], s_list[j])
             pos10 = parametric_surface(r_list[i + 1], s_list[j])
             pos01 = parametric_surface(r_list[i], s_list[j + 1])
             pos11 = parametric_surface(r_list[i + 1], s_list[j + 1])
-            # get centre for current cell (quad)
+
+            # Get centre for current cell (quad)
             pos_x = 0.25 * (pos00.x + pos10.x + pos01.x + pos11.x)
             pos_y = 0.25 * (pos00.y + pos10.y + pos01.y + pos11.y)
             pos_z = 0.25 * (pos00.z + pos10.z + pos01.z + pos11.z)
 
-            # add triangle 0 [p00, p10, pc]
+            # Add triangle 0 [p00, p10, pc]
             stl_mesh.vectors[t][0] = np.array([pos00.x, y_mult * pos00.y, pos00.z])
             stl_mesh.vectors[t][1] = np.array([pos10.x, y_mult * pos10.y, pos10.z])
             stl_mesh.vectors[t][2] = np.array([pos_x, y_mult * pos_y, pos_z])
             t += 1
-            # add triangle 1 [p10, p11, pc]
+
+            # Add triangle 1 [p10, p11, pc]
             stl_mesh.vectors[t][0] = np.array([pos10.x, y_mult * pos10.y, pos10.z])
             stl_mesh.vectors[t][1] = np.array([pos11.x, y_mult * pos11.y, pos11.z])
             stl_mesh.vectors[t][2] = np.array([pos_x, y_mult * pos_y, pos_z])
             t += 1
-            # add triangle 2 [p11, p01, pc]
+
+            # Add triangle 2 [p11, p01, pc]
             stl_mesh.vectors[t][0] = np.array([pos11.x, y_mult * pos11.y, pos11.z])
             stl_mesh.vectors[t][1] = np.array([pos01.x, y_mult * pos01.y, pos01.z])
             stl_mesh.vectors[t][2] = np.array([pos_x, y_mult * pos_y, pos_z])
             t += 1
-            # add triangle 3 [p01, p00, pc]
+
+            # Add triangle 3 [p01, p00, pc]
             stl_mesh.vectors[t][0] = np.array([pos01.x, y_mult * pos01.y, pos01.z])
             stl_mesh.vectors[t][1] = np.array([pos00.x, y_mult * pos00.y, pos00.z])
             stl_mesh.vectors[t][2] = np.array([pos_x, y_mult * pos_y, pos_z])
             t += 1
+
     return stl_mesh
 
 
