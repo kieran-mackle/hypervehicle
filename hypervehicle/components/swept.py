@@ -1,9 +1,8 @@
-from typing import List, Dict, Optional
-from gdtk.geom.path import ReversedPath
-from gdtk.geom.surface import CoonsPatch
-from hypervehicle.geometry import SweptPatchfromEdges
+from typing import List, Dict, Optional, Union
+from hypervehicle.geometry.surface import CoonsPatch
 from hypervehicle.components.component import Component
 from hypervehicle.components.constants import SWEPT_COMPONENT
+from hypervehicle.geometry.geometry import SweptPatchfromEdges, ReversedPath
 
 
 class SweptComponent(Component):
@@ -13,7 +12,7 @@ class SweptComponent(Component):
         self,
         cross_sections: List[List],
         close_ends: Optional[bool] = True,
-        stl_resolution: int | Dict[str, int] = 1,
+        stl_resolution: Optional[Union[int, Dict[str, int]]] = 1,
         verbosity: Optional[int] = 1,
         name: Optional[str] = None,
     ) -> None:

@@ -1,12 +1,7 @@
 import numpy as np
-from gdtk.geom.vector3 import Vector3
-from gdtk.geom.path import Line, Path, ArcLengthParameterizedPath
-from gdtk.geom.surface import CoonsPatch, ParametricSurface
-
-# Import gdtk geometry objects to namespace
-from gdtk.geom.vector3 import Vector3
-from gdtk.geom.path import Bezier, Line, Polyline, Arc, Spline
-from gdtk.geom.cluster import RobertsFunction
+from hypervehicle.geometry.vector import Vector3
+from hypervehicle.geometry.surface import CoonsPatch, ParametricSurface
+from hypervehicle.geometry.path import Line, Path, ArcLengthParameterizedPath
 
 
 class SubRangedPath(Path):
@@ -24,7 +19,6 @@ class SubRangedPath(Path):
             self.t1 = t1
         else:
             raise NotImplementedError("underlying_path should be a type of Path")
-        return
 
     def __repr__(self) -> str:
         return "ArcLengthParameterizedPath(underlying_path={}, t0={}, t1={})".format(
@@ -40,6 +34,13 @@ class SubRangedPath(Path):
 
     def length(self):
         return self.underlying_path.length()
+
+
+class ReversedPath(SubRangedPath):
+    def __init__(self, underlying_path: Path) -> None:
+        self.underlying_path = underlying_path
+        self.t0 = 1
+        self.t1 = 0
 
 
 class ElipsePath(Path):
@@ -162,9 +163,7 @@ class OffsetPatchFunction(ParametricSurface):
 
 
 class LeadingEdgePatchFunction(ParametricSurface):
-    """
-    Creates Leading Edge by pair of guiding lines and LE_width function.
-    """
+    """Creates Leading Edge by pair of guiding lines and LE_width function."""
 
     __slots__ = [
         "centralLine",
@@ -234,9 +233,7 @@ class LeadingEdgePatchFunction(ParametricSurface):
 
 
 class MeanLeadingEdgePatchFunction(ParametricSurface):
-    """
-    Creates Leading Edge by mean line and guiding line, and LE_width function.
-    """
+    """Creates Leading Edge by mean line and guiding line, and LE_width function."""
 
     __slots__ = ["mean_line", "guide_line", "LE_width_function", "t0", "t1", "side"]
 
@@ -474,9 +471,7 @@ class MeanTrailingEdgePatch(ParametricSurface):
 
 
 class CurvedPatch(ParametricSurface):
-    """
-    Adds curvature in x or y direction to an existing patch
-    """
+    """Adds curvature in x or y direction to an existing patch"""
 
     __slots__ = ["underlying_surf", "direction", "fun", "fun_dash"]
 

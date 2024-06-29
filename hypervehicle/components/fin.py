@@ -1,13 +1,13 @@
 from __future__ import annotations
 import numpy as np
 from scipy.optimize import bisect
-from gdtk.geom.vector3 import Vector3
+from hypervehicle.geometry.vector import Vector3
+from hypervehicle.geometry.surface import CoonsPatch
+from hypervehicle.geometry.path import Line, Polyline
 from typing import Callable, Optional
-from gdtk.geom.surface import CoonsPatch
-from gdtk.geom.path import Line, Polyline, ReversedPath
 from hypervehicle.components.component import Component
 from hypervehicle.components.constants import FIN_COMPONENT
-from hypervehicle.geometry import (
+from hypervehicle.geometry.geometry import (
     OffsetPatchFunction,
     SubRangedPath,
     ElipsePath,
@@ -18,6 +18,7 @@ from hypervehicle.geometry import (
     MeanLeadingEdgePatchFunction,
     OffsetPathFunction,
     GeometricMeanPathFunction,
+    ReversedPath,
 )
 
 

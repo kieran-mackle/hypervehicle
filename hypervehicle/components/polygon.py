@@ -1,6 +1,7 @@
 from hypervehicle.components import Component
 from hypervehicle.components.constants import CUBE, SPHERE
-from hypervehicle.geometry import Vector3, CubePatch, SpherePatch
+from hypervehicle.geometry.vector import Vector3
+from hypervehicle.geometry.geometry import CubePatch, SpherePatch
 
 
 class Cube(Component):

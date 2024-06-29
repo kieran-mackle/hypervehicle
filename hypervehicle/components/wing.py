@@ -2,12 +2,13 @@ from __future__ import annotations
 import numpy as np
 from typing import Callable
 from scipy.optimize import bisect
-from gdtk.geom.vector3 import Vector3
-from gdtk.geom.surface import CoonsPatch
-from gdtk.geom.path import Line, Bezier, Polyline
+from hypervehicle.geometry.vector import Vector3
+from hypervehicle.geometry.surface import CoonsPatch
+from hypervehicle.geometry.path import Line, Bezier, Polyline
+
 from hypervehicle.components.component import Component
 from hypervehicle.components.constants import WING_COMPONENT
-from hypervehicle.geometry import (
+from hypervehicle.geometry.geometry import (
     OffsetPatchFunction,
     SubRangedPath,
     ElipsePath,

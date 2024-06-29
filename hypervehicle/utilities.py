@@ -1,4 +1,3 @@
-import re
 import os
 import sys
 import glob
@@ -868,7 +867,7 @@ def merge_stls(
     """
     # Import PyMesh
     try:
-        import pymesh
+        import pymesh  # type: ignore
     except ModuleNotFoundError:
         raise Exception(
             "Could not find pymesh. Please follow the "

@@ -5,11 +5,11 @@ import multiprocess as mp
 from copy import deepcopy
 from abc import abstractmethod
 from collections import Counter
-from hypervehicle.geometry import Vector3
-from gdtk.geom.sgrid import StructuredGrid
 from typing import Callable, Union, Optional
+from hypervehicle.geometry.vector import Vector3
+from hypervehicle.geometry.surface import StructuredGrid
 from hypervehicle.utilities import surfce_to_stl
-from hypervehicle.geometry import (
+from hypervehicle.geometry.geometry import (
     CurvedPatch,
     RotatedPatch,
     MirroredPatch,
@@ -243,7 +243,7 @@ class Component(AbstractComponent):
     def grid(self):
         for key in self.patches:
             self.grids[key] = StructuredGrid(
-                psurf=self.patches[key],
+                surface=self.patches[key],
                 niv=self.vtk_resolution,
                 njv=self.vtk_resolution,
             )
