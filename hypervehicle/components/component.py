@@ -5,11 +5,11 @@ import multiprocess as mp
 from copy import deepcopy
 from abc import abstractmethod
 from collections import Counter
-from hypervehicle.geometry import Vector3
-from gdtk.geom.sgrid import StructuredGrid
 from typing import Callable, Union, Optional
+from hypervehicle.geometry.vector import Vector3
+from hypervehicle.geometry.surface import StructuredGrid
 from hypervehicle.utilities import surfce_to_stl
-from hypervehicle.geometry import (
+from hypervehicle.geometry.geometry import (
     CurvedPatch,
     RotatedPatch,
     MirroredPatch,
@@ -88,11 +88,11 @@ class AbstractComponent:
 class Component(AbstractComponent):
     def __init__(
         self,
-        params: dict = None,
-        edges: list = None,
-        stl_resolution: int = 2,
-        verbosity: int = 1,
-        name: str = None,
+        params: Optional[dict] = None,
+        edges: Optional[list] = None,
+        stl_resolution: Optional[int] = 2,
+        verbosity: Optional[int] = 1,
+        name: Optional[str] = None,
     ) -> None:
         # Set verbosity
         self.verbosity = verbosity
@@ -137,6 +137,10 @@ class Component(AbstractComponent):
 
         # Component name
         self.name = name
+
+        # Multiprocessing flag for STL generation
+        # TODO - make this configurable by user
+        self.multiprocess = True
 
     def __repr__(self):
         s = f"{self.componenttype} component"
@@ -243,7 +247,7 @@ class Component(AbstractComponent):
     def grid(self):
         for key in self.patches:
             self.grids[key] = StructuredGrid(
-                psurf=self.patches[key],
+                surface=self.patches[key],
                 niv=self.vtk_resolution,
                 njv=self.vtk_resolution,
             )
@@ -272,20 +276,16 @@ class Component(AbstractComponent):
         # Prepare multiprocessing arguments iterable
         def wrapper(key: str, patch, res_r: int, res_s: int):
             surface = surfce_to_stl(patch, res_r, res_s, **self._clustering)
-            return surface
+            return (key, surface)
 
         self.surfaces = {}
-        multiprocess = False  # flag to disable multiprocessing for debugging
-        # TODO - move multiprocess to arg / config option
-        if multiprocess is True:
+        if self.multiprocess is True:
             # Initialise surfaces and pool
             pool = mp.Pool()
 
             # Submit tasks
-            print(f"START: Creating stl - multiprocessor run.")
             for result in pool.starmap(wrapper, case_list):
                 self.surfaces[result[0]] = result[1]
-            print("  DONE: Creating stl - multiprocess.")
 
         else:
             for case in case_list:

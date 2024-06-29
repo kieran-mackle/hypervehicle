@@ -1,5 +1,5 @@
 import numpy as np
-from hypervehicle.geometry import RevolvedPatch
+from hypervehicle.geometry.geometry import RevolvedPatch
 from hypervehicle.components.component import Component
 from hypervehicle.components.constants import REVOLVED_COMPONENT
 

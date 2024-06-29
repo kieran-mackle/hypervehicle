@@ -23,15 +23,14 @@ defined by hyperpatches. Check out the
 
 ## Installation
 
-To install `hypervehicle`, use the command below.
+To install `hypervehicle` from [PyPI](https://pypi.org/project/hypervehicle/), use the command below.
 
 ```
 pip install hypervehicle
 ```
 
-## Usage
-Please see the [example geometry generation](docs/source/examples/x43.md) 
-to generate a mockup of the X-43A, shown above.
+### Developing HyperVehicle
+Contributions to HyperVehicle are welcome. Please refer to the [contribution guidelines](https://hypervehicle.readthedocs.io/en/latest/other/contributing.html) for guidance.
 
 
 ## Citing HyperVehicle

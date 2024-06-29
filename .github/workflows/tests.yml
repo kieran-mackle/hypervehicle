@@ -13,23 +13,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.7", "3.8", "3.9"]
+        python-version: ["3.9"]
 
     steps:
     - uses: actions/checkout@v2
-    - name: Install gdtk
-      run: |
-        mkdir gdtk
-        cd gdtk/
-        git init
-        git remote add -f origin https://github.com/gdtk-uq/gdtk.git
-        git config core.sparseCheckout true
-        echo "src/lib/" >> .git/info/sparse-checkout
-        git pull origin master
-        cd src/lib
-        python3 -m pip install .
-        cd ../../../
-    - name: Install package
+    - name: Install packages
       run: |
         python -m pip install --upgrade pip
         pip install pytest

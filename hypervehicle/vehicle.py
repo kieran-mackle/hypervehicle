@@ -35,8 +35,9 @@ class Vehicle:
         self._volmass = None
         self.volume = None
         self.mass = None
+        self.area = None
         self.cog = None
-        self.inertia = None
+        self.moi = None
 
         # Internal attributes
         self._generated = False
@@ -449,14 +450,15 @@ class Vehicle:
         )
 
         # Unpack vehicle properties
-        self.volume, self.mass, self.cog, self.inertia = vehicle_properties.values()
+        for k, v in vehicle_properties.items():
+            setattr(self, k, v)
 
         # Save component properties
         self.component_properties = component_properties
 
         # Save summary of volume and mass results
         component_vm = pd.DataFrame(
-            {k: component_properties[k] for k in ["mass", "volume"]}
+            {k: component_properties[k] for k in ["mass", "volume", "area"]}
         )
         self._volmass = pd.concat(
             [
@@ -465,13 +467,14 @@ class Vehicle:
                     data={
                         "mass": self.mass,
                         "volume": self.volume,
+                        "area": vehicle_properties["area"],
                     },
                     index=["vehicle"],
                 ),
             ]
         )
 
-        return self.volume, self.mass, self.cog, self.inertia
+        return self.volume, self.mass, self.cog, self.moi
 
     def add_property(self, name: str, value: float):
         """Add a named property to the vehicle. Currently only supports
