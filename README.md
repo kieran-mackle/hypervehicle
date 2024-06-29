@@ -29,6 +29,10 @@ To install `hypervehicle` from [PyPI](https://pypi.org/project/hypervehicle/), u
 pip install hypervehicle
 ```
 
+### Developing HyperVehicle
+Contributions to HyperVehicle are welcome. Please refer to the [contribution guidelines](https://hypervehicle.readthedocs.io/en/latest/other/contributing.html) for guidance.
+
+
 ## Citing HyperVehicle
 If you use HyperVehicle in any published work, please cite it using the BibTex reference below.
 
