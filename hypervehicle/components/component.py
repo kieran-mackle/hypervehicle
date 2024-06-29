@@ -88,11 +88,11 @@ class AbstractComponent:
 class Component(AbstractComponent):
     def __init__(
         self,
-        params: dict = None,
-        edges: list = None,
-        stl_resolution: int = 2,
-        verbosity: int = 1,
-        name: str = None,
+        params: Optional[dict] = None,
+        edges: Optional[list] = None,
+        stl_resolution: Optional[int] = 2,
+        verbosity: Optional[int] = 1,
+        name: Optional[str] = None,
     ) -> None:
         # Set verbosity
         self.verbosity = verbosity
@@ -137,6 +137,10 @@ class Component(AbstractComponent):
 
         # Component name
         self.name = name
+
+        # Multiprocessing flag for STL generation
+        # TODO - make this configurable by user
+        self.multiprocess = True
 
     def __repr__(self):
         s = f"{self.componenttype} component"
@@ -275,17 +279,13 @@ class Component(AbstractComponent):
             return (key, surface)
 
         self.surfaces = {}
-        multiprocess = False  # flag to disable multiprocessing for debugging
-        # TODO - move multiprocess to arg / config option
-        if multiprocess is True:
+        if self.multiprocess is True:
             # Initialise surfaces and pool
             pool = mp.Pool()
 
             # Submit tasks
-            print(f"START: Creating stl - multiprocessor run.")
             for result in pool.starmap(wrapper, case_list):
                 self.surfaces[result[0]] = result[1]
-            print("  DONE: Creating stl - multiprocess.")
 
         else:
             for case in case_list:
