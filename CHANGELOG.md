@@ -1,3 +1,17 @@
+## v0.6.0 (2024-06-29)
+
+### Feat
+
+- implement base geometry functions and classes
+- **utilities.py**: include surface area in analysis
+
+### Fix
+
+- **Component**: make multiprocess flag a class attribute
+- **Component**: fix TypeError when generating stls
+- **Waverider**: limit planform bezier points based on fuselage
+- **Vehicle**: fix analysis attribute assignment
+
 ## v0.5.1 (2024-06-20)
 
 ### Fix
