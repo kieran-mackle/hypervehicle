@@ -1,16 +1,54 @@
 [build-system]
-requires = [
-    "setuptools>=42",
-    "wheel"
-]
+requires = ["setuptools>=61"]
 build-backend = "setuptools.build_meta"
 
-[tool]
+[project]
+name = "hypervehicle"
+version = "0.6.0"
+authors = [
+  { name="Kieran Mackle", email="kemackle98@gmail.com" },
+]
+description = "Parametric geometry generation tool for hypersonic vehicles"
+readme = "README.md"
+requires-python = ">=3.11"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+dependencies = [
+    'numpy-stl >= 3.0.0',
+    'scipy >= 1.10.0',
+    'pandas >= 1.5.2',
+    'art >= 5.8',
+    'tqdm >= 4.64.1',
+    'multiprocess >= 0.70.14',
+    'pymeshfix >= 0.16.2',
+]
+
+[project.optional-dependencies]
+dev = [
+    'pytest >= 7.2.1',
+    'black >= 23.9.1',
+    'commitizen >= 3.10.0',
+    'pre-commit >= 3.4.0',
+    'furo >= 2022.12.7',
+    'myst_parser >= 0.18.1',
+    'sphinx_copybutton >= 0.5.1',
+    'sphinx_inline_tabs >= 2022.1.2b11',
+    'sphinx-autobuild >= 2021.3.14',
+]
+
+[project.urls]
+"Homepage" = "https://github.com/kieran-mackle/hypervehicle"
+"Bug Tracker" = "https://github.com/kieran-mackle/hypervehicle/issues"
+
 [tool.commitizen]
 name = "cz_conventional_commits"
-version = "0.5.1"
+version = "0.6.0"
 tag_format = "v$version"
+version_provider = "pep621"
 version_files = [
-    "hypervehicle/__init__.py:__version__",
+    "pyproject.toml:^version",
 ]
 update_changelog_on_bump = true
