@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "hypervehicle"
-version = "0.6.0"
+version = "0.6.1"
 authors = [
   { name="Kieran Mackle", email="kemackle98@gmail.com" },
 ]
@@ -45,7 +45,7 @@ dev = [
 
 [tool.commitizen]
 name = "cz_conventional_commits"
-version = "0.6.0"
+version = "0.6.1"
 tag_format = "v$version"
 version_provider = "pep621"
 version_files = [
