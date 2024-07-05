@@ -19,10 +19,32 @@ jobs:
 
       - name: Install packages
         run: |
+          git config --global url."https://${{ secrets.PERSONAL_ACCESS_TOKEN }}@github".insteadOf https://github
           python -m pip install --upgrade pip
+          pip install coverage-badge
           pip install pytest
+          pip install pytest-cov
+          pip install pytest-html
           pip install ./
 
       - name: Test with pytest
         run: |
-          pytest tests
+          pytest --cov=hypervehicle --cov-report xml --cov-report html --html=pytest_report.html --self-contained-html tests/
+      
+      - name: Generate coverage badge
+        run: |
+          coverage-badge -f -o coverage.svg
+  
+      - name: Clean up and organise
+        run: |
+          mkdir coverage
+          mv htmlcov/* coverage/
+          mkdir deploy
+          mv coverage deploy/
+          mv coverage.svg deploy/
+          mv pytest_report.html deploy/
+
+      - name: Publish to GitHub Pages
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          folder: deploy
