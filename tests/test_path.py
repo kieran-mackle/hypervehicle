@@ -18,6 +18,11 @@ def test_line():
     assert line(0.5) == Vector3(1, 1, 1)
     assert line(1.0) == p1
 
+    # Test adding a vector to a line
+    shifted_line = line + p1
+    assert shifted_line.p0 == p0 + p1
+    assert shifted_line.p1 == p1 + p1
+
 
 def test_polyline():
     # Create lines

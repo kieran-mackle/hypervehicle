@@ -45,6 +45,14 @@ class Line(Path):
     def length(self):
         return abs(self.p1 - self.p0)
 
+    def __add__(self, offset: Vector3):
+        if isinstance(offset, Vector3):
+            p0 = self.p0 + offset
+            p1 = self.p1 + offset
+            return Line(p0=p0, p1=p1)
+        else:
+            raise ValueError(f"Cannot add a {type(offset)} to a line.")
+
 
 class Bezier(Path):
     """Bezier curve defined on a list of points."""
@@ -233,7 +241,7 @@ class Arc(Path):
         tangent1 = Vector3(ca)
         tangent1.normalize()
 
-        # Compute unit normal to plane of all three points.
+        # Compute unit normal to plane of all three points
         n = cross_product(ca, cb)
         if abs(n) > 0.0:
             n.normalize()
@@ -243,24 +251,23 @@ class Arc(Path):
                 + "to define an arc with 180 degrees?"
             )
 
-        # Third (orthogonal) vector is in the original plane.
+        # Third (orthogonal) vector is in the original plane
         tangent2 = cross_product(n, tangent1)
 
-        # Now transform to local coordinates so that we can do
-        # the calculation of the point along the arc in
-        # the local xy-plane, with ca along the x-axis.
+        # Now transform to local coordinates to do the calculation of the point along
+        # the arc in the local xy-plane, with ca along the x-axis
         cb_local = Vector3(cb)
         cb_local.transform_to_local_frame(tangent1, tangent2, n)
         if np.any(np.absolute(cb_local.z)) > 1.0e-6:
-            raise Exception("Arc: problem with transformation cb_local=%s" % cb_local)
+            raise Exception(f"Arc: problem with transformation cb_local={cb_local}")
 
-        # Angle of the final point on the arc is in the range -pi < th <= +pi.
+        # Angle of the final point on the arc is in the range -pi < th <= +pi
         theta = np.arctan2(cb_local.y, cb_local.x)
 
-        # The length of the circular arc.
+        # The length of the circular arc
         l = theta * cb_mag
 
-        # Move the second point around the arc in the local xy-plane.
+        # Move the second point around the arc in the local xy-plane
         theta *= t
         loc = Vector3(np.cos(theta) * cb_mag, np.sin(theta) * cb_mag, 0.0 * theta)
 
