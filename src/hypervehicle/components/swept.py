@@ -2,7 +2,7 @@ from typing import List, Dict, Optional, Union
 from hypervehicle.geometry.surface import CoonsPatch
 from hypervehicle.components.component import Component
 from hypervehicle.components.constants import SWEPT_COMPONENT
-from hypervehicle.geometry.geometry import SweptPatchfromEdges, ReversedPath
+from hypervehicle.geometry.geometry import SweptPatchfromEdges, ReversedPath, Path
 
 
 class SweptComponent(Component):
@@ -10,7 +10,7 @@ class SweptComponent(Component):
 
     def __init__(
         self,
-        cross_sections: List[List],
+        cross_sections: List[List[Path]],
         close_ends: Optional[bool] = True,
         stl_resolution: Optional[Union[int, Dict[str, int]]] = 1,
         verbosity: Optional[int] = 1,
