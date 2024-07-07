@@ -1,7 +1,7 @@
 from copy import copy, deepcopy
 from hypervehicle import Vehicle
 from hypervehicle.generator import Generator
-from hypervehicle.geometry import Vector3, Line, CoonsPatch
+from hypervehicle.geometry import Vector3, Line
 from hypervehicle.components import (
     RevolvedComponent,
     SweptComponent,
@@ -19,14 +19,19 @@ class ParametricFinner(Generator):
         ----------
         diameter : float, optional
             The diameter of the body. The default is 1.
+
         total_length : float, optional
             The total length of the rocket. The default is 10.
+
         nose_length : float, optional
             The length of the nose. The default is 2.84.
+
         fin_height : float, optional
             The height of the fins. The default is 1.0.
+
         fin_length : float, optional
             The length of the fins. The default is 1.0.
+
         max_fin_thickness : float, optional
             The maximum thickness of the fins. The default is 0.08.
 
@@ -82,14 +87,16 @@ class ParametricFinner(Generator):
         c = Vector3(x=-0.5 * self.max_fin_thickness, y=0)
         d = Vector3(x=0.5 * self.max_fin_thickness, y=0)
 
-        cs1 = CoonsPatch(
-            north=Line(a, d),
-            south=Line(c, b),
-            east=Line(b, d),
-            west=Line(c, a),
-        )
-        cs2 = cs1 + Vector3(x=0, y=0, z=self.fin_height)
+        # Create cross section paths for swept component
+        cs1 = [
+            Line(a, d),
+            Line(d, b),
+            Line(b, c),
+            Line(c, a),
+        ]
+        cs2 = [line + Vector3(x=0, y=0, z=self.fin_height) for line in cs1]
 
+        # Create swept fin component
         fin = SweptComponent(cross_sections=[cs1, cs2], stl_resolution=4)
 
         tf = [
