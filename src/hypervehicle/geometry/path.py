@@ -79,8 +79,8 @@ class Polyline(Path):
 
     __slots__ = ["segments", "t_values", "isclosed"]
 
-    def __init__(self, segments, closed=False, tolerance=1.0e-10):
-        self.segments = []
+    def __init__(self, segments: list[Path], closed=False, tolerance=1.0e-10):
+        self.segments: list[Path] = []
         for seg in segments:
             self.segments.append(seg)
         self.isclosed = closed
@@ -90,7 +90,6 @@ class Polyline(Path):
             if abs(p1 - p0) > tolerance:
                 self.segments.append(Line(p0, p1))
         self.reset_breakpoints()
-        return
 
     def reset_breakpoints(self):
         self.t_values = [0.0]
@@ -100,7 +99,6 @@ class Polyline(Path):
             self.t_values.append(t_total)
         for i in range(len(self.t_values)):
             self.t_values[i] /= t_total
-        return
 
     def __repr__(self):
         text = "Polyline(segments=["
@@ -171,7 +169,7 @@ class Spline(Polyline):
 
         m = len(self.points) - 1
         d = [Vector3(p) for p in self.points]
-        #
+
         # Apply Gauss-Seidel iteration until
         # the internal weight points converge.
         for j in range(50):
@@ -182,7 +180,7 @@ class Spline(Polyline):
                 max_diff = max(max_diff, abs(d[i] - old_p))
             if max_diff < tolerance:
                 break
-        #
+
         # Final stage; calculate the cubic Bezier segments.
         segments = [
             Bezier(
@@ -202,15 +200,17 @@ class Spline(Polyline):
 
 
 class Arc(Path):
+    """An arc from point a to point b, with a centre at point c."""
+
     __slots__ = ["a", "b", "c"]
 
-    def __init__(self, a, b, c):
+    def __init__(self, a: Vector3, b: Vector3, c: Vector3):
         self.a = Vector3(a)
         self.b = Vector3(b)
         self.c = Vector3(c)
 
     def __repr__(self):
-        return "Arc(a={}, b={}, c={})".format(self.a, self.b, self.c)
+        return f"Arc(a={self.a}, b={self.b}, c={self.c})"
 
     def __call__(self, t):
         p, L = self.evaluate_position_and_length(t)
@@ -221,7 +221,7 @@ class Arc(Path):
         return L
 
     def evaluate_position_and_length(self, t):
-        L = 0.0
+        l = 0.0
         ca = self.a - self.c
         ca_mag = abs(ca)
         cb = self.b - self.c
@@ -238,7 +238,10 @@ class Arc(Path):
         if abs(n) > 0.0:
             n.normalize()
         else:
-            raise Exception("Arc: cannot find plane of three points.")
+            raise Exception(
+                "Arc: cannot find plane of three points. Maybe you are trying "
+                + "to define an arc with 180 degrees?"
+            )
 
         # Third (orthogonal) vector is in the original plane.
         tangent2 = cross_product(n, tangent1)
@@ -255,16 +258,16 @@ class Arc(Path):
         theta = np.arctan2(cb_local.y, cb_local.x)
 
         # The length of the circular arc.
-        L = theta * cb_mag
+        l = theta * cb_mag
 
         # Move the second point around the arc in the local xy-plane.
         theta *= t
         loc = Vector3(np.cos(theta) * cb_mag, np.sin(theta) * cb_mag, 0.0 * theta)
 
-        # Transform back to global xyz coordinates
-        # and remember to add the centre coordinates.
+        # Transform back to global xyz coordinates and add the centre coordinates
         loc.transform_to_global_frame(tangent1, tangent2, n, self.c)
-        return loc, L
+
+        return loc, l
 
 
 class ArcLengthParameterizedPath(Path):
