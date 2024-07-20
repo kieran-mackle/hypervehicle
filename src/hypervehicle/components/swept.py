@@ -22,7 +22,7 @@ class SweptComponent(Component):
         ----------
         cross_sections : list
             A list containing cross-sections. Each cross-section is a list of
-            paths that define one cross-section.
+            paths that define one cross-section. They should connect end-to-end.
 
         close_ends : bool, optional
             If true the first and last cross-section will be used to close
