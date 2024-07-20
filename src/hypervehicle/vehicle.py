@@ -341,7 +341,10 @@ class Vehicle:
             # Write component to stl
             if prefix:
                 # Use prefix provided
-                stl_name = f"{prefix}-{component.componenttype}-{no}.stl"
+                if component.name:
+                    stl_name = f"{prefix}-{component.name}.stl"
+                else:
+                    stl_name = f"{prefix}-{component.componenttype}-{no}.stl"
             elif component.name:
                 stl_name = f"{component.name}.stl"
             else:
