@@ -222,9 +222,14 @@ class Vector3:
         """Change coordinates into the local right-handed (RH) system at point c."""
         if c is not None:
             self -= c
-        self._x = self.dot(n)
-        self._y = self.dot(t1)
-        self._z = self.dot(t2)
+
+        x = self.dot(n)
+        y = self.dot(t1)
+        z = self.dot(t2)
+
+        self._x = x
+        self._y = y
+        self._z = z
         return self
 
     def dot(self, other: Vector3):
