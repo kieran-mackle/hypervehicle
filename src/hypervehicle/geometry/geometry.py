@@ -755,7 +755,7 @@ class RotatedPatch(ParametricSurface):
 class MirroredPatch(ParametricSurface):
     """Mirrors a surface in an axis-specified direction."""
 
-    __slots__ = ["underlying_surf", "mirror_axis"]
+    __slots__ = ["underlying_surf", "axis"]
 
     def __init__(self, underlying_surf, axis="x"):
         self.underlying_surf = underlying_surf
