@@ -43,8 +43,6 @@ class Wing(Component):
         tail_option: str = "FLAP",
         flap_length: float = 0,
         flap_angle: float = 0,
-        mirror: bool = True,
-        mirror_new_component: bool = False,
         close_wing: bool = False,
         stl_resolution: int = 2,
         verbosity: int = 1,
@@ -103,13 +101,6 @@ class Wing(Component):
         flap_angle : float, optional
             The angle of the flap, specified in radians. The default is 0.
 
-        mirror : bool, optional
-            Mirror the wing. The default is False.
-
-        mirror_new_component : bool, optional
-            Create a new component for the mirrored patches. The default
-            is False.
-
         close_wing : bool, optional
             If the wing is not being mirrored, it is useful to set this
             to True, to close the STL object. The default is False.
@@ -147,8 +138,6 @@ class Wing(Component):
             "TAIL_OPTION": tail_option,
             "FLAP_LENGTH": flap_length,
             "FLAP_ANGLE": flap_angle,
-            "MIRROR": mirror,
-            "MIRROR_NEW_COMPONENT": mirror_new_component,
             "CLOSE_WING": close_wing,
         }
 
