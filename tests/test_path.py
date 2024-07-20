@@ -1,5 +1,8 @@
+import pytest
+import numpy as np
 from hypervehicle.geometry.vector import Vector3
 from hypervehicle.geometry.path import Line, Polyline, Arc
+from hypervehicle.geometry.vector import approximately_equal_vectors
 
 
 def test_line():
@@ -50,5 +53,14 @@ def test_arc():
     arc = Arc(a, b, c)
 
     # Test
-    arc(0) == a
-    arc(1) == b
+    assert approximately_equal_vectors(arc(1), b)
+    assert approximately_equal_vectors(arc(1), b)
+
+    # Create a bad arc, eg. with different radii
+    a = Vector3(-1.33, -0.225, 0)
+    b = Vector3(-1.33, -0.113, 0.195)
+    c = Vector3(-1.33, 0, 0)
+    arc = Arc(a, b, c)
+
+    with pytest.raises(Exception) as e_info:
+        arc(0.0)
