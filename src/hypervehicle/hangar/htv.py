@@ -1,4 +1,5 @@
 import numpy as np
+from copy import deepcopy
 from hypervehicle import Vehicle
 from scipy.optimize import bisect
 from hypervehicle.components import Wing
@@ -138,11 +139,9 @@ class ParametricHTV(Generator):
             bot_tf=wing2_tf_bot,
             flap_length=flap_length,
             flap_angle=np.deg2rad(self.flap_angle),
-            mirror=False,
-            close_wing=True,
-            mirror_new_component=False,
             stl_resolution=5,
         )
+        htv.add_component(deepcopy(flap_wing))
         htv.add_component(flap_wing, reflection_axis="y")
 
         return htv
