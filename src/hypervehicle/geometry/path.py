@@ -220,7 +220,7 @@ class Arc(Path):
     def __repr__(self):
         return f"Arc(a={self.a}, b={self.b}, c={self.c})"
 
-    def __call__(self, t):
+    def __call__(self, t: float):
         p, L = self.evaluate_position_and_length(t)
         return p
 
@@ -228,14 +228,14 @@ class Arc(Path):
         p, L = self.evaluate_position_and_length(1.0)
         return L
 
-    def evaluate_position_and_length(self, t):
+    def evaluate_position_and_length(self, t: float):
         l = 0.0
         ca = self.a - self.c
         ca_mag = abs(ca)
         cb = self.b - self.c
         cb_mag = abs(cb)
         if abs(ca_mag - cb_mag) > 1.0e-5:
-            raise Exception("Arc: radii do not match ca=%s cb=%s" % (ca, cb))
+            raise Exception(f"Arc: radii do not match |ca|={abs(ca)} |cb|={abs(cb)}")
 
         # First vector in plane.
         tangent1 = Vector3(ca)
@@ -258,7 +258,7 @@ class Arc(Path):
         # the arc in the local xy-plane, with ca along the x-axis
         cb_local = Vector3(cb)
         cb_local.transform_to_local_frame(tangent1, tangent2, n)
-        if np.any(np.absolute(cb_local.z)) > 1.0e-6:
+        if np.any(np.absolute(cb_local.z) > 1.0e-6):
             raise Exception(f"Arc: problem with transformation cb_local={cb_local}")
 
         # Angle of the final point on the arc is in the range -pi < th <= +pi
