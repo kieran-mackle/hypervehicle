@@ -1,7 +1,8 @@
 import numpy as np
+from copy import deepcopy
 from hypervehicle import Vehicle
 from hypervehicle.generator import Generator
-from hypervehicle.components import Wing, Fin, common
+from hypervehicle.components import Wing, common, Fin
 from hypervehicle.geometry import Vector3, Bezier, Line, Polyline
 
 
@@ -280,11 +281,6 @@ class ParametricX43(Generator):
         p2 = Vector3(x=0.5 * fin_p3x, y=fin_offset + self.fin_height)
         p3 = Vector3(x=fin_p3x, y=fin_offset)
 
-        # Construct p1p3 path
-        p1p2 = Line(p1, p2)
-        p2p3 = Line(p2, p3)
-        p1p3 = Polyline(segments=[p1p2, p2p3])
-
         def fin_offset_function(x, y, z):
             return Vector3(x=0, y=y_shift, z=0)
 
@@ -294,7 +290,6 @@ class ParametricX43(Generator):
 
         # Rudder angle (fin flap)
         rudder_angle = np.deg2rad(self.rudder_angle)
-
         fin1 = Fin(
             p0=p0,
             p1=p1,
@@ -347,7 +342,8 @@ class ParametricX43(Generator):
 
         # Add all components
         x43.add_component(body, reflection_axis="y", name="body")
-        x43.add_component(wing, reflection_axis="y", name="wing")
+        x43.add_component(deepcopy(wing), name="wing1")
+        x43.add_component(wing, reflection_axis="y", name="wing2")
         x43.add_component(inlet, reflection_axis="y", name="inlet")
         x43.add_component(fin1, name="fin1")
         x43.add_component(fin2, name="fin2")
