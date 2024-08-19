@@ -107,13 +107,20 @@ class ParametricD21(Generator):
         Line_B0TT = Polyline([B0B1, B1B2, B2TT])
 
         def local_ws(x):
+            """Calculates the local wingspan."""
             func = lambda t: Line_B0TT(t).x - x
             t = bisect(func, 0.0, 1.0)
             return Line_B0TT(t).y
 
         def wing_tf_top(x, y, z=0):
-            # TODO - there are nan's appearing below
-            thickener = 0.5 * (1 - y / local_ws(x))
+            # Get the local wingspan
+            lws = local_ws(x)
+            if lws == 0:
+                lws = 1e-3
+
+            # Define a thickness scalar which
+            thickener = 0.5 * (1 - y / lws)
+
             return Vector3(x=0, y=0, z=-wing_thickness / 2 - thickener)
 
         def wing_tf_bot(x, y, z=0):
@@ -176,9 +183,9 @@ class ParametricD21(Generator):
         # ------------------------
         # Straight wings at base of vehicle
         # Construct as rectangle fins
-        fin_height = 0.15 * self.W_w
+        fin_height = 0.45 * self.W_w
         fin_thickness = wing_thickness
-        fin_length = self.L_b - self.L_w
+        fin_length = 1.3 * (self.L_b - self.L_w)
 
         te_wing_o = b2
         p0 = te_wing_o
