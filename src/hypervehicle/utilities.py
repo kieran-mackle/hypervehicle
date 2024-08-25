@@ -95,6 +95,7 @@ def surfce_to_stl(
 
     N_triangles = 4 * (ni) * (nj)
     stl_mesh = mesh.Mesh(np.zeros(N_triangles, dtype=mesh.Mesh.dtype))
+
     # mesh.vectors contains a list defining three corners of each triangle.
     t = 0
 
@@ -811,7 +812,7 @@ def csv_to_delaunay(filepath: str):
             The filepath to the CSV file.
     """
     # TODO - rename
-    from paraview.simple import CSVReader, TableToPoints, Delaunay3D, SaveData
+    from paraview.simple import CSVReader, TableToPoints, Delaunay3D, SaveData  # type: ignore
 
     root_dir = os.path.dirname(filepath)
     prefix = filepath.split(os.sep)[-1].split(".csv")[0]

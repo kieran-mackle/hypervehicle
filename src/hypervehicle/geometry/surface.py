@@ -2,7 +2,7 @@ import numpy as np
 from copy import deepcopy
 from typing import Optional
 from abc import ABC, abstractmethod
-from hypervehicle.geometry.path import ClusterFunction, LinearFunction, Line
+from hypervehicle.geometry.path import ClusterFunction, LinearFunction, Line, Path
 from hypervehicle.geometry.vector import Vector3, approximately_equal_vectors
 
 
@@ -19,9 +19,7 @@ class ParametricSurface(ABC):
 
 
 class CoonsPatch(ParametricSurface):
-    """
-    Surface using transfinite interpolation of the edges.
-    """
+    """A surface constructed by transfinite interpolation of the edges."""
 
     _slots_ = [
         "north",
@@ -38,19 +36,17 @@ class CoonsPatch(ParametricSurface):
 
     def __init__(
         self,
-        north=None,
-        east=None,
-        south=None,
-        west=None,
-        p00=None,
-        p10=None,
-        p11=None,
-        p01=None,
+        north: Path = None,
+        east: Path = None,
+        south: Path = None,
+        west: Path = None,
+        p00: Vector3 = None,
+        p10: Vector3 = None,
+        p11: Vector3 = None,
+        p01: Vector3 = None,
         offset=Vector3(0, 0, 0),
     ):
-        """
-        Initialise from edges or corner points.
-        """
+        """Initialise from edges or corner points."""
         if all([north, east, south, west]):
             self.north = deepcopy(north)
             self.east = deepcopy(east)
@@ -65,14 +61,15 @@ class CoonsPatch(ParametricSurface):
             p01_alt = self.west(1.0)
             p11_alt = self.east(1.0)
             if not approximately_equal_vectors(self.p00, p00_alt):
-                raise Exception("CoonsPatch open corner p00={self.p00}, {p00_alt}")
+                raise Exception(f"CoonsPatch open corner p00={self.p00}, {p00_alt}")
             if not approximately_equal_vectors(self.p10, p10_alt):
-                raise Exception("CoonsPatch open corner p10={self.p10}, {p10_alt}")
+                raise Exception(f"CoonsPatch open corner p10={self.p10}, {p10_alt}")
             if not approximately_equal_vectors(self.p01, p01_alt):
-                raise Exception("CoonsPatch open corner p01={self.p01}, {p01_alt}")
+                raise Exception(f"CoonsPatch open corner p01={self.p01}, {p01_alt}")
             if not approximately_equal_vectors(self.p11, p11_alt):
-                raise Exception("CoonsPatch open corner p11={self.p11}, {p11_alt}")
+                raise Exception(f"CoonsPatch open corner p11={self.p11}, {p11_alt}")
             self.defined_by_corners = False
+
         elif all([p00, p10, p11, p01]):
             self.north = Line(p01, p11)
             self.east = Line(p10, p11)
@@ -83,9 +80,10 @@ class CoonsPatch(ParametricSurface):
             self.p11 = deepcopy(p11)
             self.p01 = deepcopy(p01)
             self.defined_by_corners = True
+
         else:
             raise Exception(
-                "CoonsPatch should be defined by four edges or four corners."
+                "CoonsPatch should be defined by four edge paths or four corners."
             )
         self.offset = offset
 

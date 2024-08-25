@@ -1,13 +1,13 @@
 import pymeshfix
 import numpy as np
 from stl import mesh
-import multiprocess as mp
 from copy import deepcopy
 from abc import abstractmethod
 from collections import Counter
+from multiprocess.pool import Pool
 from typing import Callable, Union, Optional
 from hypervehicle.geometry.vector import Vector3
-from hypervehicle.geometry.surface import StructuredGrid
+from hypervehicle.geometry.surface import StructuredGrid, ParametricSurface
 from hypervehicle.utilities import surfce_to_stl
 from hypervehicle.geometry.geometry import (
     CurvedPatch,
@@ -104,7 +104,9 @@ class Component(AbstractComponent):
         self.edges = edges if edges is not None else []
 
         # Processed objects
-        self.patches = {}  # Parametric patches (continuous)
+        self.patches: dict[str, ParametricSurface] = (
+            {}
+        )  # Parametric patches (continuous)
         self.patch_res_r = {}  # corresponding stl resolution in 'r' direction
         self.patch_res_s = {}  # corresponding stl resolution in 's' direction
 
@@ -140,7 +142,7 @@ class Component(AbstractComponent):
 
         # Multiprocessing flag for STL generation
         # TODO - make this configurable by user
-        self.multiprocess = True
+        self._multiprocess = True
 
     def __repr__(self):
         s = f"{self.componenttype} component"
@@ -236,6 +238,8 @@ class Component(AbstractComponent):
             for key, patch in self.patches.items():
                 mirrored_patches[f"{key}_mirrored"] = MirroredPatch(patch, axis=axis)
 
+            # Now either add the reflected patches to the same component, or
+            # replace the patches with their reflected versions
             if self._append_reflection:
                 # Append mirrored patches to original patches
                 for key, patch in mirrored_patches.items():
@@ -258,7 +262,7 @@ class Component(AbstractComponent):
         # Check for patches
         if len(self.patches) == 0:
             raise Exception(
-                "No patches have been generated. " + "Please call .generate_patches()."
+                "No patches have been generated. Please call .generate_patches()."
             )
 
         # Create case list
@@ -274,14 +278,19 @@ class Component(AbstractComponent):
             ]
 
         # Prepare multiprocessing arguments iterable
-        def wrapper(key: str, patch, res_r: int, res_s: int):
-            surface = surfce_to_stl(patch, res_r, res_s, **self._clustering)
+        def wrapper(key: str, patch: ParametricSurface, res_r: int, res_s: int):
+            surface = surfce_to_stl(
+                parametric_surface=patch,
+                triangles_per_edge_r=res_r,
+                triangles_per_edge_s=res_s,
+                **self._clustering,
+            )
             return (key, surface)
 
         self.surfaces = {}
-        if self.multiprocess is True:
+        if self._multiprocess is True:
             # Initialise surfaces and pool
-            pool = mp.Pool()
+            pool = Pool()
 
             # Submit tasks
             for result in pool.starmap(wrapper, case_list):
@@ -294,7 +303,7 @@ class Component(AbstractComponent):
                 print(f"START: Creating stl for '{k}'.")
                 result = wrapper(k, pat, case[2], case[3])
                 self.surfaces[result[0]] = result[1]
-                print("  DONE: Creating stl.")
+                print(f"  DONE: Creating stl for '{k}'.")
 
     def to_vtk(self):
         raise NotImplementedError("This method has not been implemented yet.")
@@ -317,7 +326,9 @@ class Component(AbstractComponent):
                 stl_mesh.save(outfile)
 
                 # Clean it
-                pymeshfix.clean_from_file(outfile, outfile)
+                # NOTE - disabling this for now as it can cause severe mesh deformation
+                # print("CLEANING STL FILE WITH PYMESHFIX")
+                # pymeshfix.clean_from_file(outfile, outfile)
 
     def analyse(self):
         # Get mass properties

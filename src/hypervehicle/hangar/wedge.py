@@ -1,7 +1,7 @@
 from hypervehicle import Vehicle
 from hypervehicle.generator import Generator
+from hypervehicle.geometry import Vector3, Line
 from hypervehicle.components import SweptComponent
-from hypervehicle.geometry import Vector3, Line, CoonsPatch
 
 
 class ParametricWedge(Generator):
@@ -39,23 +39,22 @@ class ParametricWedge(Generator):
         SE = Vector3(x=0, y=-0.5 * self.thickness)
         SW = Vector3(x=0.5 * self.chord, y=0)
 
-        # Define patches forming wedge
+        # Define sections forming wedge
         sections = []
         for i in [-1, 1]:
             z_loc = 0.5 * i * self.wingspan
             axial_shift = Vector3(x=0, y=0, z=z_loc)
-
-            N = Line(p0=NW + axial_shift, p1=NE + axial_shift)
-            S = Line(p0=SW + axial_shift, p1=SE + axial_shift)
-            E = Line(p0=SE + axial_shift, p1=NE + axial_shift)
-            W = Line(p0=SW + axial_shift, p1=NW + axial_shift)
-
-            patch = CoonsPatch(north=N, south=S, east=E, west=W)
-            sections.append(patch)
+            sections.append(
+                [
+                    Line(p0=NW + axial_shift, p1=NE + axial_shift),
+                    Line(p0=NE + axial_shift, p1=SE + axial_shift),
+                    Line(p0=SE + axial_shift, p1=SW + axial_shift),
+                    Line(p0=SW + axial_shift, p1=NW + axial_shift),
+                ]
+            )
 
         fuselage = SweptComponent(
             cross_sections=sections,
-            sweep_axis="z",
             stl_resolution=10,
         )
         wedge.add_component(fuselage)

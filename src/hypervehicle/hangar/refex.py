@@ -5,6 +5,7 @@ from hypervehicle.transformations import CART3D
 from hypervehicle.components.common import uniform_thickness_function, OgiveNose
 from hypervehicle.components import Wing, RevolvedComponent, Fin, SweptComponent
 from hypervehicle.geometry import Vector3, Line, Polyline, Arc, CoonsPatch, Bezier
+from hypervehicle.geometry.geometry import ReversedPath
 
 
 def leading_edge_width_function(r):
@@ -171,92 +172,8 @@ class ParametricReFEX(Generator):
 
         # Wing-to-body transition
         # --------------------------------------
-        x1 = bb1.x
-        n1 = Line(
-            p0=Vector3(x=x1, y=self.h, z=0.0),
-            p1=Vector3(x=x1, y=self.h, z=self.h),
-        )
-        s1 = Line(
-            p0=Vector3(x=x1, y=-self.h, z=0.0),
-            p1=Vector3(x=x1, y=-self.h, z=self.h),
-        )
-        e1 = Line(
-            p0=Vector3(x=x1, y=-self.h, z=self.h),
-            p1=Vector3(x=x1, y=self.h, z=self.h),
-        )
-        w1 = Line(
-            p0=Vector3(x=x1, y=-self.h, z=0.0),
-            p1=Vector3(x=x1, y=self.h, z=0.0),
-        )
-
-        c1 = CoonsPatch(north=n1, south=s1, east=e1, west=w1)
-
-        # x2 = -2.38
-        x2 = bb1.x + 0.9 * self.wing_length
-        n2 = Line(
-            p0=Vector3(x=x2, y=self.h, z=0.0),
-            p1=Vector3(x=x2, y=self.h, z=self.h),
-        )
-        s2 = Line(
-            p0=Vector3(x=x2, y=-self.h, z=0.0),
-            p1=Vector3(x=x2, y=-self.h, z=self.h),
-        )
-        e2 = Line(
-            p0=Vector3(x=x2, y=-self.h, z=self.h),
-            p1=Vector3(x=x2, y=self.h, z=self.h),
-        )
-        w2 = Line(
-            p0=Vector3(x=x2, y=-self.h, z=0.0),
-            p1=Vector3(x=x2, y=self.h, z=0.0),
-        )
-
-        c2 = CoonsPatch(north=n2, south=s2, east=e2, west=w2)
-
-        # x3 = -2.
-        x3 = bb1.x + 1.3 * self.wing_length
-        centre = Vector3(x=x3, y=0, z=0)
-        arc_s = Arc(
-            a=Vector3(x=x3, y=-self.h, z=0),
-            b=Vector3(
-                x=x3,
-                y=-self.h * np.cos(np.deg2rad(60)),
-                z=self.h * np.sin(np.deg2rad(60)),
-            ),
-            c=centre,
-        )
-        arc_e = Arc(
-            a=Vector3(
-                x=x3,
-                y=-self.h * np.cos(np.deg2rad(60)),
-                z=self.h * np.sin(np.deg2rad(60)),
-            ),
-            b=Vector3(
-                x=x3,
-                y=self.h * np.cos(np.deg2rad(60)),
-                z=self.h * np.sin(np.deg2rad(60)),
-            ),
-            c=centre,
-        )
-        arc_n = Arc(
-            a=Vector3(x=x3, y=self.h, z=0),
-            b=Vector3(
-                x=x3,
-                y=self.h * np.cos(np.deg2rad(60)),
-                z=self.h * np.sin(np.deg2rad(60)),
-            ),
-            c=centre,
-        )
-        west = Line(p0=arc_s.a, p1=arc_n.a)
-
-        c3 = CoonsPatch(north=arc_n, south=arc_s, east=arc_e, west=west)
-
-        sections = [c1, c2, c3]
         if self.generate_fuselage:
-            body_transition = SweptComponent(
-                cross_sections=sections,
-                sweep_axis="x",
-                stl_resolution=20,
-            )
+            body_transition = self._define_fuselage(x_ref=bb1.x)
             refex.add_component(body_transition)
 
         # Tail rudder/fin
@@ -296,6 +213,93 @@ class ParametricReFEX(Generator):
         refex.add_vehicle_transformations(CART3D)
 
         return refex
+
+    def _define_fuselage(self, x_ref: float):
+        x1 = x_ref
+        n1 = Line(
+            p0=Vector3(x=x1, y=self.h, z=0.0),
+            p1=Vector3(x=x1, y=self.h, z=self.h),
+        )
+        s1 = Line(
+            p0=Vector3(x=x1, y=-self.h, z=0.0),
+            p1=Vector3(x=x1, y=-self.h, z=self.h),
+        )
+        e1 = Line(
+            p0=Vector3(x=x1, y=-self.h, z=self.h),
+            p1=Vector3(x=x1, y=self.h, z=self.h),
+        )
+        w1 = Line(
+            p0=Vector3(x=x1, y=-self.h, z=0.0),
+            p1=Vector3(x=x1, y=self.h, z=0.0),
+        )
+
+        cs1 = [n1, ReversedPath(e1), ReversedPath(s1), w1]
+
+        # x2 = -2.38
+        x2 = x_ref + 0.9 * self.wing_length
+        n2 = Line(
+            p0=Vector3(x=x2, y=self.h, z=0.0),
+            p1=Vector3(x=x2, y=self.h, z=self.h),
+        )
+        s2 = Line(
+            p0=Vector3(x=x2, y=-self.h, z=0.0),
+            p1=Vector3(x=x2, y=-self.h, z=self.h),
+        )
+        e2 = Line(
+            p0=Vector3(x=x2, y=-self.h, z=self.h),
+            p1=Vector3(x=x2, y=self.h, z=self.h),
+        )
+        w2 = Line(
+            p0=Vector3(x=x2, y=-self.h, z=0.0),
+            p1=Vector3(x=x2, y=self.h, z=0.0),
+        )
+
+        cs2 = [n2, ReversedPath(e2), ReversedPath(s2), w2]
+
+        # x3 = -2.
+        x3 = x_ref + 1.3 * self.wing_length
+        centre = Vector3(x=x3, y=0, z=0)
+        arc_s = Arc(
+            a=Vector3(x=x3, y=-self.h, z=0),
+            b=Vector3(
+                x=x3,
+                y=-self.h * np.cos(np.deg2rad(60)),
+                z=self.h * np.sin(np.deg2rad(60)),
+            ),
+            c=centre,
+        )
+        arc_e = Arc(
+            a=Vector3(
+                x=x3,
+                y=-self.h * np.cos(np.deg2rad(60)),
+                z=self.h * np.sin(np.deg2rad(60)),
+            ),
+            b=Vector3(
+                x=x3,
+                y=self.h * np.cos(np.deg2rad(60)),
+                z=self.h * np.sin(np.deg2rad(60)),
+            ),
+            c=centre,
+        )
+        arc_n = Arc(
+            a=Vector3(x=x3, y=self.h, z=0),
+            b=Vector3(
+                x=x3,
+                y=self.h * np.cos(np.deg2rad(60)),
+                z=self.h * np.sin(np.deg2rad(60)),
+            ),
+            c=centre,
+        )
+        west = Line(p0=arc_s.a, p1=arc_n.a)
+
+        cs3 = [arc_n, ReversedPath(arc_e), ReversedPath(arc_s), west]
+
+        sections = [cs1, cs2, cs3]
+        body_transition = SweptComponent(
+            cross_sections=sections,
+            stl_resolution=20,
+        )
+        return body_transition
 
 
 if __name__ == "__main__":
