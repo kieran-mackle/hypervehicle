@@ -1,3 +1,23 @@
+## v0.7.0 (2024-08-25)
+
+### Feat
+
+- **Vehicle**: use component name with prefix for stl file naming
+- **Line**: implement __add__ method to offset with Vector3
+
+### Fix
+
+- **to_stl**: disable pymeshfix cleaning of stl
+- **ParametricD21**: geometry construction
+- **X43**: updated to add wing back, fins still not working correctly
+- **HTV**: update to generate both fins
+- **ParametricReFEX**: definition of swepth fuselage component
+- **Vector3**: order of operations transforming local
+- **ParametricFinner**: update to new swept component definition
+- **ParametricWedge**: update to new swept component definition
+- **hangar**: added missing vehicles to hangar namespace import
+- **geometry**: added missing path and vector methods
+
 ## v0.6.1 (2024-07-04)
 
 ### Fix
