@@ -326,7 +326,9 @@ class Component(AbstractComponent):
                 stl_mesh.save(outfile)
 
                 # Clean it
-                pymeshfix.clean_from_file(outfile, outfile)
+                # NOTE - disabling this for now as it can cause severe mesh deformation
+                # print("CLEANING STL FILE WITH PYMESHFIX")
+                # pymeshfix.clean_from_file(outfile, outfile)
 
     def analyse(self):
         # Get mass properties
