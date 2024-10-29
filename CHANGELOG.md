@@ -1,3 +1,9 @@
+## v0.7.1 (2024-10-29)
+
+### Fix
+
+- **Vector3**: type check for vector coordinates
+
 ## v0.7.0 (2024-08-25)
 
 ### Feat
