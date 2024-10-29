@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-    <title>Coverage for /opt/hostedtoolcache/Python/3.11.9/x64/lib/python3.11/site-packages/hypervehicle/geometry/vector.py: 85%</title>
+    <title>Coverage for /opt/hostedtoolcache/Python/3.11.10/x64/lib/python3.11/site-packages/hypervehicle/geometry/vector.py: 85%</title>
     <link rel="icon" sizes="32x32" href="favicon_32_cb_58284776.png">
     <link rel="stylesheet" href="style_cb_8e611ae1.css" type="text/css">
     <script src="coverage_html_cb_6fb7b396.js" defer></script>
@@ -11,7 +11,7 @@
 <header>
     <div class="content">
         <h1>
-            <span class="text">Coverage for </span><b>/opt/hostedtoolcache/Python/3.11.9/x64/lib/python3.11/site-packages/hypervehicle/geometry/vector.py</b>:
+            <span class="text">Coverage for </span><b>/opt/hostedtoolcache/Python/3.11.10/x64/lib/python3.11/site-packages/hypervehicle/geometry/vector.py</b>:
             <span class="pc_cov">85%</span>
         </h1>
         <aside id="help_panel_wrapper">
@@ -60,12 +60,12 @@
             <button type="button" class="exc show_exc button_toggle_exc" value="exc" data-shortcut="x" title="Toggle lines excluded">0<span class="text"> excluded</span></button>
         </h2>
         <p class="text">
-            <a id="prevFileLink" class="nav" href="z_3899e2e21007d626_surface_py.html">&#xab; prev</a> &nbsp; &nbsp;
+            <a id="prevFileLink" class="nav" href="z_9646293853779873_surface_py.html">&#xab; prev</a> &nbsp; &nbsp;
             <a id="indexLink" class="nav" href="index.html">&Hat; index</a> &nbsp; &nbsp;
-            <a id="nextFileLink" class="nav" href="z_5f17c7296939de26___init___py.html">&#xbb; next</a>
+            <a id="nextFileLink" class="nav" href="z_f0b1ee4e741507f4___init___py.html">&#xbb; next</a>
             &nbsp; &nbsp; &nbsp;
-            <a class="nav" href="https://coverage.readthedocs.io/en/7.6.1">coverage.py v7.6.1</a>,
-            created at 2024-08-25 22:58 +0000
+            <a class="nav" href="https://coverage.readthedocs.io/en/7.6.4">coverage.py v7.6.4</a>,
+            created at 2024-10-29 02:51 +0000
         </p>
         <aside class="hidden">
             <button type="button" class="button_next_chunk" data-shortcut="j"></button>
@@ -115,7 +115,7 @@
     <p class="run"><span class="n"><a id="t33" href="#t33">33</a></span><span class="t">            <span class="nam">self</span><span class="op">.</span><span class="nam">_x</span> <span class="op">=</span> <span class="nam">x</span><span class="op">.</span><span class="nam">x</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t34" href="#t34">34</a></span><span class="t">            <span class="nam">self</span><span class="op">.</span><span class="nam">_y</span> <span class="op">=</span> <span class="nam">x</span><span class="op">.</span><span class="nam">y</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t35" href="#t35">35</a></span><span class="t">            <span class="nam">self</span><span class="op">.</span><span class="nam">_z</span> <span class="op">=</span> <span class="nam">x</span><span class="op">.</span><span class="nam">z</span>&nbsp;</span><span class="r"></span></p>
-    <p class="run"><span class="n"><a id="t36" href="#t36">36</a></span><span class="t">        <span class="key">elif</span> <span class="nam">isinstance</span><span class="op">(</span><span class="nam">x</span><span class="op">,</span> <span class="op">(</span><span class="nam">float</span><span class="op">,</span> <span class="nam">int</span><span class="op">)</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t36" href="#t36">36</a></span><span class="t">        <span class="key">elif</span> <span class="nam">isinstance</span><span class="op">(</span><span class="nam">x</span><span class="op">,</span> <span class="op">(</span><span class="nam">float</span><span class="op">,</span> <span class="nam">int</span><span class="op">,</span> <span class="nam">np</span><span class="op">.</span><span class="nam">floating</span><span class="op">)</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t37" href="#t37">37</a></span><span class="t">            <span class="nam">self</span><span class="op">.</span><span class="nam">_x</span> <span class="op">=</span> <span class="nam">x</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t38" href="#t38">38</a></span><span class="t">            <span class="nam">self</span><span class="op">.</span><span class="nam">_y</span> <span class="op">=</span> <span class="nam">y</span> <span class="key">if</span> <span class="nam">y</span> <span class="key">is</span> <span class="key">not</span> <span class="key">None</span> <span class="key">else</span> <span class="num">0.0</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t39" href="#t39">39</a></span><span class="t">            <span class="nam">self</span><span class="op">.</span><span class="nam">_z</span> <span class="op">=</span> <span class="nam">z</span> <span class="key">if</span> <span class="nam">z</span> <span class="key">is</span> <span class="key">not</span> <span class="key">None</span> <span class="key">else</span> <span class="num">0.0</span>&nbsp;</span><span class="r"></span></p>
@@ -348,12 +348,12 @@
 <footer>
     <div class="content">
         <p>
-            <a class="nav" href="z_3899e2e21007d626_surface_py.html">&#xab; prev</a> &nbsp; &nbsp;
+            <a class="nav" href="z_9646293853779873_surface_py.html">&#xab; prev</a> &nbsp; &nbsp;
             <a class="nav" href="index.html">&Hat; index</a> &nbsp; &nbsp;
-            <a class="nav" href="z_5f17c7296939de26___init___py.html">&#xbb; next</a>
+            <a class="nav" href="z_f0b1ee4e741507f4___init___py.html">&#xbb; next</a>
             &nbsp; &nbsp; &nbsp;
-            <a class="nav" href="https://coverage.readthedocs.io/en/7.6.1">coverage.py v7.6.1</a>,
-            created at 2024-08-25 22:58 +0000
+            <a class="nav" href="https://coverage.readthedocs.io/en/7.6.4">coverage.py v7.6.4</a>,
+            created at 2024-10-29 02:51 +0000
         </p>
     </div>
 </footer>
