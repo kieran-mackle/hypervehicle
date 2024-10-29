@@ -33,7 +33,7 @@ class Vector3:
             self._x = x.x
             self._y = x.y
             self._z = x.z
-        elif isinstance(x, (float, int)):
+        elif isinstance(x, (float, int, np.floating)):
             self._x = x
             self._y = y if y is not None else 0.0
             self._z = z if z is not None else 0.0
